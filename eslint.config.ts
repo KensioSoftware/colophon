@@ -128,6 +128,10 @@ export default defineConfig(
   {
     rules: {
       "unicorn/better-regex": "warn",
+      // Keep domain-standard short names (`props`, `dir`, `args`) and the
+      // public API (`MetaImageProps`, `propsKey`). Pairs with the disabled
+      // `prevent-abbreviations` — added by unicorn v68's recommended config.
+      "unicorn/name-replacements": "off",
       "unicorn/prevent-abbreviations": "off",
     },
   },
