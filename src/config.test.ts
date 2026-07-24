@@ -2,16 +2,36 @@ import { describe, expect, it } from "vitest";
 
 import {
   DEFAULT_COLORS,
-  DEFAULT_DIMENSIONS,
   DEFAULT_FONT_FAMILY,
+  DEFAULT_SIZES,
   defineConfig,
   resolveConfig,
+  SIZE_PRESETS,
 } from "./config.js";
 
 describe("defineConfig", () => {
   it("returns the config unchanged", () => {
     const config = { fontFamily: "Georgia" };
     expect(defineConfig(config)).toBe(config);
+  });
+});
+
+describe("SIZE_PRESETS", () => {
+  it("carries the standard social-image dimensions", () => {
+    expect(SIZE_PRESETS.og).toStrictEqual({
+      name: "og",
+      width: 1200,
+      height: 630,
+    });
+    expect(SIZE_PRESETS.square).toStrictEqual({
+      name: "square",
+      width: 1200,
+      height: 1200,
+    });
+  });
+
+  it("defaults to the Open Graph landscape plus a square", () => {
+    expect(DEFAULT_SIZES).toStrictEqual([SIZE_PRESETS.og, SIZE_PRESETS.square]);
   });
 });
 
@@ -23,7 +43,7 @@ describe("resolveConfig", () => {
     expect(resolved.fontFamily).toBe(DEFAULT_FONT_FAMILY);
     expect(resolved.footer).toBeUndefined();
     expect(resolved.badge).toBeUndefined();
-    expect(resolved.dimensions).toBe(DEFAULT_DIMENSIONS);
+    expect(resolved.sizes).toBe(DEFAULT_SIZES);
     expect(resolved.background).toStrictEqual({
       type: "gradient",
       stops: [
@@ -66,15 +86,24 @@ describe("resolveConfig", () => {
     expect(resolveConfig({ background }).background).toBe(background);
   });
 
-  it("falls back to default dimensions when given an empty list", () => {
-    expect(resolveConfig({ dimensions: [] }).dimensions).toBe(
-      DEFAULT_DIMENSIONS,
-    );
+  it("falls back to default sizes when given an empty list", () => {
+    expect(resolveConfig({ sizes: [] }).sizes).toBe(DEFAULT_SIZES);
   });
 
-  it("keeps a non-empty custom dimensions list", () => {
-    const dimensions = [{ width: 100, height: 100 }];
-    expect(resolveConfig({ dimensions }).dimensions).toBe(dimensions);
+  it("keeps a non-empty custom sizes list", () => {
+    const sizes = [{ name: "wide", width: 100, height: 50 }];
+    expect(resolveConfig({ sizes }).sizes).toBe(sizes);
+  });
+
+  it("rejects duplicate size names", () => {
+    expect(() =>
+      resolveConfig({
+        sizes: [
+          { name: "og", width: 1200, height: 630 },
+          { name: "og", width: 800, height: 420 },
+        ],
+      }),
+    ).toThrow(/Duplicate output size name "og"/);
   });
 
   it("merges custom templates over the built-ins", () => {

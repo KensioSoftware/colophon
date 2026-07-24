@@ -59,9 +59,10 @@ Run it over a content tree:
 colophon content --config colophon.config.ts
 ```
 
-For every file that declares `meta_img_props`, Colophon writes a PNG next to it
-(`post/index.md` → `post/post.png`, plus `post/post-1200x630.png` for the extra
-size). Existing files are skipped unless you pass `--overwrite`.
+For every file that declares `meta_img_props`, Colophon writes one PNG per
+output size next to it, named `<slug>-<size>.png`
+(`post/index.md` → `post/post-og.png` and `post/post-square.png`). Existing
+files are skipped unless you pass `--overwrite`.
 
 ```
 colophon [contentDir] [options]
@@ -99,8 +100,8 @@ const images = await renderMetaImages(
 );
 
 for (const image of images) {
-  const { width, height } = image.dimensions;
-  await writeFile(`card-${width}x${height}.png`, image.png);
+  // image.name is the output-size name ("og", "square", …).
+  await writeFile(`social-${image.name}.png`, image.png);
 }
 ```
 
@@ -146,14 +147,44 @@ All fields are optional; sensible defaults apply.
 | `fontFamily` | `Arial, Helvetica, sans-serif` | Uses fonts available to `sharp`/librsvg.            |
 | `footer`     | none                           | Footer text; omit the field for none.               |
 | `badge`      | none                           | Corner badge for `banner`; omit the field for none. |
-| `dimensions` | `1200×1200` and `1200×630`     | Any list of `{ width, height }`.                    |
+| `sizes`      | `og` + `square`                | Named output sizes (see below).                     |
 | `templates`  | `banner`, `card`               | Merged over the built-ins.                          |
+
+### Output sizes and filenames
+
+Each output size is a named `{ name, width, height }`. The `name` becomes the
+filename suffix, so every image is distinct: `my-post-og.png`,
+`my-post-square.png`. The default set is one 1.91:1 Open Graph landscape and one
+1:1 square, which between them satisfy `og:image` and both `twitter:image` card
+types (`summary_large_image` reuses the landscape; `summary` uses the square).
+
+`SIZE_PRESETS` ships the common standards — compose your own set:
+
+```ts
+import { defineConfig, SIZE_PRESETS } from "@kensio/colophon";
+
+export default defineConfig({
+  sizes: [
+    SIZE_PRESETS.og, // 1200×630 — og:image (Facebook, LinkedIn, Slack, …)
+    SIZE_PRESETS.square, // 1200×1200 — Twitter summary card, universal
+    SIZE_PRESETS.twitter, // 1200×600 (2:1) — Twitter summary_large_image
+    SIZE_PRESETS.pinterest, // 1000×1500 (2:3) — Pinterest
+    { name: "hero", width: 1600, height: 900 }, // or anything custom
+  ],
+});
+```
+
+The base filename is the **post slug**: Colophon reads a top-level `slug` from
+frontmatter (SEO-friendly, keyword-rich), falling back to the file name — or the
+parent directory for `index.*` files. Point `slugField` at a different key, or
+override naming entirely with `generate`'s `outputPath` callback.
 
 ### Frontmatter shape
 
 By default Colophon reads a `meta_img_props` object and a `template` field
-within it. Both are configurable via walk options (`propsKey`, `templateField`,
-`defaultTemplate`, `extensions`) so you can match an existing convention.
+within it, plus a top-level `slug`. All are configurable via walk options
+(`propsKey`, `templateField`, `defaultTemplate`, `slugField`, `extensions`) so
+you can match an existing convention.
 
 ## Sample output
 

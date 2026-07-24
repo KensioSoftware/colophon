@@ -7,6 +7,7 @@ import type { MetaImageProps } from "../types.js";
 
 const defaultPropsKey = "meta_img_props";
 const defaultTemplateField = "template";
+const defaultSlugField = "slug";
 const defaultExtensions: readonly string[] = [".md", ".markdown"];
 
 function coerceString(value: unknown): string | undefined {
@@ -37,6 +38,11 @@ export interface WalkOptions {
   readonly templateField?: string;
   /** Template to use when the template field is absent. */
   readonly defaultTemplate?: string;
+  /**
+   * Top-level frontmatter field to read the post slug from (used as the base
+   * filename). Default `slug`; falls back to the file/directory name.
+   */
+  readonly slugField?: string;
   /** File extensions to include. Default `.md` and `.markdown`. */
   readonly extensions?: readonly string[];
 }
@@ -49,7 +55,20 @@ export interface ContentFile {
   readonly contentPath: string;
   /** Absolute path on disk. */
   readonly absolutePath: string;
+  /** Base filename for this post's images (frontmatter slug, or path-derived). */
+  readonly slug: string;
   readonly props: MetaImageProps;
+}
+
+/**
+ * Derive a slug from a file path: the filename without extension, or the
+ * parent directory name when the file is `index.*` (the common page-bundle
+ * convention).
+ */
+export function slugFromPath(filePath: string): string {
+  const extension = path.extname(filePath);
+  const base = path.basename(filePath, extension);
+  return base === "index" ? path.basename(path.dirname(filePath)) : base;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -155,18 +174,28 @@ export async function walkContent(
   const extensions = options.extensions ?? defaultExtensions;
   const filePaths = await collectContentFiles(options.dir, extensions);
 
+  const slugField = options.slugField ?? defaultSlugField;
+
   const files = await Promise.all(
     filePaths.map(async (filePath) => {
       const raw = await readFile(filePath, "utf8");
-      const props = extractProps(matter(raw).data, options);
+      const frontmatter: Record<string, unknown> = matter(raw).data;
+      const props = extractProps(frontmatter, options);
 
       if (props === undefined) {
         return;
       }
 
+      const declaredSlug = coerceString(frontmatter[slugField])?.trim();
+      const slug =
+        declaredSlug !== undefined && declaredSlug !== ""
+          ? declaredSlug
+          : slugFromPath(filePath);
+
       return {
         contentPath: path.relative(options.dir, filePath),
         absolutePath: filePath,
+        slug,
         props,
       };
     }),

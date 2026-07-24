@@ -48,21 +48,23 @@ describe("renderSvgToPng", () => {
 });
 
 describe("renderMetaImages", () => {
-  it("renders one PNG per configured dimension", async () => {
+  it("renders one named PNG per configured size", async () => {
     const images = await renderMetaImages(
       { template: "banner", title: "hello", version: "1.0.0" },
       {
-        dimensions: [
-          { width: 64, height: 64 },
-          { width: 48, height: 24 },
+        sizes: [
+          { name: "og", width: 64, height: 64 },
+          { name: "tiny", width: 48, height: 24 },
         ],
       },
     );
 
     expect(images).toHaveLength(2);
+    expect(images[0]!.name).toBe("og");
     expect(images[0]!.dimensions).toStrictEqual({ width: 64, height: 64 });
     expect(images[0]!.svg).toContain(">hello</text>");
     expect(images[0]!.png.subarray(0, 4)).toStrictEqual(pngSignature);
+    expect(images[1]!.name).toBe("tiny");
     expect(images[1]!.dimensions).toStrictEqual({ width: 48, height: 24 });
   }, 5000);
 

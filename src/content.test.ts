@@ -4,7 +4,7 @@ import path from "node:path";
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
-import { extractProps, walkContent } from "./content/index.js";
+import { extractProps, slugFromPath, walkContent } from "./content/index.js";
 
 describe("extractProps", () => {
   it("returns undefined when the props key is absent", () => {
@@ -68,6 +68,18 @@ describe("extractProps", () => {
   });
 });
 
+describe("slugFromPath", () => {
+  it("uses the parent directory for index files", () => {
+    expect(slugFromPath(path.join("blog", "my-post", "index.md"))).toBe(
+      "my-post",
+    );
+  });
+
+  it("uses the filename for non-index files", () => {
+    expect(slugFromPath(path.join("blog", "my-post.md"))).toBe("my-post");
+  });
+});
+
 describe("walkContent", () => {
   let dir: string;
 
@@ -110,6 +122,28 @@ describe("walkContent", () => {
     const a = files.find((file) => file.contentPath.startsWith("a"));
     expect(a?.props).toStrictEqual({ template: "banner", title: "A" });
     expect(a?.absolutePath).toBe(path.join(dir, "a", "index.md"));
+    // No frontmatter slug → derived from the path (index.md → directory name).
+    expect(a?.slug).toBe("a");
+  });
+
+  it("prefers a frontmatter slug, trimmed", async () => {
+    await write(
+      "post/index.md",
+      "---\nslug: '  keyword-rich-slug  '\nmeta_img_props:\n  template: banner\n  title: A\n---\n",
+    );
+
+    const [file] = await walkContent({ dir });
+    expect(file?.slug).toBe("keyword-rich-slug");
+  });
+
+  it("reads the slug from a custom frontmatter field", async () => {
+    await write(
+      "post/index.md",
+      "---\npermalink: custom-permalink\nmeta_img_props:\n  template: banner\n  title: A\n---\n",
+    );
+
+    const [file] = await walkContent({ dir, slugField: "permalink" });
+    expect(file?.slug).toBe("custom-permalink");
   });
 
   it("passes walk options through to prop extraction", async () => {
@@ -126,5 +160,6 @@ describe("walkContent", () => {
       template: "card",
       title: "Custom",
     });
+    expect(files[0]!.slug).toBe("post");
   });
 });

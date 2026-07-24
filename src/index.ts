@@ -6,6 +6,7 @@ export type {
   Dimensions,
   GradientStop,
   MetaImageProps,
+  OutputSize,
   RenderedMetaImage,
   ResolvedConfig,
   Template,
@@ -14,10 +15,11 @@ export type {
 
 export {
   DEFAULT_COLORS,
-  DEFAULT_DIMENSIONS,
   DEFAULT_FONT_FAMILY,
+  DEFAULT_SIZES,
   defineConfig,
   resolveConfig,
+  SIZE_PRESETS,
 } from "./config.js";
 
 export { backgroundSvg } from "./background.js";
@@ -33,5 +35,5 @@ export type { GeneratedImage, GenerateOptions } from "./generate.js";
 
 export { escapeXml, wrapText } from "./text.js";
 
-export { extractProps, walkContent } from "./content/index.js";
+export { extractProps, slugFromPath, walkContent } from "./content/index.js";
 export type { ContentFile, WalkOptions } from "./content/index.js";
