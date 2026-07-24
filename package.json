@@ -1,0 +1,85 @@
+{
+  "name": "@kensio/colophon",
+  "description": "Generate social meta images for posts from frontmatter",
+  "author": "Kensio Software",
+  "repository": "https://github.com/KensioSoftware/colophon",
+  "homepage": "https://github.com/KensioSoftware/colophon#readme",
+  "license": "Apache-2.0",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "colophon": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./content": {
+      "types": "./dist/content/index.d.ts",
+      "import": "./dist/content/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "packageManager": "pnpm@11.17.0+sha512.cca3cea332ad254bb84145f966d19f4879615210346fc92c79a047f23a0d7b3cca3c3792f0076ba1f1831d277efbcf0a9119b31a9a60eca7fb3d6231f331ef72",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "build:check": "tsc -p tsconfig.json --noEmit",
+    "fmt": "eslint --fix . && prettier --write .",
+    "lint": "eslint . && prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "samples": "pnpm build && node scripts/gen-samples.ts",
+    "check": "pnpm fmt && pnpm build:check && pnpm test:coverage"
+  },
+  "keywords": [
+    "open-graph",
+    "og-image",
+    "social-image",
+    "meta-image",
+    "share-image",
+    "frontmatter",
+    "static-site",
+    "svg",
+    "sharp"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@kensio/smartass": "^1.33.0",
+    "@types/eslint-plugin-security": "^3.0.1",
+    "@types/node": "^25.9.5",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/eslint-plugin": "^1.6.22",
+    "eslint": "^10.6.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsdoc": "^63.0.13",
+    "eslint-plugin-no-secrets": "^2.3.3",
+    "eslint-plugin-security": "^4.0.1",
+    "eslint-plugin-unicorn": "^67.0.0",
+    "globals": "^17.7.0",
+    "jiti": "^2.7.0",
+    "prettier": "^3.9.5",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
+    "typescript-eslint": "^8.63.0",
+    "vitest": "^4.1.10"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "sharp": "^0.34.4"
+  }
+}
