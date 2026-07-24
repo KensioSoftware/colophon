@@ -98,7 +98,7 @@ const written = await Promise.all(
   samples.map(async (sample) => {
     const [image] = await renderMetaImages(sample.props, {
       ...sample.config,
-      dimensions: [sample.dimensions],
+      sizes: [{ name: sample.name, ...sample.dimensions }],
     });
 
     if (image === undefined) {

@@ -7,6 +7,17 @@ export interface Dimensions {
 }
 
 /**
+ * A named output size. The `name` identifies the size in output filenames
+ * (e.g. `og`, `square`) and must be unique within a config, so every
+ * generated image gets a distinct, descriptive filename.
+ */
+export interface OutputSize {
+  readonly name: string;
+  readonly width: number;
+  readonly height: number;
+}
+
+/**
  * A single colour stop in a gradient background.
  */
 export interface GradientStop {
@@ -102,8 +113,11 @@ export interface ColophonConfig {
   readonly footer?: string;
   /** Corner badge for the `banner` template. Omit (the default) for none. */
   readonly badge?: Badge;
-  /** Output sizes. Defaults to a 1:1 square plus a 1.91:1 landscape. */
-  readonly dimensions?: readonly Dimensions[];
+  /**
+   * Output sizes, each with a unique `name` used in the filename. Defaults to
+   * a 1.91:1 Open Graph landscape plus a 1:1 square (see `DEFAULT_SIZES`).
+   */
+  readonly sizes?: readonly OutputSize[];
   /** Extra templates, merged over (and able to override) the built-ins. */
   readonly templates?: Readonly<Record<string, Template>>;
 }
@@ -117,7 +131,7 @@ export interface ResolvedConfig {
   readonly fontFamily: string;
   readonly footer: string | undefined;
   readonly badge: Badge | undefined;
-  readonly dimensions: readonly Dimensions[];
+  readonly sizes: readonly OutputSize[];
   readonly templates: Readonly<Record<string, Template>>;
 }
 
@@ -125,6 +139,8 @@ export interface ResolvedConfig {
  * One rendered image: the source SVG plus the encoded PNG bytes.
  */
 export interface RenderedMetaImage {
+  /** The name of the output size this image was rendered for. */
+  readonly name: string;
   readonly dimensions: Dimensions;
   readonly svg: string;
   readonly png: Buffer;

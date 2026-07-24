@@ -6,14 +6,14 @@ import { resolveConfig } from "./config.js";
 import type { ContentFile, WalkOptions } from "./content/index.js";
 import { walkContent } from "./content/index.js";
 import { buildSvg, renderSvgToPng } from "./render.js";
-import type { ColophonConfig, Dimensions } from "./types.js";
+import type { ColophonConfig, OutputSize } from "./types.js";
 
 /**
  * Outcome for one generated (or skipped) image.
  */
 export interface GeneratedImage {
   readonly contentPath: string;
-  readonly dimensions: Dimensions;
+  readonly size: OutputSize;
   readonly outputPath: string;
   /** True when an existing file was left in place (no `overwrite`). */
   readonly skipped: boolean;
@@ -26,14 +26,10 @@ export interface GenerateOptions {
   /** Root content directory to walk. */
   readonly contentDir: string;
   readonly config?: ColophonConfig;
-  /** Extra walk options (props key, template field, extensions, …). */
+  /** Extra walk options (props key, template field, slug field, extensions). */
   readonly walk?: Omit<WalkOptions, "dir">;
   /** Override where each image is written. */
-  readonly outputPath?: (
-    file: ContentFile,
-    dimensions: Dimensions,
-    index: number,
-  ) => string;
+  readonly outputPath?: (file: ContentFile, size: OutputSize) => string;
   /** Re-render even when the output file already exists. Default `false`. */
   readonly overwrite?: boolean;
   /** Called after each image is written or skipped. */
@@ -41,25 +37,13 @@ export interface GenerateOptions {
 }
 
 /**
- * Default output path: alongside the content file, named after the file (or
- * its parent directory when the file is `index.*`). The first (square) size
- * keeps the bare name; additional sizes get a `-WxH` suffix.
+ * Default output path: alongside the content file, named `<slug>-<size>.png`.
+ * The slug carries the post's keywords into the filename and the size name
+ * keeps every image distinct (e.g. `my-post-og.png`, `my-post-square.png`).
  */
-export function defaultOutputPath(
-  file: ContentFile,
-  dimensions: Dimensions,
-  index: number,
-): string {
+export function defaultOutputPath(file: ContentFile, size: OutputSize): string {
   const directory = path.dirname(file.absolutePath);
-  const extension = path.extname(file.contentPath);
-  const base = path.basename(file.contentPath, extension);
-  const stem = base === "index" ? path.basename(directory) : base;
-  const suffix =
-    index === 0
-      ? ""
-      : `-${String(dimensions.width)}x${String(dimensions.height)}`;
-
-  return path.join(directory, `${stem}${suffix}.png`);
+  return path.join(directory, `${file.slug}-${size.name}.png`);
 }
 
 /**
@@ -76,19 +60,16 @@ export async function generate(
   const files = await walkContent({ dir: options.contentDir, ...options.walk });
 
   const jobs = files.flatMap((file) =>
-    resolved.dimensions.map((dimensions, index) => ({
-      file,
-      dimensions,
-      index,
-    })),
+    resolved.sizes.map((size) => ({ file, size })),
   );
 
   return Promise.all(
-    jobs.map(async ({ file, dimensions, index }) => {
-      const outputPath = toOutputPath(file, dimensions, index);
+    jobs.map(async ({ file, size }) => {
+      const outputPath = toOutputPath(file, size);
       const isSkipped = existsSync(outputPath) && options.overwrite !== true;
 
       if (!isSkipped) {
+        const dimensions = { width: size.width, height: size.height };
         const svg = buildSvg(file.props, resolved, dimensions);
         const png = await renderSvgToPng(svg, dimensions);
         await mkdir(path.dirname(outputPath), { recursive: true });
@@ -97,7 +78,7 @@ export async function generate(
 
       const result: GeneratedImage = {
         contentPath: file.contentPath,
-        dimensions,
+        size,
         outputPath,
         skipped: isSkipped,
       };
