@@ -1,9 +1,19 @@
-import { existsSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import {
+  assertArrayEquals,
+  assertArrayLength,
+  assertBufferEqual,
+  assertFalse,
+  assertFileEquals,
+  assertFileExists,
+  assertIdentical,
+  assertNonNullable,
+  assertTrue,
+} from "@kensio/smartass";
+import { afterEach, beforeEach, describe, it } from "vitest";
 
 import type { ContentFile } from "./content/index.js";
 import { defaultOutputPath, generate } from "./generate.js";
@@ -14,6 +24,8 @@ const tinySizes: OutputSize[] = [
   { name: "og", width: 32, height: 32 },
   { name: "square", width: 16, height: 16 },
 ];
+
+const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
 function byPath(a: string, b: string): number {
   return a.localeCompare(b);
@@ -39,25 +51,21 @@ describe("defaultOutputPath", () => {
   };
 
   it("names files <slug>-<size>.png next to the content file", () => {
-    expect(
+    assertIdentical(
       defaultOutputPath(file, { name: "og", width: 1200, height: 630 }),
-    ).toBe(path.join("/root", "guide", "getting-started-guide-og.png"));
+      path.join("/root", "guide", "getting-started-guide-og.png"),
+    );
   });
 
   it("gives each size a distinct filename", () => {
-    const square = defaultOutputPath(file, {
-      name: "square",
-      width: 1200,
-      height: 1200,
-    });
-    const og = defaultOutputPath(file, {
-      name: "og",
-      width: 1200,
-      height: 630,
-    });
-
-    expect(square).not.toBe(og);
-    expect(square.endsWith("getting-started-guide-square.png")).toBe(true);
+    assertIdentical(
+      defaultOutputPath(file, { name: "square", width: 1200, height: 1200 }),
+      path.join("/root", "guide", "getting-started-guide-square.png"),
+    );
+    assertIdentical(
+      defaultOutputPath(file, { name: "og", width: 1200, height: 630 }),
+      path.join("/root", "guide", "getting-started-guide-og.png"),
+    );
   });
 });
 
@@ -80,16 +88,16 @@ describe("generate", () => {
   it("writes one distinctly-named PNG per size next to the content file", async () => {
     const results = await generate(options(dir));
 
-    expect(results).toHaveLength(2);
-    expect(results.every((result) => !result.skipped)).toBe(true);
+    assertArrayLength(results, 2);
+    assertTrue(results.every((result) => !result.skipped));
 
     // `guide/index.md` has no frontmatter slug, so the slug is the directory.
     const og = path.join(dir, "guide", "guide-og.png");
     const square = path.join(dir, "guide", "guide-square.png");
-    expect(existsSync(og)).toBe(true);
-    expect(existsSync(square)).toBe(true);
-    expect(results[0]!.outputPath).toBe(og);
-    expect(results[0]!.size.name).toBe("og");
+    assertFileExists(og);
+    assertFileExists(square);
+    assertIdentical(results[0].outputPath, og);
+    assertIdentical(results[0].size.name, "og");
   }, 5000);
 
   it("uses a frontmatter slug as the base filename", async () => {
@@ -104,10 +112,8 @@ describe("generate", () => {
       result.outputPath.includes("keyword-rich-slug"),
     );
 
-    expect(slugged).toHaveLength(2);
-    expect(existsSync(path.join(dir, "post", "keyword-rich-slug-og.png"))).toBe(
-      true,
-    );
+    assertArrayLength(slugged, 2);
+    assertFileExists(path.join(dir, "post", "keyword-rich-slug-og.png"));
   }, 5000);
 
   it("skips existing files and does not overwrite them", async () => {
@@ -117,8 +123,9 @@ describe("generate", () => {
     const results = await generate(options(dir));
     const ogResult = results.find((result) => result.outputPath === target);
 
-    expect(ogResult?.skipped).toBe(true);
-    expect(await readFile(target, "utf8")).toBe("sentinel");
+    assertNonNullable(ogResult);
+    assertTrue(ogResult.skipped);
+    assertFileEquals(target, "sentinel");
   }, 5000);
 
   it("re-renders when overwrite is set", async () => {
@@ -128,8 +135,11 @@ describe("generate", () => {
     const results = await generate(options(dir, { overwrite: true }));
     const ogResult = results.find((result) => result.outputPath === target);
 
-    expect(ogResult?.skipped).toBe(false);
-    expect(await readFile(target, "utf8")).not.toBe("sentinel");
+    assertNonNullable(ogResult);
+    assertFalse(ogResult.skipped);
+    // The sentinel is gone, replaced by a real PNG.
+    const written = await readFile(target);
+    assertBufferEqual(written.subarray(0, 4), pngSignature);
   }, 5000);
 
   it("uses a custom output path and reports each result", async () => {
@@ -146,8 +156,9 @@ describe("generate", () => {
       }),
     );
 
-    expect(existsSync(path.join(outDir, "guide.og.png"))).toBe(true);
-    expect(seen.toSorted(byPath)).toStrictEqual(
+    assertFileExists(path.join(outDir, "guide.og.png"));
+    assertArrayEquals(
+      seen.toSorted(byPath),
       results.map((result) => result.outputPath).toSorted(byPath),
     );
   }, 5000);

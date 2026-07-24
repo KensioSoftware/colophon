@@ -2,6 +2,7 @@ import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import eslint from "@eslint/js";
+import { smartassPreferSpecificAssertions } from "@kensio/smartass/eslint";
 import vitest from "@vitest/eslint-plugin";
 import { defineConfig } from "eslint/config";
 import prettier from "eslint-config-prettier";
@@ -156,7 +157,6 @@ export default defineConfig(
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
-      "@typescript-eslint/no-non-null-assertion": "off",
       "@typescript-eslint/explicit-function-return-type": "off",
       // Tests construct real-world fixture data (e.g. snake_case frontmatter keys).
       "@typescript-eslint/naming-convention": "off",
@@ -224,6 +224,10 @@ export default defineConfig(
       ],
     },
   },
+
+  // ── Smartass (steer towards the most specific assertion) ──
+  // e.g. assertIdentical(foo.length, 2) → assertArrayLength(foo, 2).
+  ...smartassPreferSpecificAssertions,
 
   // ── Prettier (must be last — disables conflicting rules)
   prettier,

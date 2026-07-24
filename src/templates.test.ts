@@ -1,4 +1,10 @@
-import { describe, expect, it } from "vitest";
+import {
+  assertArrayLength,
+  assertIdentical,
+  assertStringIncludes,
+  assertStringNotIncludes,
+} from "@kensio/smartass";
+import { describe, it } from "vitest";
 
 import { resolveConfig } from "./config.js";
 import {
@@ -21,8 +27,8 @@ function render(
 
 describe("builtinTemplates", () => {
   it("registers banner and card by name", () => {
-    expect(builtinTemplates["banner"]).toBe(bannerTemplate);
-    expect(builtinTemplates["card"]).toBe(cardTemplate);
+    assertIdentical(builtinTemplates["banner"], bannerTemplate);
+    assertIdentical(builtinTemplates["card"], cardTemplate);
   });
 });
 
@@ -39,12 +45,12 @@ describe("bannerTemplate", () => {
       { badge: { text: "npm" }, footer: "example.com" },
     );
 
-    expect(svg).toContain(">hello world</text>");
-    expect(svg).toContain(">v1.2.0</text>");
-    expect(svg).toContain(">example.com</text>");
-    expect(svg).toContain(">npm</text>");
-    expect(svg).toContain("<rect"); // badge box
-    expect(svg).toContain("a wrapped");
+    assertStringIncludes(svg, ">hello world</text>");
+    assertStringIncludes(svg, ">v1.2.0</text>");
+    assertStringIncludes(svg, ">example.com</text>");
+    assertStringIncludes(svg, ">npm</text>");
+    assertStringIncludes(svg, "<rect"); // badge box
+    assertStringIncludes(svg, "a wrapped");
   });
 
   it("omits version, badge and footer when not configured", () => {
@@ -53,9 +59,9 @@ describe("bannerTemplate", () => {
       title: "just a title",
     });
 
-    expect(svg).toContain(">just a title</text>");
-    expect(svg).not.toContain("<rect");
-    expect(svg.match(/<text/g)).toHaveLength(1);
+    assertStringIncludes(svg, ">just a title</text>");
+    assertStringNotIncludes(svg, "<rect");
+    assertArrayLength(svg.match(/<text/g), 1);
   });
 
   it("coerces a numeric version and escapes the title", () => {
@@ -65,8 +71,8 @@ describe("bannerTemplate", () => {
       version: 2,
     });
 
-    expect(svg).toContain(">a &amp; b</text>");
-    expect(svg).toContain(">v2</text>");
+    assertStringIncludes(svg, ">a &amp; b</text>");
+    assertStringIncludes(svg, ">v2</text>");
   });
 
   it("ignores an empty-string subtitle", () => {
@@ -77,7 +83,7 @@ describe("bannerTemplate", () => {
     });
 
     // No subtitle → larger, single title line and nothing else textual.
-    expect(svg.match(/<text/g)).toHaveLength(1);
+    assertArrayLength(svg.match(/<text/g), 1);
   });
 });
 
@@ -89,9 +95,9 @@ describe("cardTemplate", () => {
       subtitle: "and a subtitle",
     });
 
-    expect(svg).toContain(">centered title</text>");
-    expect(svg).toContain(">and a subtitle</text>");
-    expect(svg).toContain('text-anchor="middle"');
+    assertStringIncludes(svg, ">centered title</text>");
+    assertStringIncludes(svg, ">and a subtitle</text>");
+    assertStringIncludes(svg, 'text-anchor="middle"');
   });
 
   it("renders a footer when configured", () => {
@@ -101,11 +107,11 @@ describe("cardTemplate", () => {
       { footer: "site.example" },
     );
 
-    expect(svg).toContain(">site.example</text>");
+    assertStringIncludes(svg, ">site.example</text>");
   });
 
   it("renders only the title when nothing else is given", () => {
     const svg = render(cardTemplate, { template: "card", title: "solo" });
-    expect(svg.match(/<text/g)).toHaveLength(1);
+    assertArrayLength(svg.match(/<text/g), 1);
   });
 });

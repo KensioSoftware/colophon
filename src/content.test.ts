@@ -2,22 +2,30 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import {
+  assertArrayEquals,
+  assertArrayLength,
+  assertIdentical,
+  assertNonNullable,
+  assertObjectEquals,
+  assertUndefined,
+} from "@kensio/smartass";
+import { afterEach, beforeEach, describe, it } from "vitest";
 
 import { extractProps, slugFromPath, walkContent } from "./content/index.js";
 
 describe("extractProps", () => {
   it("returns undefined when the props key is absent", () => {
-    expect(extractProps({ title: "t" })).toBeUndefined();
+    assertUndefined(extractProps({ title: "t" }));
   });
 
   it("returns undefined when the props value is not an object", () => {
-    expect(extractProps({ meta_img_props: "nope" })).toBeUndefined();
-    expect(extractProps({ meta_img_props: ["a"] })).toBeUndefined();
+    assertUndefined(extractProps({ meta_img_props: "nope" }));
+    assertUndefined(extractProps({ meta_img_props: ["a"] }));
   });
 
   it("returns undefined when there is no template and no default", () => {
-    expect(extractProps({ meta_img_props: { title: "t" } })).toBeUndefined();
+    assertUndefined(extractProps({ meta_img_props: { title: "t" } }));
   });
 
   it("uses the default template when the field is missing", () => {
@@ -26,16 +34,15 @@ describe("extractProps", () => {
       { defaultTemplate: "banner" },
     );
 
-    expect(props?.template).toBe("banner");
+    assertNonNullable(props);
+    assertIdentical(props.template, "banner");
   });
 
   it("returns undefined when the title is missing or not a string", () => {
-    expect(
-      extractProps({ meta_img_props: { template: "banner" } }),
-    ).toBeUndefined();
-    expect(
+    assertUndefined(extractProps({ meta_img_props: { template: "banner" } }));
+    assertUndefined(
       extractProps({ meta_img_props: { template: "banner", title: 5 } }),
-    ).toBeUndefined();
+    );
   });
 
   it("reads template, title, subtitle, version and extras", () => {
@@ -49,7 +56,7 @@ describe("extractProps", () => {
       },
     });
 
-    expect(props).toStrictEqual({
+    assertObjectEquals(props, {
       template: "banner",
       title: "Hello",
       subtitle: "Sub",
@@ -64,19 +71,20 @@ describe("extractProps", () => {
       { propsKey: "og", templateField: "format" },
     );
 
-    expect(props).toStrictEqual({ template: "card", title: "T", extra: 1 });
+    assertObjectEquals(props, { template: "card", title: "T", extra: 1 });
   });
 });
 
 describe("slugFromPath", () => {
   it("uses the parent directory for index files", () => {
-    expect(slugFromPath(path.join("blog", "my-post", "index.md"))).toBe(
+    assertIdentical(
+      slugFromPath(path.join("blog", "my-post", "index.md")),
       "my-post",
     );
   });
 
   it("uses the filename for non-index files", () => {
-    expect(slugFromPath(path.join("blog", "my-post.md"))).toBe("my-post");
+    assertIdentical(slugFromPath(path.join("blog", "my-post.md")), "my-post");
   });
 });
 
@@ -114,16 +122,17 @@ describe("walkContent", () => {
       .map((file) => file.contentPath)
       .toSorted((a, b) => a.localeCompare(b));
 
-    expect(paths).toStrictEqual([
+    assertArrayEquals(paths, [
       path.join("a", "index.md"),
       path.join("nested", "deep", "post.markdown"),
     ]);
 
     const a = files.find((file) => file.contentPath.startsWith("a"));
-    expect(a?.props).toStrictEqual({ template: "banner", title: "A" });
-    expect(a?.absolutePath).toBe(path.join(dir, "a", "index.md"));
+    assertNonNullable(a);
+    assertObjectEquals(a.props, { template: "banner", title: "A" });
+    assertIdentical(a.absolutePath, path.join(dir, "a", "index.md"));
     // No frontmatter slug → derived from the path (index.md → directory name).
-    expect(a?.slug).toBe("a");
+    assertIdentical(a.slug, "a");
   });
 
   it("prefers a frontmatter slug, trimmed", async () => {
@@ -132,8 +141,10 @@ describe("walkContent", () => {
       "---\nslug: '  keyword-rich-slug  '\nmeta_img_props:\n  template: banner\n  title: A\n---\n",
     );
 
-    const [file] = await walkContent({ dir });
-    expect(file?.slug).toBe("keyword-rich-slug");
+    const files = await walkContent({ dir });
+
+    assertArrayLength(files, 1);
+    assertIdentical(files[0].slug, "keyword-rich-slug");
   });
 
   it("reads the slug from a custom frontmatter field", async () => {
@@ -142,8 +153,10 @@ describe("walkContent", () => {
       "---\npermalink: custom-permalink\nmeta_img_props:\n  template: banner\n  title: A\n---\n",
     );
 
-    const [file] = await walkContent({ dir, slugField: "permalink" });
-    expect(file?.slug).toBe("custom-permalink");
+    const files = await walkContent({ dir, slugField: "permalink" });
+
+    assertArrayLength(files, 1);
+    assertIdentical(files[0].slug, "custom-permalink");
   });
 
   it("passes walk options through to prop extraction", async () => {
@@ -155,11 +168,11 @@ describe("walkContent", () => {
       defaultTemplate: "card",
     });
 
-    expect(files).toHaveLength(1);
-    expect(files[0]!.props).toStrictEqual({
+    assertArrayLength(files, 1);
+    assertObjectEquals(files[0].props, {
       template: "card",
       title: "Custom",
     });
-    expect(files[0]!.slug).toBe("post");
+    assertIdentical(files[0].slug, "post");
   });
 });

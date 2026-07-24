@@ -1,4 +1,11 @@
-import { describe, expect, it } from "vitest";
+import {
+  assertArrayEquals,
+  assertArrayLength,
+  assertIdentical,
+  assertStringIncludes,
+  assertStringNotIncludes,
+} from "@kensio/smartass";
+import { describe, it } from "vitest";
 
 import {
   escapeXml,
@@ -14,45 +21,45 @@ function baselineGap(placed: { y: number }[]): number {
 
 describe("escapeXml", () => {
   it("escapes the five XML special characters", () => {
-    expect(escapeXml(`&<>"'`)).toBe("&amp;&lt;&gt;&quot;&apos;");
+    assertIdentical(escapeXml(`&<>"'`), "&amp;&lt;&gt;&quot;&apos;");
   });
 
   it("escapes ampersands before other entities", () => {
-    expect(escapeXml("a & <b>")).toBe("a &amp; &lt;b&gt;");
+    assertIdentical(escapeXml("a & <b>"), "a &amp; &lt;b&gt;");
   });
 });
 
 describe("wrapText", () => {
   it("wraps on word boundaries within the character limit", () => {
-    expect(wrapText("the quick brown fox", 10)).toStrictEqual([
+    assertArrayEquals(wrapText("the quick brown fox", 10), [
       "the quick",
       "brown fox",
     ]);
   });
 
   it("keeps a word longer than the limit on its own line", () => {
-    expect(wrapText("supercalifragilistic word", 10)).toStrictEqual([
+    assertArrayEquals(wrapText("supercalifragilistic word", 10), [
       "supercalifragilistic",
       "word",
     ]);
   });
 
   it("collapses runs of whitespace and ignores empties", () => {
-    expect(wrapText("  a   b  ", 10)).toStrictEqual(["a b"]);
+    assertArrayEquals(wrapText("  a   b  ", 10), ["a b"]);
   });
 
   it("returns an empty array for blank input", () => {
-    expect(wrapText(" ".repeat(3), 10)).toStrictEqual([]);
+    assertArrayEquals(wrapText(" ".repeat(3), 10), []);
   });
 });
 
 describe("estimateCharsPerLine", () => {
   it("scales inversely with font size", () => {
-    expect(estimateCharsPerLine(1000, 100, 0.5)).toBe(20);
+    assertIdentical(estimateCharsPerLine(1000, 100, 0.5), 20);
   });
 
   it("never returns less than one", () => {
-    expect(estimateCharsPerLine(1, 100)).toBe(1);
+    assertIdentical(estimateCharsPerLine(1, 100), 1);
   });
 });
 
@@ -60,15 +67,18 @@ describe("layoutStack", () => {
   it("centres the block and returns increasing baselines", () => {
     const placed = layoutStack([{ fontSize: 100 }, { fontSize: 100 }], 0, 1000);
 
-    expect(placed).toHaveLength(2);
-    expect(placed[0]!.y).toBeLessThan(placed[1]!.y);
-    // Two 120px advances (240 total) centred in 1000 → starts at 380.
-    expect(placed[0]!.y).toBe(460);
+    // Two 120px advances (240 total) centred in 1000 → block starts at 380,
+    // and each baseline sits 80px (0.8em) into its line.
+    assertArrayLength(placed, 2);
+    assertIdentical(placed[0].y, 460);
+    assertIdentical(placed[1].y, 580);
   });
 
   it("starts at the top when the block overflows the area", () => {
     const placed = layoutStack([{ fontSize: 100 }], 100, 150);
-    expect(placed[0]!.y).toBe(180);
+
+    assertArrayLength(placed, 1);
+    assertIdentical(placed[0].y, 180);
   });
 
   it("inserts extra space before a line with gapBefore", () => {
@@ -84,11 +94,11 @@ describe("layoutStack", () => {
     );
 
     // The gap pushes the second line 40px further from the first.
-    expect(baselineGap(withGap)).toBe(baselineGap(withoutGap) + 40);
+    assertIdentical(baselineGap(withGap), baselineGap(withoutGap) + 40);
   });
 
   it("honours an explicit line height", () => {
-    const [first, second] = layoutStack(
+    const placed = layoutStack(
       [
         { fontSize: 100, lineHeight: 2 },
         { fontSize: 100, lineHeight: 2 },
@@ -98,7 +108,8 @@ describe("layoutStack", () => {
     );
 
     // Advance is fontSize * lineHeight = 200 between baselines.
-    expect(second!.y - first!.y).toBe(200);
+    assertArrayLength(placed, 2);
+    assertIdentical(placed[1].y - placed[0].y, 200);
   });
 });
 
@@ -113,13 +124,13 @@ describe("textElement", () => {
       fill: "#fff",
     });
 
-    expect(svg).toContain('x="10"');
-    expect(svg).toContain('y="20"');
-    expect(svg).toContain('font-size="40"');
-    expect(svg).toContain('font-weight="700"');
-    expect(svg).toContain(">A &amp; B</text>");
-    expect(svg).not.toContain("fill-opacity");
-    expect(svg).not.toContain("text-anchor");
+    assertStringIncludes(svg, 'x="10"');
+    assertStringIncludes(svg, 'y="20"');
+    assertStringIncludes(svg, 'font-size="40"');
+    assertStringIncludes(svg, 'font-weight="700"');
+    assertStringIncludes(svg, ">A &amp; B</text>");
+    assertStringNotIncludes(svg, "fill-opacity");
+    assertStringNotIncludes(svg, "text-anchor");
   });
 
   it("includes optional opacity and anchor when given", () => {
@@ -134,7 +145,7 @@ describe("textElement", () => {
       anchor: "middle",
     });
 
-    expect(svg).toContain('fill-opacity="0.5"');
-    expect(svg).toContain('text-anchor="middle"');
+    assertStringIncludes(svg, 'fill-opacity="0.5"');
+    assertStringIncludes(svg, 'text-anchor="middle"');
   });
 });

@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { assertIdentical, assertStringIncludes } from "@kensio/smartass";
+import { describe, it } from "vitest";
 
 import { backgroundSvg } from "./background.js";
 
@@ -12,7 +13,7 @@ describe("backgroundSvg", () => {
       "bg",
     );
 
-    expect(svg).toBe('<rect width="800" height="400" fill="#123456"/>');
+    assertIdentical(svg, '<rect width="800" height="400" fill="#123456"/>');
   });
 
   it("renders a gradient with defs, stops and default direction", () => {
@@ -28,11 +29,11 @@ describe("backgroundSvg", () => {
       "bg",
     );
 
-    expect(svg).toContain('<linearGradient id="bg"');
-    expect(svg).toContain('x1="0" y1="0" x2="1" y2="1"');
-    expect(svg).toContain('<stop offset="0%" stop-color="#000"/>');
-    expect(svg).toContain('<stop offset="100%" stop-color="#fff"/>');
-    expect(svg).toContain('fill="url(#bg)"');
+    assertStringIncludes(svg, '<linearGradient id="bg"');
+    assertStringIncludes(svg, 'x1="0" y1="0" x2="1" y2="1"');
+    assertStringIncludes(svg, '<stop offset="0%" stop-color="#000"/>');
+    assertStringIncludes(svg, '<stop offset="100%" stop-color="#fff"/>');
+    assertStringIncludes(svg, 'fill="url(#bg)"');
   });
 
   it("honours a custom gradient direction", () => {
@@ -47,6 +48,6 @@ describe("backgroundSvg", () => {
       "bg",
     );
 
-    expect(svg).toContain('x1="0" y1="0" x2="1" y2="0"');
+    assertStringIncludes(svg, 'x1="0" y1="0" x2="1" y2="0"');
   });
 });
