@@ -8,10 +8,11 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { ContentFile } from "./content/index.js";
 import { defaultOutputPath, generate } from "./generate.js";
 import type { GenerateOptions } from "./generate.js";
+import type { OutputSize } from "./types.js";
 
-const tinyDimensions = [
-  { width: 32, height: 32 },
-  { width: 16, height: 16 },
+const tinySizes: OutputSize[] = [
+  { name: "og", width: 32, height: 32 },
+  { name: "square", width: 16, height: 16 },
 ];
 
 function byPath(a: string, b: string): number {
@@ -24,7 +25,7 @@ function options(
 ): GenerateOptions {
   return {
     contentDir: dir,
-    config: { dimensions: tinyDimensions },
+    config: { sizes: tinySizes },
     ...overrides,
   };
 }
@@ -33,31 +34,30 @@ describe("defaultOutputPath", () => {
   const file: ContentFile = {
     contentPath: path.join("guide", "index.md"),
     absolutePath: path.join("/root", "guide", "index.md"),
+    slug: "getting-started-guide",
     props: { template: "banner", title: "t" },
   };
 
-  it("names index.* after the parent directory, no suffix for the first size", () => {
-    expect(defaultOutputPath(file, { width: 1200, height: 1200 }, 0)).toBe(
-      path.join("/root", "guide", "guide.png"),
-    );
+  it("names files <slug>-<size>.png next to the content file", () => {
+    expect(
+      defaultOutputPath(file, { name: "og", width: 1200, height: 630 }),
+    ).toBe(path.join("/root", "guide", "getting-started-guide-og.png"));
   });
 
-  it("adds a WxH suffix for additional sizes", () => {
-    expect(defaultOutputPath(file, { width: 1200, height: 630 }, 1)).toBe(
-      path.join("/root", "guide", "guide-1200x630.png"),
-    );
-  });
+  it("gives each size a distinct filename", () => {
+    const square = defaultOutputPath(file, {
+      name: "square",
+      width: 1200,
+      height: 1200,
+    });
+    const og = defaultOutputPath(file, {
+      name: "og",
+      width: 1200,
+      height: 630,
+    });
 
-  it("names non-index files after the file itself", () => {
-    const post: ContentFile = {
-      contentPath: "hello.md",
-      absolutePath: path.join("/root", "hello.md"),
-      props: { template: "banner", title: "t" },
-    };
-
-    expect(defaultOutputPath(post, { width: 1, height: 1 }, 0)).toBe(
-      path.join("/root", "hello.png"),
-    );
+    expect(square).not.toBe(og);
+    expect(square.endsWith("getting-started-guide-square.png")).toBe(true);
   });
 });
 
@@ -77,38 +77,58 @@ describe("generate", () => {
     await rm(dir, { recursive: true, force: true });
   });
 
-  it("writes one PNG per dimension next to the content file", async () => {
+  it("writes one distinctly-named PNG per size next to the content file", async () => {
     const results = await generate(options(dir));
 
     expect(results).toHaveLength(2);
     expect(results.every((result) => !result.skipped)).toBe(true);
 
-    const square = path.join(dir, "guide", "guide.png");
-    const small = path.join(dir, "guide", "guide-16x16.png");
+    // `guide/index.md` has no frontmatter slug, so the slug is the directory.
+    const og = path.join(dir, "guide", "guide-og.png");
+    const square = path.join(dir, "guide", "guide-square.png");
+    expect(existsSync(og)).toBe(true);
     expect(existsSync(square)).toBe(true);
-    expect(existsSync(small)).toBe(true);
-    expect(results[0]!.outputPath).toBe(square);
+    expect(results[0]!.outputPath).toBe(og);
+    expect(results[0]!.size.name).toBe("og");
+  }, 5000);
+
+  it("uses a frontmatter slug as the base filename", async () => {
+    await mkdir(path.join(dir, "post"), { recursive: true });
+    await writeFile(
+      path.join(dir, "post", "index.md"),
+      "---\nslug: keyword-rich-slug\nmeta_img_props:\n  template: card\n  title: Post\n---\n",
+    );
+
+    const results = await generate(options(dir));
+    const slugged = results.filter((result) =>
+      result.outputPath.includes("keyword-rich-slug"),
+    );
+
+    expect(slugged).toHaveLength(2);
+    expect(existsSync(path.join(dir, "post", "keyword-rich-slug-og.png"))).toBe(
+      true,
+    );
   }, 5000);
 
   it("skips existing files and does not overwrite them", async () => {
-    const target = path.join(dir, "guide", "guide.png");
+    const target = path.join(dir, "guide", "guide-og.png");
     await writeFile(target, "sentinel");
 
     const results = await generate(options(dir));
-    const squareResult = results.find((result) => result.outputPath === target);
+    const ogResult = results.find((result) => result.outputPath === target);
 
-    expect(squareResult?.skipped).toBe(true);
+    expect(ogResult?.skipped).toBe(true);
     expect(await readFile(target, "utf8")).toBe("sentinel");
   }, 5000);
 
   it("re-renders when overwrite is set", async () => {
-    const target = path.join(dir, "guide", "guide.png");
+    const target = path.join(dir, "guide", "guide-og.png");
     await writeFile(target, "sentinel");
 
     const results = await generate(options(dir, { overwrite: true }));
-    const squareResult = results.find((result) => result.outputPath === target);
+    const ogResult = results.find((result) => result.outputPath === target);
 
-    expect(squareResult?.skipped).toBe(false);
+    expect(ogResult?.skipped).toBe(false);
     expect(await readFile(target, "utf8")).not.toBe("sentinel");
   }, 5000);
 
@@ -118,18 +138,15 @@ describe("generate", () => {
 
     const results = await generate(
       options(dir, {
-        outputPath: (file, dimensions) =>
-          path.join(
-            outDir,
-            `${path.basename(path.dirname(file.absolutePath))}-${String(dimensions.width)}.png`,
-          ),
+        outputPath: (file, size) =>
+          path.join(outDir, `${file.slug}.${size.name}.png`),
         onResult: (result) => {
           seen.push(result.outputPath);
         },
       }),
     );
 
-    expect(existsSync(path.join(outDir, "guide-32.png"))).toBe(true);
+    expect(existsSync(path.join(outDir, "guide.og.png"))).toBe(true);
     expect(seen.toSorted(byPath)).toStrictEqual(
       results.map((result) => result.outputPath).toSorted(byPath),
     );

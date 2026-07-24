@@ -63,7 +63,7 @@ export async function renderSvgToPng(
 }
 
 /**
- * Render an image for every configured dimension from a single set of props.
+ * Render an image for every configured output size from a single set of props.
  * This is the reusable core: it takes props and config and returns rendered
  * bytes, with no filesystem or content-discovery concerns.
  */
@@ -77,10 +77,11 @@ export async function renderMetaImages(
   selectTemplate(resolved, props.template);
 
   return Promise.all(
-    resolved.dimensions.map(async (dimensions) => {
+    resolved.sizes.map(async (size) => {
+      const dimensions = { width: size.width, height: size.height };
       const svg = buildSvg(props, resolved, dimensions);
       const png = await renderSvgToPng(svg, dimensions);
-      return { dimensions, svg, png };
+      return { name: size.name, dimensions, svg, png };
     }),
   );
 }

@@ -3,14 +3,34 @@ import type {
   Background,
   BrandColors,
   ColophonConfig,
-  Dimensions,
+  OutputSize,
   ResolvedConfig,
 } from "./types.js";
 
-/** Default output sizes: a 1:1 square plus a 1.91:1 landscape (Open Graph). */
-export const DEFAULT_DIMENSIONS: readonly Dimensions[] = [
-  { width: 1200, height: 1200 },
-  { width: 1200, height: 630 },
+/**
+ * Named output-size presets covering the common social-image standards. Each
+ * `name` becomes the filename suffix (e.g. `my-post-og.png`).
+ *
+ * - `og` — 1.91:1, the Open Graph standard (`og:image`): Facebook, LinkedIn,
+ *   Slack, Discord, WhatsApp, Mastodon, and the usual `twitter:image` reuse.
+ * - `square` — 1:1, X/Twitter `summary` card and a universal fallback.
+ * - `twitter` — 2:1, X/Twitter `summary_large_image` card.
+ * - `pinterest` — 2:3 tall pin.
+ */
+export const SIZE_PRESETS = {
+  og: { name: "og", width: 1200, height: 630 },
+  square: { name: "square", width: 1200, height: 1200 },
+  twitter: { name: "twitter", width: 1200, height: 600 },
+  pinterest: { name: "pinterest", width: 1000, height: 1500 },
+} as const satisfies Record<string, OutputSize>;
+
+/**
+ * Default output sizes: the Open Graph landscape plus a square. Between them
+ * they satisfy `og:image` and both `twitter:image` card types.
+ */
+export const DEFAULT_SIZES: readonly OutputSize[] = [
+  SIZE_PRESETS.og,
+  SIZE_PRESETS.square,
 ];
 
 /** Default font stack. Override via `config.fontFamily` for branded fonts. */
@@ -58,15 +78,31 @@ function defaultBackground(colors: Required<BrandColors>): Background {
   };
 }
 
+function resolveSizes(
+  sizes: readonly OutputSize[] | undefined,
+): readonly OutputSize[] {
+  if (sizes === undefined || sizes.length === 0) {
+    return DEFAULT_SIZES;
+  }
+
+  const seen = new Set<string>();
+  for (const size of sizes) {
+    if (seen.has(size.name)) {
+      throw new Error(
+        `Duplicate output size name "${size.name}"; names must be unique so each image gets a distinct filename.`,
+      );
+    }
+    seen.add(size.name);
+  }
+
+  return sizes;
+}
+
 /**
  * Apply defaults to a user config. Safe to call with no argument.
  */
 export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
   const colors = resolveColors(config.colors);
-  const dimensions =
-    config.dimensions && config.dimensions.length > 0
-      ? config.dimensions
-      : DEFAULT_DIMENSIONS;
 
   return {
     colors,
@@ -74,7 +110,7 @@ export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
     fontFamily: config.fontFamily ?? DEFAULT_FONT_FAMILY,
     footer: config.footer,
     badge: config.badge,
-    dimensions,
+    sizes: resolveSizes(config.sizes),
     templates: { ...builtinTemplates, ...config.templates },
   };
 }
