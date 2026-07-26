@@ -6,7 +6,6 @@ import {
   assertStringEndsWith,
   assertStringIncludes,
   assertStringStartsWith,
-  assertThrowsError,
   assertThrowsErrorAsync,
 } from "@kensio/smartass";
 import sharp from "sharp";
@@ -18,11 +17,12 @@ import { buildSvg, renderMetaImages, renderSvgToPng } from "./render.js";
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
 describe("buildSvg", () => {
-  it("wraps background and template body in a sized svg root", () => {
-    const svg = buildSvg({ template: "banner", title: "hi" }, resolveConfig(), {
-      width: 640,
-      height: 480,
-    });
+  it("wraps background and template body in a sized svg root", async () => {
+    const svg = await buildSvg(
+      { template: "banner", title: "hi" },
+      resolveConfig(),
+      { width: 640, height: 480 },
+    );
 
     assertStringStartsWith(svg, '<svg width="640" height="480"');
     assertStringIncludes(svg, 'viewBox="0 0 640 480"');
@@ -31,8 +31,8 @@ describe("buildSvg", () => {
     assertStringEndsWith(svg, "</svg>");
   });
 
-  it("throws a helpful error for an unknown template", () => {
-    const error = assertThrowsError(() =>
+  it("throws a helpful error for an unknown template", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
       buildSvg({ template: "nope", title: "x" }, resolveConfig(), {
         width: 10,
         height: 10,
@@ -40,16 +40,17 @@ describe("buildSvg", () => {
     );
 
     assertStringIncludes(error.message, 'Unknown template "nope"');
-    assertStringIncludes(error.message, "banner, card");
+    assertStringIncludes(error.message, "banner, card, code");
   });
 });
 
 describe("renderSvgToPng", () => {
   it("produces a PNG at the requested size", async () => {
-    const svg = buildSvg({ template: "card", title: "x" }, resolveConfig(), {
-      width: 48,
-      height: 24,
-    });
+    const svg = await buildSvg(
+      { template: "card", title: "x" },
+      resolveConfig(),
+      { width: 48, height: 24 },
+    );
     const png = await renderSvgToPng(svg, { width: 48, height: 24 });
 
     assertBufferEqual(png.subarray(0, 4), pngSignature);

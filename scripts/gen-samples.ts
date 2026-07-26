@@ -71,6 +71,40 @@ const samples: readonly Sample[] = [
     config: teal,
   },
   {
+    name: "code-square",
+    dimensions: square,
+    props: {
+      template: "code",
+      language: "bash",
+      code: `#!/usr/bin/env bash
+
+mapfile -t CHANGED_TS < <(
+  git diff origin/main --name-only \\
+    | grep '\\.ts'
+)
+
+if (( \${#CHANGED_TS[@]} )); then
+  eslint "\${CHANGED_TS[@]}"
+fi`,
+    },
+    config: teal,
+  },
+  {
+    name: "code-wide",
+    dimensions: wide,
+    props: {
+      template: "code",
+      language: "typescript",
+      code: `export const cardTemplate: Template = {
+  name: "card",
+  render({ props, config, dimensions }) {
+    return textElement(props.title, { ...attrs });
+  },
+};`,
+    },
+    config: { ...brand, badge: undefined, code: { theme: "night-owl" } },
+  },
+  {
     name: "card-wide-solid",
     dimensions: wide,
     props: {

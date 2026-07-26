@@ -104,12 +104,9 @@ export function extractProps(
     return undefined;
   }
 
-  const titleRaw = record["title"];
-
-  if (typeof titleRaw !== "string") {
-    return undefined;
-  }
-
+  // Title is optional: templates such as `code` describe the image entirely
+  // from their own fields, and requiring a title would be pure boilerplate.
+  const title = coerceString(record["title"]);
   const subtitle = coerceString(record["subtitle"]);
   const version = coerceString(record["version"]);
 
@@ -129,7 +126,7 @@ export function extractProps(
   return {
     ...extras,
     template,
-    title: titleRaw,
+    ...(title !== undefined && { title }),
     ...(subtitle !== undefined && { subtitle }),
     ...(version !== undefined && { version }),
   };

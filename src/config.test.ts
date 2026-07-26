@@ -10,6 +10,7 @@ import {
 import { describe, it } from "vitest";
 
 import {
+  DEFAULT_CODE_STYLE,
   DEFAULT_COLORS,
   DEFAULT_FONT_FAMILY,
   DEFAULT_SIZES,
@@ -61,7 +62,23 @@ describe("resolveConfig", () => {
         { offset: "100%", color: DEFAULT_COLORS.brandWarm },
       ],
     });
-    assertArrayEquals(Object.keys(resolved.templates), ["banner", "card"]);
+    assertArrayEquals(Object.keys(resolved.templates), [
+      "banner",
+      "card",
+      "code",
+    ]);
+    assertObjectEquals(resolved.code, DEFAULT_CODE_STYLE);
+  });
+
+  it("merges code style over the defaults", () => {
+    const resolved = resolveConfig({ code: { theme: "monokai", tabSize: 4 } });
+
+    assertIdentical(resolved.code.theme, "monokai");
+    assertIdentical(resolved.code.tabSize, 4);
+    assertIdentical(
+      resolved.code.charWidthRatio,
+      DEFAULT_CODE_STYLE.charWidthRatio,
+    );
   });
 
   it("uses the brand colour for the whole gradient when only brand is given", () => {

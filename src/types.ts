@@ -68,6 +68,37 @@ export interface Badge {
 }
 
 /**
+ * Styling for the `code` template. Every field is optional; defaults are
+ * applied by `resolveConfig`.
+ */
+export interface CodeStyle {
+  /** Shiki theme name, e.g. `github-dark`, `monokai`, `catppuccin-mocha`. */
+  readonly theme?: string;
+  /** Monospace font stack. Must resolve to a font available to `sharp`. */
+  readonly fontFamily?: string;
+  /**
+   * Glyph advance width as a fraction of the font size. `0.6` matches most
+   * monospace faces (Source Code Pro, Menlo, DejaVu Sans Mono); narrower faces
+   * such as Consolas want ~`0.55`.
+   */
+  readonly charWidthRatio?: number;
+  /** Line advance as a multiple of the font size. Default `1.55`. */
+  readonly lineHeight?: number;
+  /** Spaces a tab expands to before layout. Default `2`. */
+  readonly tabSize?: number;
+  /** Corner radius of the code panel, as a fraction of the smaller side. */
+  readonly cornerScale?: number;
+  /** Upper bound on the auto-fitted font size, as a fraction of image height. */
+  readonly maxFontScale?: number;
+  /**
+   * Lower bound on the auto-fitted font size, as a fraction of image height.
+   * Code too long to fit at this size is truncated with an ellipsis rather
+   * than shrunk into illegibility.
+   */
+  readonly minFontScale?: number;
+}
+
+/**
  * Image properties, typically read from a post's frontmatter. The schema is
  * intentionally open: templates read whatever fields they understand, so a
  * project can pass arbitrary extra props through.
@@ -75,7 +106,7 @@ export interface Badge {
 export interface MetaImageProps {
   /** Name of the template to render with. */
   readonly template: string;
-  readonly title: string;
+  readonly title?: string;
   readonly subtitle?: string;
   readonly version?: string | number;
   readonly [key: string]: unknown;
@@ -94,10 +125,14 @@ export interface TemplateContext {
  * A registered template. `render` returns the SVG *foreground* content (text,
  * badges, etc.) for the given dimensions; the background and the enclosing
  * `<svg>` root are added by the renderer.
+ *
+ * Rendering may be asynchronous — the `code` template loads syntax grammars on
+ * demand — so `render` can return a promise. Simple templates can stay
+ * synchronous and just return a string.
  */
 export interface Template {
   readonly name: string;
-  render(context: TemplateContext): string;
+  render(context: TemplateContext): string | Promise<string>;
 }
 
 /**
@@ -113,6 +148,8 @@ export interface ColophonConfig {
   readonly footer?: string;
   /** Corner badge for the `banner` template. Omit (the default) for none. */
   readonly badge?: Badge;
+  /** Styling for the `code` template. */
+  readonly code?: CodeStyle;
   /**
    * Output sizes, each with a unique `name` used in the filename. Defaults to
    * a 1.91:1 Open Graph landscape plus a 1:1 square (see `DEFAULT_SIZES`).
@@ -131,6 +168,7 @@ export interface ResolvedConfig {
   readonly fontFamily: string;
   readonly footer: string | undefined;
   readonly badge: Badge | undefined;
+  readonly code: Required<CodeStyle>;
   readonly sizes: readonly OutputSize[];
   readonly templates: Readonly<Record<string, Template>>;
 }

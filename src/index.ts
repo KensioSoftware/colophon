@@ -2,6 +2,7 @@ export type {
   Background,
   Badge,
   BrandColors,
+  CodeStyle,
   ColophonConfig,
   Dimensions,
   GradientStop,
@@ -14,6 +15,8 @@ export type {
 } from "./types.js";
 
 export {
+  DEFAULT_CODE_FONT_FAMILY,
+  DEFAULT_CODE_STYLE,
   DEFAULT_COLORS,
   DEFAULT_FONT_FAMILY,
   DEFAULT_SIZES,
@@ -28,7 +31,15 @@ export {
   bannerTemplate,
   builtinTemplates,
   cardTemplate,
+  codeTemplate,
 } from "./templates/index.js";
+
+export { expandTabs, highlightCode, resolveLanguage } from "./highlight.js";
+export type {
+  CodeToken,
+  HighlightedCode,
+  HighlightOptions,
+} from "./highlight.js";
 
 export { defaultOutputPath, generate } from "./generate.js";
 export type { GeneratedImage, GenerateOptions } from "./generate.js";

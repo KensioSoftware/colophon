@@ -5,6 +5,7 @@ import {
   wrapText,
 } from "../text.js";
 import type { Template, TemplateContext } from "../types.js";
+import { optionalString } from "./props.js";
 
 const maxTitleLines = 3;
 const maxSubtitleLines = 3;
@@ -14,22 +15,6 @@ interface CardLine {
   readonly fontSize: number;
   readonly fontWeight: number;
   readonly opacity: number;
-}
-
-function optionalString(value: unknown): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (
-    typeof value === "number" ||
-    typeof value === "boolean" ||
-    typeof value === "bigint"
-  ) {
-    return String(value);
-  }
-
-  return undefined;
 }
 
 /**
@@ -46,7 +31,7 @@ export const cardTemplate: Template = {
     const contentWidth = width - pad * 2;
     const centreX = Math.round(width / 2);
 
-    const title = props.title;
+    const title = optionalString(props.title) ?? "";
     const subtitle = optionalString(props.subtitle);
     const hasSubtitle = subtitle !== undefined && subtitle !== "";
 
