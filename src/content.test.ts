@@ -38,11 +38,16 @@ describe("extractProps", () => {
     assertIdentical(props.template, "banner");
   });
 
-  it("returns undefined when the title is missing or not a string", () => {
-    assertUndefined(extractProps({ meta_img_props: { template: "banner" } }));
-    assertUndefined(
-      extractProps({ meta_img_props: { template: "banner", title: 5 } }),
-    );
+  it("omits the title when absent, and coerces a scalar one", () => {
+    const untitled = extractProps({ meta_img_props: { template: "code" } });
+    assertNonNullable(untitled);
+    assertUndefined(untitled.title);
+
+    const numeric = extractProps({
+      meta_img_props: { template: "banner", title: 5 },
+    });
+    assertNonNullable(numeric);
+    assertIdentical(numeric.title, "5");
   });
 
   it("reads template, title, subtitle, version and extras", () => {

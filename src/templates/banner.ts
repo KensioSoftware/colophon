@@ -5,6 +5,7 @@ import {
   wrapText,
 } from "../text.js";
 import type { Badge, Template, TemplateContext } from "../types.js";
+import { optionalString } from "./props.js";
 
 const maxTitleLines = 3;
 const maxSubtitleLines = 4;
@@ -15,22 +16,6 @@ interface BannerLine {
   readonly fontWeight: number;
   readonly opacity: number;
   readonly gapBefore?: number;
-}
-
-function optionalString(value: unknown): string | undefined {
-  if (typeof value === "string") {
-    return value;
-  }
-
-  if (
-    typeof value === "number" ||
-    typeof value === "boolean" ||
-    typeof value === "bigint"
-  ) {
-    return String(value);
-  }
-
-  return undefined;
 }
 
 function renderBadge(
@@ -77,7 +62,7 @@ export const bannerTemplate: Template = {
     const pad = Math.round(width * 0.075);
     const contentWidth = width - pad * 2;
 
-    const title = props.title;
+    const title = optionalString(props.title) ?? "";
     const subtitle = optionalString(props.subtitle);
     const version = optionalString(props.version);
     const hasSubtitle = subtitle !== undefined && subtitle !== "";

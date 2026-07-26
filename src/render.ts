@@ -31,15 +31,18 @@ function selectTemplate(config: ResolvedConfig, name: string): Template {
 /**
  * Build the complete SVG document for one image: the enclosing `<svg>` root,
  * the config-driven background, and the template's foreground content.
+ *
+ * Asynchronous because a template may need to load resources — the `code`
+ * template fetches syntax grammars and themes on demand.
  */
-export function buildSvg(
+export async function buildSvg(
   props: MetaImageProps,
   config: ResolvedConfig,
   dimensions: Dimensions,
-): string {
+): Promise<string> {
   const template = selectTemplate(config, props.template);
   const background = backgroundSvg(config.background, dimensions, backgroundId);
-  const body = template.render({ props, config, dimensions });
+  const body = await template.render({ props, config, dimensions });
   const { width, height } = dimensions;
 
   return (
@@ -79,7 +82,7 @@ export async function renderMetaImages(
   return Promise.all(
     resolved.sizes.map(async (size) => {
       const dimensions = { width: size.width, height: size.height };
-      const svg = buildSvg(props, resolved, dimensions);
+      const svg = await buildSvg(props, resolved, dimensions);
       const png = await renderSvgToPng(svg, dimensions);
       return { name: size.name, dimensions, svg, png };
     }),

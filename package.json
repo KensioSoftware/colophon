@@ -5,7 +5,7 @@
   "repository": "https://github.com/KensioSoftware/colophon",
   "homepage": "https://github.com/KensioSoftware/colophon#readme",
   "license": "Apache-2.0",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -55,7 +55,10 @@
     "frontmatter",
     "static-site",
     "svg",
-    "sharp"
+    "sharp",
+    "syntax-highlighting",
+    "code-image",
+    "shiki"
   ],
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -80,6 +83,7 @@
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.3",
+    "shiki": "^4.3.1"
   }
 }

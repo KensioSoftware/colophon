@@ -70,7 +70,7 @@ export async function generate(
 
       if (!isSkipped) {
         const dimensions = { width: size.width, height: size.height };
-        const svg = buildSvg(file.props, resolved, dimensions);
+        const svg = await buildSvg(file.props, resolved, dimensions);
         const png = await renderSvgToPng(svg, dimensions);
         await mkdir(path.dirname(outputPath), { recursive: true });
         await writeFile(outputPath, png);

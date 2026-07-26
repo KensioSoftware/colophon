@@ -10,6 +10,8 @@ finished work.
 
 - **Frontmatter-driven** — general props read from a post, not a fixed schema.
 - **Templates** — a small registry of layouts; frontmatter picks one.
+- **Syntax-highlighted code images** — the `code` template renders a snippet
+  from frontmatter with real VS Code theme colours.
 - **Configurable branding** — colours, gradient, fonts, footer and badge come
   from config, not from any one site's stylesheet.
 - **Multiple sizes from one input** — a 1:1 square plus a 1.91:1 landscape by
@@ -23,7 +25,8 @@ finished work.
 pnpm add @kensio/colophon
 ```
 
-`sharp` is a dependency and does the SVG → PNG rasterisation.
+`sharp` is a dependency and does the SVG → PNG rasterisation; `shiki` provides
+the grammars and themes for the `code` template.
 
 ## Quick start (CLI)
 
@@ -131,10 +134,74 @@ only want frontmatter discovery.
 | -------- | ---------------------------------------------------------------------------- |
 | `banner` | Left-aligned title with optional version, subtitle, corner badge and footer. |
 | `card`   | Minimal centred title with an optional subtitle.                             |
+| `code`   | Syntax-highlighted snippet on a rounded panel over the background.           |
 
 Register your own by passing `templates` in config — a template is `{ name,
-render(context) }` returning SVG foreground content. Anything you add merges
-over (and can override) the built-ins.
+render(context) }` returning SVG foreground content, either directly or as a
+promise. Anything you add merges over (and can override) the built-ins.
+
+### The `code` template
+
+Put the snippet in frontmatter and name its language:
+
+```yaml
+---
+title: eslint changed TypeScript files only
+slug: eslint-changed-ts-files-only
+meta_img_props:
+  template: code
+  language: bash
+  code: |
+    mapfile -t CHANGED_TS < <(
+      git diff origin/main --name-only \
+        | grep '\.ts'
+    )
+---
+```
+
+| Prop       | Notes                                                                |
+| ---------- | -------------------------------------------------------------------- |
+| `code`     | The snippet. Surrounding blank lines are trimmed; tabs are expanded. |
+| `language` | Any [Shiki language]; unknown names fall back to plain text.         |
+| `title`    | Optional heading above the panel. Omit for a bare code image.        |
+| `theme`    | Optional per-post override of `config.code.theme`.                   |
+
+[Shiki language]: https://shiki.style/languages
+
+Pygments-style names carried over from an older pipeline (`text`, `console`,
+`html+handlebars`, …) are mapped onto their Shiki equivalents, so existing
+frontmatter usually needs no changes.
+
+The font size is fitted to the snippet: Colophon measures the longest line and
+the line count against a monospace grid and picks the largest size that fits on
+both axes, within `minFontScale`/`maxFontScale`. Code too long to fit legibly is
+truncated with an ellipsis rather than shrunk into unreadability. The panel then
+shrinks vertically onto the result so short snippets aren't left floating.
+
+Styling comes from `config.code`:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#2563eb" },
+  footer: "example.com",
+  code: {
+    theme: "night-owl", // any bundled Shiki theme
+    fontFamily: '"JetBrains Mono", monospace',
+    charWidthRatio: 0.6, // glyph advance ÷ font size, for your monospace face
+    lineHeight: 1.55,
+    tabSize: 2,
+    cornerScale: 0.025,
+    maxFontScale: 0.075,
+    minFontScale: 0.018,
+  },
+});
+```
+
+`charWidthRatio` is how the layout knows where each token sits, so it must match
+the font actually used — `0.6` suits most monospace faces (Source Code Pro,
+Menlo, DejaVu Sans Mono); Consolas wants about `0.55`. Fonts must be installed
+where `sharp` can see them; the default stack ends in the generic `monospace`
+family so it always resolves to something.
 
 ## Configuration
 
@@ -147,8 +214,9 @@ All fields are optional; sensible defaults apply.
 | `fontFamily` | `Arial, Helvetica, sans-serif` | Uses fonts available to `sharp`/librsvg.            |
 | `footer`     | none                           | Footer text; omit the field for none.               |
 | `badge`      | none                           | Corner badge for `banner`; omit the field for none. |
+| `code`       | `github-dark`, monospace stack | Styling for the `code` template (see above).        |
 | `sizes`      | `og` + `square`                | Named output sizes (see below).                     |
-| `templates`  | `banner`, `card`               | Merged over the built-ins.                          |
+| `templates`  | `banner`, `card`, `code`       | Merged over the built-ins.                          |
 
 ### Output sizes and filenames
 
@@ -213,7 +281,29 @@ updated PNGs so this gallery stays in sync.
       <sub><code>card</code> · 1200×630 · solid background, title only</sub>
     </td>
   </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/code-square.png" alt="code template, square" width="100%" /><br />
+      <sub><code>code</code> · 1200×1200 · bash, <code>github-dark</code></sub>
+    </td>
+    <td>
+      <img src="docs/samples/code-wide.png" alt="code template, landscape" width="100%" /><br />
+      <sub><code>code</code> · 1200×630 · TypeScript, <code>night-owl</code></sub>
+    </td>
+  </tr>
 </table>
+
+## Upgrading from 1.x
+
+Adding the `code` template made two small breaking changes:
+
+- `Template.render` may now return `string | Promise<string>`, and `buildSvg`
+  is `async`. Custom templates that return a string still work unchanged; call
+  sites of `buildSvg` need an `await`. `renderMetaImages` and `generate` were
+  already async and are unaffected.
+- `MetaImageProps.title` is optional, and `walkContent`/`extractProps` no
+  longer skip a file that declares props without a title — a `code` post
+  describes its image entirely through `code` and `language`.
 
 ## Development
 

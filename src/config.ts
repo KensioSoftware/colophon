@@ -2,6 +2,7 @@ import { builtinTemplates } from "./templates/index.js";
 import type {
   Background,
   BrandColors,
+  CodeStyle,
   ColophonConfig,
   OutputSize,
   ResolvedConfig,
@@ -45,6 +46,30 @@ export const DEFAULT_COLORS: Required<BrandColors> = {
 };
 
 /**
+ * Default monospace stack for the `code` template. It ends in the generic
+ * `monospace` family so it always resolves to something, whatever fonts the
+ * machine running the build happens to have.
+ */
+export const DEFAULT_CODE_FONT_FAMILY =
+  '"JetBrains Mono", "Source Code Pro", "DejaVu Sans Mono", Menlo, Consolas, monospace';
+
+/**
+ * Default `code` template styling. `charWidthRatio` and `lineHeight` drive the
+ * monospace grid the snippet is laid out on; the font-size bounds are
+ * fractions of the image height so they hold at every output size.
+ */
+export const DEFAULT_CODE_STYLE: Required<CodeStyle> = {
+  theme: "github-dark",
+  fontFamily: DEFAULT_CODE_FONT_FAMILY,
+  charWidthRatio: 0.6,
+  lineHeight: 1.55,
+  tabSize: 2,
+  cornerScale: 0.025,
+  maxFontScale: 0.075,
+  minFontScale: 0.018,
+};
+
+/**
  * Identity helper that returns its argument typed as {@link ColophonConfig}.
  * Use it in a config module to get editor completion and type-checking.
  */
@@ -76,6 +101,10 @@ function defaultBackground(colors: Required<BrandColors>): Background {
       { offset: "100%", color: colors.brandWarm },
     ],
   };
+}
+
+function resolveCode(code: CodeStyle | undefined): Required<CodeStyle> {
+  return { ...DEFAULT_CODE_STYLE, ...code };
 }
 
 function resolveSizes(
@@ -110,6 +139,7 @@ export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
     fontFamily: config.fontFamily ?? DEFAULT_FONT_FAMILY,
     footer: config.footer,
     badge: config.badge,
+    code: resolveCode(config.code),
     sizes: resolveSizes(config.sizes),
     templates: { ...builtinTemplates, ...config.templates },
   };
