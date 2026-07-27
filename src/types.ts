@@ -10,8 +10,10 @@ export interface Dimensions {
  * A named output size. The `name` identifies the size in output filenames
  * (e.g. `og`, `square`) and must be unique within a config, so every
  * generated image gets a distinct, descriptive filename.
+ *
+ * A size may also carry {@link SizeOverrides}, applied only when rendering it.
  */
-export interface OutputSize {
+export interface OutputSize extends SizeOverrides {
   readonly name: string;
   readonly width: number;
   readonly height: number;
@@ -221,6 +223,35 @@ export interface ColophonConfig {
   readonly sizes?: readonly OutputSize[];
   /** Extra templates, merged over (and able to override) the built-ins. */
   readonly templates?: Readonly<Record<string, Template>>;
+}
+
+/**
+ * Config an {@link OutputSize} may override for itself.
+ *
+ * Some settings only make sense per size: `code.minFontScale` is the clearest
+ * case, because a 1:1 square and a 1.91:1 landscape have very different amounts
+ * of vertical room for the same snippet. Without this the only way to vary one
+ * is a `generate` pass per size, which walks and parses the whole content tree
+ * again for each.
+ *
+ * Only what a template reads while drawing is overridable. `fonts`,
+ * `systemFonts` and `templates` are shared build inputs rather than part of the
+ * picture; `onWarning` is where messages go, not what they say; and `sizes`
+ * inside a size would be nonsense.
+ */
+export interface SizeOverrides {
+  /**
+   * Merged over the config's `colors`, so a size can change one shade on its
+   * own — `brand` is optional here precisely because the rest are kept.
+   */
+  readonly colors?: Partial<BrandColors>;
+  /** Replaces the config's background outright — see the note on merging. */
+  readonly background?: Background;
+  readonly fontFamily?: string;
+  readonly footer?: string;
+  readonly badge?: Badge;
+  /** Merged over the config's `code`, so a size can change one setting. */
+  readonly code?: CodeStyle;
 }
 
 /**

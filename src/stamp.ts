@@ -151,7 +151,9 @@ export async function createStamper(config: ResolvedConfig): Promise<Stamper> {
         stableStringify([
           base,
           templateDigest(props.template),
-          [size.name, size.width, size.height],
+          // The whole size, not just its dimensions: a size carries its own
+          // config overrides, and changing one has to re-render that image.
+          size,
           props,
         ]),
       );

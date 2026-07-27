@@ -192,6 +192,71 @@ describe("validateConfig", () => {
     });
   });
 
+  it("accepts the overrides a size may carry", () => {
+    validateConfig({
+      sizes: [
+        {
+          name: "square",
+          width: 1200,
+          height: 1200,
+          code: { minFontScale: 0.011 },
+          colors: { brand: "#0d9488" },
+          badge: { text: "beta" },
+          background: { type: "solid", color: "#000000" },
+          footer: "example.com",
+          fontFamily: "Georgia, serif",
+        },
+      ],
+    });
+  });
+
+  it("names the size a mistyped override belongs to", () => {
+    const message = messageFor({
+      sizes: [
+        { name: "og", width: 1200, height: 630 },
+        {
+          name: "square",
+          width: 1200,
+          height: 1200,
+          code: { minFontScal: 0.011 },
+        },
+      ],
+    });
+
+    assertIdentical(
+      message,
+      'Unknown option "sizes[1].code.minFontScal". Did you mean "minFontScale"?',
+    );
+  });
+
+  it("checks a background nested in a size", () => {
+    const message = messageFor({
+      sizes: [
+        {
+          name: "og",
+          width: 1200,
+          height: 630,
+          background: { type: "solid", colour: "#000000" },
+        },
+      ],
+    });
+
+    assertIdentical(
+      message,
+      'Unknown option "sizes[0].background.colour". Did you mean "color"?',
+    );
+  });
+
+  it("rejects config a size may not override", () => {
+    const message = messageFor({
+      sizes: [{ name: "og", width: 1200, height: 630, systemFonts: true }],
+    });
+
+    // Fonts are loaded once for every size, so overriding them per size would
+    // be a setting that silently did nothing.
+    assertStringIncludes(message, 'Unknown option "sizes[0].systemFonts"');
+  });
+
   it("collects every problem into one error", () => {
     const message = messageFor({
       dimensions: [],

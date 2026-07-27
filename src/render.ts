@@ -2,7 +2,7 @@ import type { ResvgRenderOptions } from "@resvg/resvg-js";
 import { renderAsync } from "@resvg/resvg-js";
 
 import { backgroundSvg } from "./background.js";
-import { resolveConfig } from "./config.js";
+import { resolveConfig, resolveConfigForSize } from "./config.js";
 import { fallbackFamily, fontFilePaths } from "./fonts.js";
 import type {
   ColophonConfig,
@@ -106,9 +106,12 @@ export async function renderMetaImages(
 
   return Promise.all(
     resolved.sizes.map(async (size) => {
+      // Each size renders with its own overrides folded in, so one size wanting
+      // a smaller minimum font does not mean a second pass over everything.
+      const sizeConfig = resolveConfigForSize(config, size);
       const dimensions = { width: size.width, height: size.height };
-      const svg = await buildSvg(props, resolved, dimensions);
-      const png = await renderSvgToPng(svg, dimensions, resolved);
+      const svg = await buildSvg(props, sizeConfig, dimensions);
+      const png = await renderSvgToPng(svg, dimensions, sizeConfig);
       return { name: size.name, dimensions, svg, png };
     }),
   );
