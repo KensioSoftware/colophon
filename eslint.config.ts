@@ -120,6 +120,12 @@ export default defineConfig(
   {
     rules: {
       "security/detect-object-injection": "off",
+      // Colophon is a build-time tool: it walks a content tree the user pointed
+      // it at and writes images to paths derived from those files. Every fs
+      // call is non-literal by construction, and the paths come from the user's
+      // own argv/config, not from an untrusted request — so the rule only ever
+      // fires on the package doing its job.
+      "security/detect-non-literal-fs-filename": "off",
     },
   },
 
@@ -164,6 +170,14 @@ export default defineConfig(
       "unicorn/no-null": "off",
       "unicorn/no-useless-undefined": "off",
       "vitest/expect-expect": "off", // using @kensio/smartass
+    },
+  },
+
+  // ── CLI entry point (stdout is the interface) ───────────
+  {
+    files: ["src/cli.ts"],
+    rules: {
+      "no-console": "off",
     },
   },
 
