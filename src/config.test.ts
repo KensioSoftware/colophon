@@ -1,11 +1,15 @@
+import path from "node:path";
+
 import {
   assertArrayEquals,
   assertArrayLength,
+  assertFalse,
   assertIdentical,
   assertNonNullable,
   assertObjectEquals,
   assertStringIncludes,
   assertThrowsError,
+  assertTrue,
   assertUndefined,
 } from "@kensio/smartass";
 import { describe, it, vi } from "vitest";
@@ -19,6 +23,13 @@ import {
   resolveConfig,
   SIZE_PRESETS,
 } from "./config.js";
+
+// A real font file: resolution checks that the path is there, so a fictional
+// one would not get past it.
+const sansFont = path.join(
+  process.cwd(),
+  "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
+);
 
 describe("defineConfig", () => {
   it("returns the config unchanged", () => {
@@ -150,6 +161,62 @@ describe("resolveConfig", () => {
     );
 
     assertStringIncludes(error.message, 'Duplicate output size name "og"');
+  });
+
+  it("loads no fonts and allows system ones by default", () => {
+    const resolved = resolveConfig();
+
+    assertArrayLength(resolved.fonts, 0);
+    assertTrue(resolved.systemFonts);
+  });
+
+  it("turns system fonts off once fonts are configured", () => {
+    const resolved = resolveConfig({ fonts: [{ path: sansFont }] });
+
+    assertFalse(resolved.systemFonts);
+  });
+
+  it("keeps system fonts when a project asks for both", () => {
+    const resolved = resolveConfig({
+      fonts: [{ path: sansFont }],
+      systemFonts: true,
+    });
+
+    assertTrue(resolved.systemFonts);
+  });
+
+  it("refuses to disable system fonts with nothing to render with", () => {
+    const error = assertThrowsError(() =>
+      resolveConfig({ systemFonts: false }),
+    );
+
+    assertStringIncludes(error.message, "no fonts are configured");
+  });
+
+  it("takes the font family from the first configured font", () => {
+    const resolved = resolveConfig({
+      fonts: [
+        { family: "DejaVu Sans", path: sansFont },
+        { family: "DejaVu Serif", path: sansFont },
+      ],
+    });
+
+    assertIdentical(resolved.fontFamily, "DejaVu Sans");
+  });
+
+  it("prefers an explicit font family over a configured font's", () => {
+    const resolved = resolveConfig({
+      fonts: [{ family: "DejaVu Sans", path: sansFont }],
+      fontFamily: "Georgia, serif",
+    });
+
+    assertIdentical(resolved.fontFamily, "Georgia, serif");
+  });
+
+  it("falls back to the default family when no font names one", () => {
+    const resolved = resolveConfig({ fonts: [{ path: sansFont }] });
+
+    assertIdentical(resolved.fontFamily, DEFAULT_FONT_FAMILY);
   });
 
   it("merges custom templates over the built-ins", () => {

@@ -25,8 +25,10 @@ finished work.
 pnpm add @kensio/colophon
 ```
 
-`sharp` is a dependency and does the SVG → PNG rasterisation; `shiki` provides
-the grammars and themes for the `code` template.
+`@resvg/resvg-js` is a dependency and does the SVG → PNG rasterisation; `shiki`
+provides the grammars and themes for the `code` template. No headless browser is
+involved, and fonts can be handed to the renderer as files (see
+[Fonts](#fonts)) so a build renders the same image everywhere.
 
 ## Quick start (CLI)
 
@@ -220,25 +222,67 @@ export default defineConfig({
 
 `charWidthRatio` is how the layout knows where each token sits, so it must match
 the font actually used — `0.6` suits most monospace faces (Source Code Pro,
-Menlo, DejaVu Sans Mono); Consolas wants about `0.55`. Fonts must be installed
-where `sharp` can see them; the default stack ends in the generic `monospace`
-family so it always resolves to something.
+Menlo, DejaVu Sans Mono); Consolas wants about `0.55`. Give the monospace face
+as a file under `fonts` so the ratio you set is the ratio you get; the default
+stack ends in the generic `monospace` family so it resolves to something
+whatever the machine has.
 
 ## Configuration
 
 All fields are optional; sensible defaults apply.
 
-| Option       | Default                        | Notes                                               |
-| ------------ | ------------------------------ | --------------------------------------------------- |
-| `colors`     | neutral indigo/pink            | `brand`, `brandDark`, `brandWarm`, `foreground`.    |
-| `background` | gradient derived from `colors` | Or a `{ type: "solid" }` / custom gradient.         |
-| `fontFamily` | `Arial, Helvetica, sans-serif` | Uses fonts available to `sharp`/librsvg.            |
-| `footer`     | none                           | Footer text; omit the field for none.               |
-| `badge`      | none                           | Corner badge for `banner`; omit the field for none. |
-| `code`       | `github-dark`, monospace stack | Styling for the `code` template (see above).        |
-| `onWarning`  | `console.warn`                 | Where compromises are reported (see below).         |
-| `sizes`      | `og` + `square`                | Named output sizes (see below).                     |
-| `templates`  | `banner`, `card`, `code`       | Merged over the built-ins.                          |
+| Option        | Default                        | Notes                                               |
+| ------------- | ------------------------------ | --------------------------------------------------- |
+| `colors`      | neutral indigo/pink            | `brand`, `brandDark`, `brandWarm`, `foreground`.    |
+| `background`  | gradient derived from `colors` | Or a `{ type: "solid" }` / custom gradient.         |
+| `fonts`       | none                           | Font files to render with (see below).              |
+| `systemFonts` | `true` until `fonts` is set    | Whether installed fonts are loaded too.             |
+| `fontFamily`  | first font, else `Arial, …`    | Font stack for template text.                       |
+| `footer`      | none                           | Footer text; omit the field for none.               |
+| `badge`       | none                           | Corner badge for `banner`; omit the field for none. |
+| `code`        | `github-dark`, monospace stack | Styling for the `code` template (see above).        |
+| `onWarning`   | `console.warn`                 | Where compromises are reported (see below).         |
+| `sizes`       | `og` + `square`                | Named output sizes (see below).                     |
+| `templates`   | `banner`, `card`, `code`       | Merged over the built-ins.                          |
+
+### Fonts
+
+By default Colophon names font families and hopes the machine has them, which
+is how the same post ends up rendering differently on a laptop, in CI and in a
+container. Point `fonts` at font files instead and the output stops depending
+on the machine:
+
+```ts
+export default defineConfig({
+  fonts: [
+    { family: "Inter", path: "./fonts/Inter-Regular.ttf" },
+    { path: "./fonts/Inter-Bold.ttf" },
+    { path: "./fonts/JetBrainsMono-Regular.ttf" },
+  ],
+  code: { fontFamily: "JetBrains Mono" },
+});
+```
+
+- **One entry per file.** Weight and style are read from the font itself, so a
+  regular and a bold face are two entries and the template's `font-weight`
+  picks between them. Supply the bold face: templates ask for weights up to
+  `900` for titles and badges, and a missing weight is drawn with the face you
+  did supply rather than being synthesised into a fake bold.
+- **`family` is optional** and doesn't affect matching — the family name inside
+  the file does that. Naming it on the first font saves setting `fontFamily`,
+  which otherwise stays on the default stack.
+- **Paths are files**, `.ttf`, `.otf`, `.ttc` or `.otc`, resolved from the
+  working directory when relative. A path that isn't there is an error rather
+  than a silently blank image. To load a font you already have in memory —
+  fetched at build time, or bundled — pass `{ data }` with its bytes instead.
+- **System fonts switch off** as soon as you configure any font, so a family
+  you didn't supply can't quietly resolve to something installed. Set
+  `systemFonts: true` to have both, at the cost of the determinism you came
+  for.
+
+An unknown family falls back to a configured font rather than rendering
+nothing, so a mismatched name shows up as the wrong typeface, not a blank
+image.
 
 ### Warnings
 

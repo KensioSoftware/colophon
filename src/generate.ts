@@ -79,7 +79,7 @@ export async function generate(
           },
         };
         const svg = await buildSvg(file.props, config, dimensions);
-        const png = await renderSvgToPng(svg, dimensions);
+        const png = await renderSvgToPng(svg, dimensions, config);
         await mkdir(path.dirname(outputPath), { recursive: true });
         await writeFile(outputPath, png);
       }

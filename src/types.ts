@@ -74,7 +74,10 @@ export interface Badge {
 export interface CodeStyle {
   /** Shiki theme name, e.g. `github-dark`, `monokai`, `catppuccin-mocha`. */
   readonly theme?: string;
-  /** Monospace font stack. Must resolve to a font available to `sharp`. */
+  /**
+   * Monospace font stack. Must resolve to a configured font, or to an
+   * installed one when `systemFonts` is on.
+   */
   readonly fontFamily?: string;
   /**
    * Glyph advance width as a fraction of the font size. `0.6` matches most
@@ -99,6 +102,34 @@ export interface CodeStyle {
    */
   readonly minFontScale?: number;
 }
+
+/**
+ * A font to load into the rasteriser, given either as a file path or as the
+ * font's bytes. Supply one entry per font file: weight and style are read from
+ * the file itself, so a bold and a regular face are two entries, and the SVG's
+ * `font-weight` picks between them.
+ *
+ * `family` is optional and does not affect matching — the family name in the
+ * font file does that. When given on the first font it seeds `fontFamily`,
+ * which saves repeating the name for the common single-font case.
+ */
+export type FontSource =
+  | {
+      readonly family?: string;
+      /**
+       * Path to a `.ttf`, `.otf`, `.ttc` or `.otc` file, resolved from the
+       * current working directory when relative.
+       */
+      readonly path: string;
+    }
+  | {
+      readonly family?: string;
+      /**
+       * The font file's bytes, for fonts loaded from a bundle or fetched at
+       * build time rather than read from disk.
+       */
+      readonly data: Uint8Array;
+    };
 
 /**
  * Image properties, typically read from a post's frontmatter. The schema is
@@ -153,6 +184,24 @@ export interface ColophonConfig {
   readonly colors?: BrandColors;
   /** Explicit background, overriding the gradient derived from `colors`. */
   readonly background?: Background;
+  /**
+   * Fonts to load into the rasteriser, so the output does not depend on what
+   * the build machine happens to have installed. Supplying any font turns
+   * {@link ColophonConfig.systemFonts} off by default, which is the point:
+   * a laptop, CI and a Docker image then render the same image.
+   */
+  readonly fonts?: readonly FontSource[];
+  /**
+   * Whether to also load the machine's installed fonts. Defaults to `true`
+   * when no `fonts` are configured (nothing else would render) and `false`
+   * when they are. Turn it on alongside `fonts` to fall back to system fonts
+   * for families you have not supplied — at the cost of determinism.
+   */
+  readonly systemFonts?: boolean;
+  /**
+   * Font stack for template text. Defaults to the `family` of the first
+   * configured font, or to `DEFAULT_FONT_FAMILY` when there is none.
+   */
   readonly fontFamily?: string;
   /** Footer text drawn along the bottom edge. Omit (the default) for none. */
   readonly footer?: string;
@@ -180,6 +229,9 @@ export interface ColophonConfig {
 export interface ResolvedConfig {
   readonly colors: Required<BrandColors>;
   readonly background: Background;
+  /** Configured fonts, with every `path` made absolute. */
+  readonly fonts: readonly FontSource[];
+  readonly systemFonts: boolean;
   readonly fontFamily: string;
   readonly footer: string | undefined;
   readonly badge: Badge | undefined;

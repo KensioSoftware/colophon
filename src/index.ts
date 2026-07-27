@@ -5,6 +5,7 @@ export type {
   CodeStyle,
   ColophonConfig,
   Dimensions,
+  FontSource,
   GradientStop,
   MetaImageProps,
   OutputSize,

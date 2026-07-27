@@ -55,7 +55,7 @@
     "frontmatter",
     "static-site",
     "svg",
-    "sharp",
+    "resvg",
     "syntax-highlighting",
     "code-image",
     "shiki"
@@ -68,6 +68,7 @@
     "@typescript/native": "npm:typescript@^7.0.2",
     "@vitest/coverage-v8": "^4.1.10",
     "@vitest/eslint-plugin": "^1.6.22",
+    "dejavu-fonts-ttf": "^2.37.3",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-jsdoc": "^63.0.13",
@@ -82,8 +83,8 @@
     "vitest": "^4.1.10"
   },
   "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "gray-matter": "^4.0.3",
-    "sharp": "^0.35.3",
     "shiki": "^4.3.1"
   }
 }
