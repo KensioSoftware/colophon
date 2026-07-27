@@ -9,6 +9,7 @@ interface CliArgs {
   readonly contentDir: string;
   readonly configPath: string | undefined;
   readonly overwrite: boolean;
+  readonly concurrency: number | undefined;
 }
 
 const usage = `colophon — generate social meta images from frontmatter
@@ -23,29 +24,55 @@ Options:
   -c, --config <path>   Load a config module (default export = ColophonConfig)
   -f, --force           Re-render every image, ignoring the stamps
   -o, --overwrite       Alias for --force
+  --concurrency <n>     How many images to render at once
   -h, --help            Show this help
 
 Defaults:
-  contentDir            content`;
+  contentDir            content
+  --concurrency         one per available CPU`;
 
 /** `--overwrite` is kept as an alias so existing build scripts keep working. */
 const forceFlags = new Set(["-f", "--force", "-o", "--overwrite"]);
+
+/** Flags that take the next argument as their value. */
+const valueFlags = new Set(["-c", "--config", "--concurrency"]);
+
+/**
+ * A mistyped count would otherwise reach `generate` as `NaN` and be reported
+ * without naming the flag it came from, so it is rejected here instead.
+ */
+function parseConcurrency(value: string): number {
+  const parsed = Number(value);
+
+  if (!Number.isSafeInteger(parsed) || parsed < 1) {
+    throw new Error(
+      `Invalid value for --concurrency: "${value}"; expected a positive integer.`,
+    );
+  }
+
+  return parsed;
+}
 
 function parseCliArgs(argv: readonly string[]): CliArgs {
   let contentDir = "content";
   let configPath: string | undefined;
   let shouldOverwrite = false;
+  let concurrency: number | undefined;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
 
-    if (arg === "-c" || arg === "--config") {
+    if (arg !== undefined && valueFlags.has(arg)) {
       index += 1;
       const value = argv[index];
       if (value === undefined) {
         throw new Error(`Missing value for ${arg}`);
       }
-      configPath = value;
+      if (arg === "--concurrency") {
+        concurrency = parseConcurrency(value);
+      } else {
+        configPath = value;
+      }
     } else if (arg !== undefined && forceFlags.has(arg)) {
       shouldOverwrite = true;
     } else if (arg !== undefined && !arg.startsWith("-")) {
@@ -53,7 +80,7 @@ function parseCliArgs(argv: readonly string[]): CliArgs {
     }
   }
 
-  return { contentDir, configPath, overwrite: shouldOverwrite };
+  return { contentDir, configPath, overwrite: shouldOverwrite, concurrency };
 }
 
 async function loadConfig(
@@ -83,6 +110,7 @@ async function main(): Promise<void> {
     contentDir: args.contentDir,
     overwrite: args.overwrite,
     ...(config !== undefined && { config }),
+    ...(args.concurrency !== undefined && { concurrency: args.concurrency }),
     onResult: (result) => {
       console.log(`${result.skipped ? "skip " : "wrote"} ${result.outputPath}`);
     },
