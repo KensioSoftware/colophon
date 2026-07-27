@@ -1,6 +1,7 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 
 import {
   assertArrayEquals,
@@ -10,7 +11,9 @@ import {
   assertFileExists,
   assertIdentical,
   assertNonNullable,
+  assertNumberBetween,
   assertStringIncludes,
+  assertThrowsErrorAsync,
   assertTrue,
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
@@ -201,6 +204,55 @@ describe("generate", () => {
       `${path.join("snippet", "index.md")}: code snippet does not fit`,
     );
   }, 5000);
+
+  it("renders no more images at once than the concurrency allows", async () => {
+    let inFlight = 0;
+    let peak = 0;
+    await Promise.all(
+      ["one", "two", "three"].map(async (name) => {
+        await mkdir(path.join(dir, name), { recursive: true });
+        await writeFile(
+          path.join(dir, name, "index.md"),
+          `---\nmeta_img_props:\n  template: counted\n  title: ${name}\n---\n`,
+        );
+      }),
+    );
+
+    // Six jobs (three posts, two sizes) through a template that holds each
+    // render open long enough for the others to pile up behind it.
+    const results = await generate(
+      options(dir, {
+        concurrency: 2,
+        config: {
+          sizes: tinySizes,
+          templates: {
+            counted: {
+              name: "counted",
+              render: async () => {
+                inFlight += 1;
+                peak = Math.max(peak, inFlight);
+                await delay(5);
+                inFlight -= 1;
+                return "";
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    // Eight images: the six counted ones plus the shared banner fixture.
+    assertArrayLength(results, 8);
+    assertNumberBetween(peak, 1, 2);
+  }, 10_000);
+
+  it("rejects a concurrency that is not a positive integer", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(options(dir, { concurrency: 0 })),
+    );
+
+    assertStringIncludes(error.message, "expected a positive integer");
+  });
 
   it("uses a custom output path and reports each result", async () => {
     const seen: string[] = [];

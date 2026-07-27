@@ -74,10 +74,18 @@ colophon [contentDir] [options]
   -c, --config <path>   Config module whose default export is a ColophonConfig
   -f, --force           Re-render every image, ignoring the stamps
   -o, --overwrite       Alias for --force
+  --concurrency <n>     How many images to render at once
   -h, --help            Show help
 
   contentDir            defaults to "content"
+  --concurrency         defaults to one per available CPU
 ```
+
+Images are rendered a few at a time rather than all at once, so a tree of a few
+hundred posts does not start a few hundred rasterisations and thrash. The
+default — one per CPU the process can use — suits a build machine that has
+nothing else to do; lower it with `--concurrency` to leave room for whatever
+else is running.
 
 ### Rebuilds
 
@@ -141,6 +149,7 @@ await generate({
   contentDir: "content",
   config: { colors: { brand: "#2563eb" } },
   overwrite: false,
+  concurrency: 4, // defaults to one per available CPU
   onResult: (result) =>
     console.log(`${result.skipped ? "skip" : "wrote"} ${result.outputPath}`),
 });
