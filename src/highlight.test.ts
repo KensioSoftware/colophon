@@ -13,7 +13,7 @@ import {
   highlightCode,
   resolveLanguage,
   resolveTheme,
-} from "./highlight.js";
+} from "./highlight/index.js";
 
 describe("resolveLanguage", () => {
   it("passes through names Shiki already knows", () => {

@@ -1,7 +1,7 @@
 import type { Template } from "../types.js";
-import { bannerTemplate } from "./banner.js";
-import { cardTemplate } from "./card.js";
-import { codeTemplate } from "./code.js";
+import { bannerTemplate } from "./banner/index.js";
+import { cardTemplate } from "./card/index.js";
+import { codeTemplate } from "./code/index.js";
 
 /**
  * Templates registered out of the box. Projects can add to or override these
@@ -13,7 +13,7 @@ export const builtinTemplates: Readonly<Record<string, Template>> = {
   [codeTemplate.name]: codeTemplate,
 };
 
-export { bannerTemplate } from "./banner.js";
-export { cardTemplate } from "./card.js";
-export { codeTemplate } from "./code.js";
+export { bannerTemplate } from "./banner/index.js";
+export { cardTemplate } from "./card/index.js";
+export { codeTemplate } from "./code/index.js";
 export { optionalString } from "./props.js";

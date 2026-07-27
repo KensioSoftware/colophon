@@ -14,7 +14,7 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { fallbackFamily, fontFilePaths, resolveFonts } from "./fonts.js";
+import { fallbackFamily, fontFilePaths, resolveFonts } from "./fonts/index.js";
 
 // Real font files, so the tests exercise what a project would actually
 // configure. DejaVu is a dev dependency; nothing ships with the package.

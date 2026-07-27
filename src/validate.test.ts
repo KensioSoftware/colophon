@@ -9,7 +9,7 @@ import {
 import { describe, it } from "vitest";
 
 import type { ColophonConfig } from "./types.js";
-import { validateConfig } from "./validate.js";
+import { validateConfig } from "./validate/index.js";
 
 const sansFont = path.join(
   process.cwd(),

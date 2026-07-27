@@ -10,7 +10,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "colophon": "./dist/cli.js"
+    "colophon": "./dist/cli/index.js"
   },
   "exports": {
     ".": {
@@ -44,7 +44,8 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "samples": "pnpm build && node scripts/gen-samples.ts",
-    "check": "pnpm fmt && pnpm build:check && pnpm test:coverage"
+    "fta": "./scripts/sh/fta.sh",
+    "check": "pnpm fmt && pnpm fta && pnpm build:check && pnpm test:coverage"
   },
   "keywords": [
     "open-graph",
@@ -75,6 +76,7 @@
     "eslint-plugin-no-secrets": "^2.3.3",
     "eslint-plugin-security": "^4.0.1",
     "eslint-plugin-unicorn": "^69.0.0",
+    "fta-cli": "^3.0.0",
     "globals": "^17.7.0",
     "jiti": "^2.7.0",
     "prettier": "^3.9.5",

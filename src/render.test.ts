@@ -14,8 +14,8 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { resolveConfig } from "./config.js";
-import { buildSvg, renderMetaImages, renderSvgToPng } from "./render.js";
+import { resolveConfig } from "./config/index.js";
+import { buildSvg, renderMetaImages, renderSvgToPng } from "./render/index.js";
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 

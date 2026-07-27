@@ -9,7 +9,7 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { resolveConfig } from "./config.js";
+import { resolveConfig } from "./config/index.js";
 import {
   bannerTemplate,
   builtinTemplates,

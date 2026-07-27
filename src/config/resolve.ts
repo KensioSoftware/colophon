@@ -1,0 +1,97 @@
+import type {
+  Background,
+  BrandColors,
+  CodeStyle,
+  FontSource,
+  OutputSize,
+} from "../types.js";
+import {
+  DEFAULT_CODE_STYLE,
+  DEFAULT_COLORS,
+  DEFAULT_SIZES,
+} from "./defaults.js";
+
+/**
+ * Fill in the palette a project did not name.
+ *
+ * When a project supplies only `brand`, use it for the whole gradient rather
+ * than mixing in the neutral defaults, which would clash.
+ */
+export function resolveColors(
+  colors: BrandColors | undefined,
+): Required<BrandColors> {
+  if (colors === undefined) {
+    return DEFAULT_COLORS;
+  }
+
+  return {
+    brand: colors.brand,
+    brandDark: colors.brandDark ?? colors.brand,
+    brandWarm: colors.brandWarm ?? colors.brand,
+    foreground: colors.foreground ?? DEFAULT_COLORS.foreground,
+  };
+}
+
+/** The gradient a config with no background of its own is drawn on. */
+export function defaultBackground(colors: Required<BrandColors>): Background {
+  return {
+    type: "gradient",
+    stops: [
+      { offset: "0%", color: colors.brandDark },
+      { offset: "55%", color: colors.brand },
+      { offset: "100%", color: colors.brandWarm },
+    ],
+  };
+}
+
+/** Fill in the `code` styling a project did not name. */
+export function resolveCode(code: CodeStyle | undefined): Required<CodeStyle> {
+  return { ...DEFAULT_CODE_STYLE, ...code };
+}
+
+/**
+ * The sizes to render, rejecting a duplicate name: each size names a file, so
+ * two sizes sharing a name would have one overwrite the other.
+ */
+export function resolveSizes(
+  sizes: readonly OutputSize[] | undefined,
+): readonly OutputSize[] {
+  if (sizes === undefined || sizes.length === 0) {
+    return DEFAULT_SIZES;
+  }
+
+  const seen = new Set<string>();
+  for (const size of sizes) {
+    if (seen.has(size.name)) {
+      throw new Error(
+        `Duplicate output size name "${size.name}"; names must be unique so each image gets a distinct filename.`,
+      );
+    }
+    seen.add(size.name);
+  }
+
+  return sizes;
+}
+
+/**
+ * Whether to load the machine's own fonts. Configured fonts are meant to make
+ * the output the same everywhere, so supplying any turns system fonts off
+ * unless the project asks for them back.
+ */
+export function shouldLoadSystemFonts(
+  systemFonts: boolean | undefined,
+  fonts: readonly FontSource[],
+): boolean {
+  if (systemFonts === undefined) {
+    return fonts.length === 0;
+  }
+
+  if (!systemFonts && fonts.length === 0) {
+    throw new Error(
+      "systemFonts is false and no fonts are configured, so no text could be" +
+        " rendered. Add fonts, or leave systemFonts unset.",
+    );
+  }
+
+  return systemFonts;
+}

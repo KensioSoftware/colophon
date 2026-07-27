@@ -21,9 +21,9 @@ import {
   DEFAULT_SIZES,
   defineConfig,
   resolveConfig,
-  resolveConfigForSize,
   SIZE_PRESETS,
-} from "./config.js";
+} from "./config/index.js";
+import { resolveConfigForSize } from "./config/size.js";
 import type { ColophonConfig } from "./types.js";
 
 // A real font file: resolution checks that the path is there, so a fictional

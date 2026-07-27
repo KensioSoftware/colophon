@@ -13,7 +13,7 @@ import {
   layoutStack,
   textElement,
   wrapText,
-} from "./text.js";
+} from "./text/index.js";
 
 function baselineGap(placed: { y: number }[]): number {
   return (placed[1]?.y ?? 0) - (placed[0]?.y ?? 0);

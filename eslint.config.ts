@@ -175,7 +175,7 @@ export default defineConfig(
 
   // ── CLI entry point (stdout is the interface) ───────────
   {
-    files: ["src/cli.ts"],
+    files: ["src/cli/**/*.ts"],
     rules: {
       "no-console": "off",
     },
