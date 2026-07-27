@@ -7,7 +7,10 @@ import {
   assertArrayLength,
   assertIdentical,
   assertNonNullable,
+  assertStringIncludes,
+  assertThrowsErrorAsync,
   assertObjectEquals,
+  assertStringNotIncludes,
   assertUndefined,
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
@@ -178,6 +181,39 @@ describe("slugFromPath", () => {
   it("uses the filename for non-index files", () => {
     assertIdentical(slugFromPath(path.join("blog", "my-post.md")), "my-post");
   });
+
+  it("names a root-level index file after itself", () => {
+    // There is no parent directory inside the tree to borrow a name from, and
+    // borrowing the content directory's would put the walk root in the slug.
+    assertIdentical(slugFromPath("index.md"), "index");
+  });
+
+  it("keeps the directories under the route strategy", () => {
+    assertIdentical(
+      slugFromPath(path.join("services", "iam", "index.md"), "route"),
+      "services/iam",
+    );
+    assertIdentical(
+      slugFromPath(path.join("blog", "my-post.md"), "route"),
+      "blog/my-post",
+    );
+  });
+
+  it("names the root page index under the route strategy", () => {
+    // The one page with no directory to be named after.
+    assertIdentical(slugFromPath("index.md", "route"), "index");
+  });
+
+  it("gives a top-level post its bare name under the route strategy", () => {
+    assertIdentical(slugFromPath("about.md", "route"), "about");
+  });
+
+  it("uses forward slashes whatever the platform separator is", () => {
+    const slug = slugFromPath(path.join("a", "b", "c.md"), "route");
+
+    assertStringNotIncludes(slug, "\\");
+    assertIdentical(slug, "a/b/c");
+  });
 });
 
 describe("walkContent", () => {
@@ -266,6 +302,80 @@ describe("walkContent", () => {
       title: "Custom",
     });
     assertIdentical(files[0].slug, "post");
+  });
+
+  it("slugs a docs tree by route when asked", async () => {
+    await write(
+      "index.md",
+      "---\nmeta_img_props:\n  template: card\n  title: Home\n---\n",
+    );
+    await write(
+      "services/iam/index.md",
+      "---\nmeta_img_props:\n  template: card\n  title: IAM\n---\n",
+    );
+    await write(
+      "guides/getting-started.md",
+      "---\nmeta_img_props:\n  template: card\n  title: Start\n---\n",
+    );
+
+    const files = await walkContent({ dir, slugStrategy: "route" });
+
+    assertArrayEquals(
+      files.map((file) => file.slug).toSorted((a, b) => a.localeCompare(b)),
+      ["guides/getting-started", "index", "services/iam"],
+    );
+  });
+
+  it("lets a declared slug win over the route strategy", async () => {
+    await write(
+      "services/iam/index.md",
+      "---\nslug: identity\nmeta_img_props:\n  template: card\n  title: IAM\n---\n",
+    );
+
+    const files = await walkContent({ dir, slugStrategy: "route" });
+
+    assertArrayLength(files, 1);
+    assertIdentical(files[0].slug, "identity");
+  });
+
+  it("refuses a declared slug that would escape the content tree", async () => {
+    await write(
+      "posts/evil.md",
+      "---\nslug: ../../../tmp/pwned\nmeta_img_props:\n  template: card\n  title: E\n---\n",
+    );
+
+    const error = await assertThrowsErrorAsync(async () =>
+      walkContent({ dir }),
+    );
+
+    // Left alone, `generate` would create those directories and write there.
+    assertStringIncludes(error.message, 'Invalid slug "../../../tmp/pwned"');
+    assertStringIncludes(error.message, path.join("posts", "evil.md"));
+  });
+
+  it("refuses an absolute declared slug", async () => {
+    await write(
+      "posts/abs.md",
+      "---\nslug: /etc/pwned\nmeta_img_props:\n  template: card\n  title: A\n---\n",
+    );
+
+    const error = await assertThrowsErrorAsync(async () =>
+      walkContent({ dir }),
+    );
+
+    assertStringIncludes(error.message, 'Invalid slug "/etc/pwned"');
+  });
+
+  it("still allows the nested slug a route strategy produces", async () => {
+    await write(
+      "services/iam/index.md",
+      "---\nmeta_img_props:\n  template: card\n  title: IAM\n---\n",
+    );
+
+    const files = await walkContent({ dir, slugStrategy: "route" });
+
+    assertArrayLength(files, 1);
+    assertIdentical(files[0].slug, "services/iam");
   });
 
   it("covers a tree of existing posts through a frontmatter mapper", async () => {

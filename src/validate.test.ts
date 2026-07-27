@@ -200,9 +200,24 @@ describe("validateConfig", () => {
         defaultTemplate: "banner",
         props: (frontmatter) => ({ title: frontmatter["title"] }),
         slugField: "permalink",
+        slugStrategy: "route",
         extensions: [".md"],
       },
     });
+  });
+
+  it("rejects a mistyped slug strategy rather than routing the whole site", () => {
+    assertIdentical(
+      messageFor({ content: { slugStrategy: "rout" } }),
+      'Unknown slug strategy "rout". Did you mean "route"?',
+    );
+  });
+
+  it("lists the slug strategies when nothing is close", () => {
+    assertStringIncludes(
+      messageFor({ content: { slugStrategy: "by-title" } }),
+      "Valid strategies: basename, route.",
+    );
   });
 
   it("suggests the right key for a mistyped content option", () => {

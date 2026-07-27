@@ -8,6 +8,7 @@ import type {
   FontSource,
   GradientStop,
   OutputSize,
+  SlugStrategy,
 } from "./types.js";
 
 /**
@@ -49,6 +50,7 @@ const contentKeys = knownKeys<ContentOptions>({
   defaultTemplate: true,
   props: true,
   slugField: true,
+  slugStrategy: true,
   extensions: true,
 });
 
@@ -128,6 +130,16 @@ const gradientPointKeys = knownKeys<GradientPoint>({ x: true, y: true });
 const backgroundTypes = knownKeys<Record<Background["type"], unknown>>({
   solid: true,
   gradient: true,
+});
+
+/**
+ * The slug strategies, for the same reason as {@link backgroundTypes}:
+ * `slugFromPath` treats anything that is not `basename` as a route, so a
+ * mistyped `rout` would quietly re-slug a whole site rather than complain.
+ */
+const slugStrategies = knownKeys<Record<SlugStrategy, unknown>>({
+  basename: true,
+  route: true,
 });
 
 /**
@@ -305,6 +317,30 @@ function checkBackground(
 }
 
 /**
+ * Check the slug strategy names a real one. Only a string can be a strategy;
+ * anything else is a shape the type checker already covers, as elsewhere here.
+ */
+function checkSlugStrategy(content: unknown, problems: string[]): void {
+  if (!isRecord(content)) {
+    return;
+  }
+
+  const strategy = content["slugStrategy"];
+
+  if (typeof strategy !== "string" || slugStrategies.includes(strategy)) {
+    return;
+  }
+
+  const suggestion = nearestName(strategy, slugStrategies);
+
+  problems.push(
+    suggestion === undefined
+      ? `Unknown slug strategy "${strategy}". Valid strategies: ${slugStrategies.join(", ")}.`
+      : `Unknown slug strategy "${strategy}". Did you mean "${suggestion}"?`,
+  );
+}
+
+/**
  * Check each output size, and the overrides it carries.
  *
  * A size is the one place the same option names appear twice over, so the paths
@@ -361,6 +397,7 @@ export function validateConfig(config: ColophonConfig): void {
   checkKeys(raw.badge, "badge", badgeKeys, problems);
   checkKeys(raw.code, "code", codeKeys, problems);
   checkKeys(raw.content, "content", contentKeys, problems);
+  checkSlugStrategy(raw.content, problems);
   checkSizes(raw.sizes, problems);
   checkEach(raw.fonts, "fonts", fontKeys, problems);
   checkBackground(raw.background, "background", problems);
