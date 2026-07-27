@@ -200,6 +200,7 @@ describe("validateConfig", () => {
         defaultTemplate: "banner",
         props: (frontmatter) => ({ title: frontmatter["title"] }),
         slugField: "permalink",
+        slugStrategy: "route",
         extensions: [".md"],
       },
     });

@@ -49,6 +49,7 @@ const contentKeys = knownKeys<ContentOptions>({
   defaultTemplate: true,
   props: true,
   slugField: true,
+  slugStrategy: true,
   extensions: true,
 });
 

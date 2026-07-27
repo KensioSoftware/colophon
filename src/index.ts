@@ -12,6 +12,7 @@ export type {
   OutputSize,
   PropsFromFrontmatter,
   RenderedMetaImage,
+  SlugStrategy,
   SizeOverrides,
   ResolvedConfig,
   Template,

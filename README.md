@@ -379,6 +379,33 @@ frontmatter (SEO-friendly, keyword-rich), falling back to the file name — or t
 parent directory for `index.*` files. Point `slugField` at a different key, or
 override naming entirely with `generate`'s `outputPath` callback.
 
+#### Slug strategies
+
+Two ways to derive a slug from a path, for sites that address content
+differently. `basename` is the default and unchanged:
+
+| Path                    | `basename` | `route`        |
+| ----------------------- | ---------- | -------------- |
+| `index.md`              | `index`    | `index`        |
+| `blog/my-post.md`       | `my-post`  | `blog/my-post` |
+| `services/iam/index.md` | `iam`      | `services/iam` |
+
+`basename` suits Hugo-style page bundles, where the image belongs beside its
+post. `route` suits a site addressed by route — a docs tree where
+`services/iam/index.md` is served at `/services/iam` and wants an image named to
+match:
+
+```ts
+export default defineConfig({
+  content: { slugStrategy: "route" },
+});
+```
+
+A slug carrying directories is written from the **content root** rather than
+beside the file, so `services/iam` becomes `content/services/iam-og.png`.
+Resolving it beside the file would repeat the directories already in the slug.
+A frontmatter `slug` still wins over either strategy.
+
 ### Per-size config
 
 Some settings only make sense per size. `code.minFontScale` is the clearest
@@ -425,8 +452,8 @@ size and leaves the others alone.
 
 By default Colophon reads a `meta_img_props` object and a `template` field
 within it, plus a top-level `slug`. All are configurable under `content`
-(`propsKey`, `templateField`, `defaultTemplate`, `slugField`, `extensions`) so
-you can match an existing convention.
+(`propsKey`, `templateField`, `defaultTemplate`, `slugField`, `slugStrategy`,
+`extensions`) so you can match an existing convention.
 
 ### Using the frontmatter you already have
 

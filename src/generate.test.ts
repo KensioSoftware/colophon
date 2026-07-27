@@ -59,6 +59,22 @@ describe("defaultOutputPath", () => {
     );
   });
 
+  it("writes a route slug from the content root, not beside the file", () => {
+    const routed: ContentFile = {
+      contentPath: path.join("services", "iam", "index.md"),
+      absolutePath: path.join("/root", "services", "iam", "index.md"),
+      slug: "services/iam",
+      props: { template: "card" },
+    };
+
+    // Beside the file would be `/root/services/iam/services/iam-og.png`, with
+    // the slug's own directories repeated.
+    assertIdentical(
+      defaultOutputPath(routed, { name: "og", width: 1200, height: 630 }),
+      path.join("/root", "services", "iam-og.png"),
+    );
+  });
+
   it("gives each size a distinct filename", () => {
     assertIdentical(
       defaultOutputPath(file, { name: "square", width: 1200, height: 1200 }),

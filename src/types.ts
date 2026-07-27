@@ -167,6 +167,18 @@ export type PropsFromFrontmatter = (
 ) => Record<string, unknown> | undefined;
 
 /**
+ * How a post's slug — the base name for its images — is derived from its path
+ * when the frontmatter does not declare one.
+ *
+ * - `basename`: the filename without extension, or the parent directory for
+ *   `index.*`. Suits page bundles, where the image sits beside the content.
+ * - `route`: the whole path without extension, with `index.*` standing for its
+ *   directory, so `services/iam/index.md` becomes `services/iam` and a root
+ *   `index.md` becomes `index`. Suits a site addressed by route.
+ */
+export type SlugStrategy = "basename" | "route";
+
+/**
  * How to read image props out of a content tree. Every field is optional.
  *
  * This is the host-project half of the job — finding posts and understanding
@@ -192,6 +204,11 @@ export interface ContentOptions {
    * filename). Default `slug`; falls back to the file/directory name.
    */
   readonly slugField?: string;
+  /**
+   * How to derive a slug from a post's path when its frontmatter declares
+   * none. Default `basename`.
+   */
+  readonly slugStrategy?: SlugStrategy;
   /** File extensions to include. Default `.md` and `.markdown`. */
   readonly extensions?: readonly string[];
 }
