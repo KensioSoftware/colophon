@@ -7,7 +7,6 @@ import {
   assertArrayLength,
   assertBufferEqual,
   assertFalse,
-  assertFileEquals,
   assertFileExists,
   assertIdentical,
   assertNonNullable,
@@ -72,9 +71,11 @@ describe("defaultOutputPath", () => {
 
 describe("generate", () => {
   let dir: string;
+  let target: string;
 
   beforeEach(async () => {
     dir = await mkdtemp(path.join(tmpdir(), "colophon-gen-"));
+    target = path.join(dir, "guide", "guide-og.png");
     await mkdir(path.join(dir, "guide"), { recursive: true });
     await writeFile(
       path.join(dir, "guide", "index.md"),
@@ -117,23 +118,46 @@ describe("generate", () => {
     assertFileExists(path.join(dir, "post", "keyword-rich-slug-og.png"));
   }, 5000);
 
-  it("skips existing files and does not overwrite them", async () => {
-    const target = path.join(dir, "guide", "guide-og.png");
-    await writeFile(target, "sentinel");
+  it("skips images it has already rendered from the same input", async () => {
+    await generate(options(dir));
+    const first = await readFile(target);
 
     const results = await generate(options(dir));
     const ogResult = results.find((result) => result.outputPath === target);
 
     assertNonNullable(ogResult);
     assertTrue(ogResult.skipped);
-    assertFileEquals(target, "sentinel");
-  }, 5000);
+    assertBufferEqual(await readFile(target), first);
+  }, 10_000);
 
-  it("re-renders when overwrite is set", async () => {
-    const target = path.join(dir, "guide", "guide-og.png");
+  it("re-renders when the props change", async () => {
+    await generate(options(dir));
+    await writeFile(
+      path.join(dir, "guide", "index.md"),
+      "---\nmeta_img_props:\n  template: banner\n  title: Corrected\n---\n",
+    );
+
+    const results = await generate(options(dir));
+
+    assertTrue(results.every((result) => !result.skipped));
+  }, 10_000);
+
+  it("re-renders when the config changes", async () => {
+    await generate(options(dir, { config: { sizes: tinySizes } }));
+
+    const results = await generate(
+      options(dir, {
+        config: { sizes: tinySizes, colors: { brand: "#0d9488" } },
+      }),
+    );
+
+    assertTrue(results.every((result) => !result.skipped));
+  }, 10_000);
+
+  it("replaces an existing image it cannot recognise", async () => {
     await writeFile(target, "sentinel");
 
-    const results = await generate(options(dir, { overwrite: true }));
+    const results = await generate(options(dir));
     const ogResult = results.find((result) => result.outputPath === target);
 
     assertNonNullable(ogResult);
@@ -142,6 +166,14 @@ describe("generate", () => {
     const written = await readFile(target);
     assertBufferEqual(written.subarray(0, 4), pngSignature);
   }, 5000);
+
+  it("re-renders unchanged images when overwrite is set", async () => {
+    await generate(options(dir));
+
+    const results = await generate(options(dir, { overwrite: true }));
+
+    assertTrue(results.every((result) => !result.skipped));
+  }, 10_000);
 
   it("names the content file in a template's warnings", async () => {
     const warnings: string[] = [];

@@ -16,13 +16,20 @@ const usage = `colophon — generate social meta images from frontmatter
 Usage:
   colophon [contentDir] [options]
 
+Images carry a stamp of the props, config and size they came from, so a rebuild
+renders only the ones that have actually changed.
+
 Options:
   -c, --config <path>   Load a config module (default export = ColophonConfig)
-  -o, --overwrite       Re-render images even if the output file exists
+  -f, --force           Re-render every image, ignoring the stamps
+  -o, --overwrite       Alias for --force
   -h, --help            Show this help
 
 Defaults:
   contentDir            content`;
+
+/** `--overwrite` is kept as an alias so existing build scripts keep working. */
+const forceFlags = new Set(["-f", "--force", "-o", "--overwrite"]);
 
 function parseCliArgs(argv: readonly string[]): CliArgs {
   let contentDir = "content";
@@ -39,7 +46,7 @@ function parseCliArgs(argv: readonly string[]): CliArgs {
         throw new Error(`Missing value for ${arg}`);
       }
       configPath = value;
-    } else if (arg === "-o" || arg === "--overwrite") {
+    } else if (arg !== undefined && forceFlags.has(arg)) {
       shouldOverwrite = true;
     } else if (arg !== undefined && !arg.startsWith("-")) {
       contentDir = arg;

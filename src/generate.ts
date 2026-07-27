@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -6,6 +5,7 @@ import { resolveConfig } from "./config.js";
 import type { ContentFile, WalkOptions } from "./content/index.js";
 import { walkContent } from "./content/index.js";
 import { buildSvg, renderSvgToPng } from "./render.js";
+import { createStamper, readPngStamp, stampPng } from "./stamp.js";
 import type { ColophonConfig, OutputSize } from "./types.js";
 
 /**
@@ -15,7 +15,7 @@ export interface GeneratedImage {
   readonly contentPath: string;
   readonly size: OutputSize;
   readonly outputPath: string;
-  /** True when an existing file was left in place (no `overwrite`). */
+  /** True when an up-to-date image was left in place (no `overwrite`). */
   readonly skipped: boolean;
 }
 
@@ -30,7 +30,10 @@ export interface GenerateOptions {
   readonly walk?: Omit<WalkOptions, "dir">;
   /** Override where each image is written. */
   readonly outputPath?: (file: ContentFile, size: OutputSize) => string;
-  /** Re-render even when the output file already exists. Default `false`. */
+  /**
+   * Re-render every image, ignoring the stamps that would otherwise mark them
+   * as up to date. Default `false`.
+   */
   readonly overwrite?: boolean;
   /** Called after each image is written or skipped. */
   readonly onResult?: (result: GeneratedImage) => void;
@@ -48,16 +51,23 @@ export function defaultOutputPath(file: ContentFile, size: OutputSize): string {
 
 /**
  * Walk a content tree and render meta images for every file that declares
- * props, writing PNGs to disk. Existing files are skipped unless `overwrite`
- * is set (matching the original script's behaviour), and skipped sizes are
- * never rendered.
+ * props, writing PNGs to disk.
+ *
+ * Each image is stamped with a digest of the props, config and size it came
+ * from, so a rebuild renders only what has actually changed: an image whose
+ * stamp still matches is left alone, and one whose title, colours or template
+ * has moved on is rendered again. `overwrite` ignores the stamps and renders
+ * everything. Sizes with no image to render are never rasterised.
  */
 export async function generate(
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
   const resolved = resolveConfig(options.config);
   const toOutputPath = options.outputPath ?? defaultOutputPath;
-  const files = await walkContent({ dir: options.contentDir, ...options.walk });
+  const [stamper, files] = await Promise.all([
+    createStamper(resolved),
+    walkContent({ dir: options.contentDir, ...options.walk }),
+  ]);
 
   const jobs = files.flatMap((file) =>
     resolved.sizes.map((size) => ({ file, size })),
@@ -66,7 +76,10 @@ export async function generate(
   return Promise.all(
     jobs.map(async ({ file, size }) => {
       const outputPath = toOutputPath(file, size);
-      const isSkipped = existsSync(outputPath) && options.overwrite !== true;
+      const stamp = stamper.stamp(file.props, size);
+      const isSkipped =
+        options.overwrite !== true &&
+        (await readPngStamp(outputPath)) === stamp;
 
       if (!isSkipped) {
         const dimensions = { width: size.width, height: size.height };
@@ -81,7 +94,7 @@ export async function generate(
         const svg = await buildSvg(file.props, config, dimensions);
         const png = await renderSvgToPng(svg, dimensions, config);
         await mkdir(path.dirname(outputPath), { recursive: true });
-        await writeFile(outputPath, png);
+        await writeFile(outputPath, stampPng(png, stamp));
       }
 
       const result: GeneratedImage = {
