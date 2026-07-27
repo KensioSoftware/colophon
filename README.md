@@ -402,13 +402,16 @@ re-parses everything for each.
 
 Overridable: `colors`, `background`, `fontFamily`, `footer`, `badge`, `code` —
 what a template reads while drawing. Not overridable: `fonts`, `systemFonts` and
-`templates`, which describe the build rather than the picture and are loaded
-once for all sizes, and `onWarning`, which is where messages go rather than what
-they say. A size naming one of those is an unknown-option error, not a setting
-that quietly does nothing.
+`templates`, which are shared build inputs rather than part of the picture, and
+`onWarning`, which is where messages go rather than what they say. A size naming
+one of those is an unknown-option error, not a setting that quietly does
+nothing. `fontFamily` is overridable because it picks from the fonts already
+loaded; supplying different font _files_ per size is not the same thing.
 
 `colors` and `code` **merge** over their config-level counterparts, so the
-example above keeps `github-dark` and changes only the minimum font size. The
+example above keeps `github-dark` and changes only the minimum font size. Any
+single shade can be overridden on its own — `colors: { foreground: "#111827" }`
+on one size keeps the brand palette and changes just the text colour. The
 rest **replace**: a `background` is a union whose variants have different keys,
 so merging half of one onto half of another would produce a background that is
 neither, and `badge` carries a required `text` a partial override could not

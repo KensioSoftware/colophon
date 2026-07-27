@@ -275,6 +275,32 @@ describe("resolveConfigForSize", () => {
     assertIdentical(resolved.colors.foreground, "#eeeeee");
   });
 
+  it("lets a size override one shade without naming the brand", () => {
+    const resolved = resolveConfigForSize(
+      { colors: { brand: "#2563eb", brandWarm: "#f59e0b" } },
+      { ...square, colors: { foreground: "#111827" } },
+    );
+
+    assertIdentical(resolved.colors.foreground, "#111827");
+    assertIdentical(resolved.colors.brand, "#2563eb");
+    assertIdentical(resolved.colors.brandWarm, "#f59e0b");
+  });
+
+  it("keeps the default palette when a size overrides only the foreground", () => {
+    const resolved = resolveConfigForSize(undefined, {
+      ...square,
+      colors: { foreground: "#111827" },
+    });
+
+    // Merging onto nothing would leave a lone `foreground`, and the rule that a
+    // bare brand colours the whole gradient would then flatten the defaults.
+    assertObjectEquals(resolved.colors, {
+      ...DEFAULT_COLORS,
+      foreground: "#111827",
+    });
+    assertObjectEquals(resolved.background, resolveConfig().background);
+  });
+
   it("rebuilds the derived gradient around an overridden brand", () => {
     const resolved = resolveConfigForSize(
       { colors: { brand: "#2563eb" } },

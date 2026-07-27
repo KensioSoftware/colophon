@@ -235,13 +235,16 @@ export interface ColophonConfig {
  * again for each.
  *
  * Only what a template reads while drawing is overridable. `fonts`,
- * `systemFonts` and `templates` describe the build rather than the picture and
- * are loaded once for all sizes; `onWarning` is where messages go, not what
- * they say; and `sizes` inside a size would be nonsense.
+ * `systemFonts` and `templates` are shared build inputs rather than part of the
+ * picture; `onWarning` is where messages go, not what they say; and `sizes`
+ * inside a size would be nonsense.
  */
 export interface SizeOverrides {
-  /** Merged over the config's `colors`, so a size can change one shade. */
-  readonly colors?: BrandColors;
+  /**
+   * Merged over the config's `colors`, so a size can change one shade on its
+   * own — `brand` is optional here precisely because the rest are kept.
+   */
+  readonly colors?: Partial<BrandColors>;
   /** Replaces the config's background outright — see the note on merging. */
   readonly background?: Background;
   readonly fontFamily?: string;
