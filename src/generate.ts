@@ -105,7 +105,13 @@ export async function generate(
   );
   const [stamper, files] = await Promise.all([
     createStamper(resolved),
-    walkContent({ dir: options.contentDir, ...options.walk }),
+    // Content options can come from the config module, which is the only route
+    // a CLI user has to them; `walk` is the programmatic override and wins.
+    walkContent({
+      dir: options.contentDir,
+      ...options.config?.content,
+      ...options.walk,
+    }),
   ]);
 
   const jobs = files.flatMap((file) =>

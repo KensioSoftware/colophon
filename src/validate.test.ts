@@ -90,7 +90,7 @@ describe("validateConfig", () => {
     const message = messageFor({ wibble: true });
 
     assertStringIncludes(message, 'Unknown option "wibble". Valid options');
-    assertStringIncludes(message, "sizes, templates.");
+    assertStringIncludes(message, "sizes, templates, content.");
     assertStringNotIncludes(message, "Did you mean");
   });
 
@@ -190,6 +190,26 @@ describe("validateConfig", () => {
     validateConfig({
       templates: { "my-own-thing": { name: "my-own-thing", render: () => "" } },
     });
+  });
+
+  it("accepts the content options", () => {
+    validateConfig({
+      content: {
+        propsKey: "og",
+        templateField: "layout",
+        defaultTemplate: "banner",
+        props: (frontmatter) => ({ title: frontmatter["title"] }),
+        slugField: "permalink",
+        extensions: [".md"],
+      },
+    });
+  });
+
+  it("suggests the right key for a mistyped content option", () => {
+    assertIdentical(
+      messageFor({ content: { defaultTemplat: "banner" } }),
+      'Unknown option "content.defaultTemplat". Did you mean "defaultTemplate"?',
+    );
   });
 
   it("accepts the overrides a size may carry", () => {

@@ -148,6 +148,55 @@ export interface MetaImageProps {
 }
 
 /**
+ * Build image props from a post's whole frontmatter, so a project can use the
+ * fields it already has rather than adding a props block to every file.
+ *
+ * Return `undefined` to leave a post without images. That is the filter for
+ * drafts, section indexes and anything else in the tree that is not a page
+ * worth sharing — without it, mapping frontmatter would mean an image for every
+ * markdown file there is. It only settles posts that say nothing for
+ * themselves, though: one declaring a props block is rendered either way, since
+ * asking for an image outright beats a blanket rule.
+ *
+ * The returned fields need not be complete: they are merged under whatever the
+ * post declares explicitly, and a missing template falls back to
+ * {@link ContentOptions.defaultTemplate}.
+ */
+export type PropsFromFrontmatter = (
+  frontmatter: Record<string, unknown>,
+) => Record<string, unknown> | undefined;
+
+/**
+ * How to read image props out of a content tree. Every field is optional.
+ *
+ * This is the host-project half of the job — finding posts and understanding
+ * their frontmatter — and is deliberately absent from {@link ResolvedConfig}:
+ * a template is handed the resolved config, and where the props came from is
+ * none of its business.
+ */
+export interface ContentOptions {
+  /** Frontmatter key holding the image props object. Default `meta_img_props`. */
+  readonly propsKey?: string;
+  /** Field within the props object naming the template. Default `template`. */
+  readonly templateField?: string;
+  /** Template to use when the template field is absent. */
+  readonly defaultTemplate?: string;
+  /**
+   * Derive props from a post's existing frontmatter, for a site whose posts
+   * already carry the fields an image needs under different names. An explicit
+   * props object still wins field by field, so per-post overrides keep working.
+   */
+  readonly props?: PropsFromFrontmatter;
+  /**
+   * Top-level frontmatter field to read the post slug from (used as the base
+   * filename). Default `slug`; falls back to the file/directory name.
+   */
+  readonly slugField?: string;
+  /** File extensions to include. Default `.md` and `.markdown`. */
+  readonly extensions?: readonly string[];
+}
+
+/**
  * Reports something a template had to compromise on — code truncated to stay
  * legible, so far. Rendering carries on regardless: a share image is worth
  * having even when the input did not quite fit, but the author should hear
@@ -223,6 +272,11 @@ export interface ColophonConfig {
   readonly sizes?: readonly OutputSize[];
   /** Extra templates, merged over (and able to override) the built-ins. */
   readonly templates?: Readonly<Record<string, Template>>;
+  /**
+   * How to read props out of the content tree. Used by `generate` and the CLI;
+   * the render core never sees it.
+   */
+  readonly content?: ContentOptions;
 }
 
 /**
