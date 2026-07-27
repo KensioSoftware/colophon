@@ -7,6 +7,8 @@ import {
   assertArrayLength,
   assertIdentical,
   assertNonNullable,
+  assertStringIncludes,
+  assertThrowsErrorAsync,
   assertObjectEquals,
   assertStringNotIncludes,
   assertUndefined,
@@ -334,6 +336,46 @@ describe("walkContent", () => {
 
     assertArrayLength(files, 1);
     assertIdentical(files[0].slug, "identity");
+  });
+
+  it("refuses a declared slug that would escape the content tree", async () => {
+    await write(
+      "posts/evil.md",
+      "---\nslug: ../../../tmp/pwned\nmeta_img_props:\n  template: card\n  title: E\n---\n",
+    );
+
+    const error = await assertThrowsErrorAsync(async () =>
+      walkContent({ dir }),
+    );
+
+    // Left alone, `generate` would create those directories and write there.
+    assertStringIncludes(error.message, 'Invalid slug "../../../tmp/pwned"');
+    assertStringIncludes(error.message, path.join("posts", "evil.md"));
+  });
+
+  it("refuses an absolute declared slug", async () => {
+    await write(
+      "posts/abs.md",
+      "---\nslug: /etc/pwned\nmeta_img_props:\n  template: card\n  title: A\n---\n",
+    );
+
+    const error = await assertThrowsErrorAsync(async () =>
+      walkContent({ dir }),
+    );
+
+    assertStringIncludes(error.message, 'Invalid slug "/etc/pwned"');
+  });
+
+  it("still allows the nested slug a route strategy produces", async () => {
+    await write(
+      "services/iam/index.md",
+      "---\nmeta_img_props:\n  template: card\n  title: IAM\n---\n",
+    );
+
+    const files = await walkContent({ dir, slugStrategy: "route" });
+
+    assertArrayLength(files, 1);
+    assertIdentical(files[0].slug, "services/iam");
   });
 
   it("covers a tree of existing posts through a frontmatter mapper", async () => {

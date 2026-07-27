@@ -91,6 +91,31 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Reject a slug that would name a file outside the tree it came from.
+ *
+ * A slug is a filename, and may carry directories under the `route` strategy —
+ * but a declared one is written by hand, and `slug: ../../../tmp/x` would have
+ * `generate` create directories and write an image there. Nothing derived from
+ * a path can look like this, so the check only ever fires on frontmatter.
+ */
+function assertSlugStaysInside(slug: string, contentPath: string): void {
+  // An empty segment catches a leading or doubled separator, so an absolute
+  // slug is rejected by the same pass as a traversing one.
+  const outside = new Set(["", ".", ".."]);
+  const isEscaping =
+    slug.split(/[/\\]/).some((segment) => outside.has(segment)) ||
+    /^[A-Za-z]:/.test(slug);
+
+  if (isEscaping) {
+    throw new Error(
+      `Invalid slug "${slug}" in ${contentPath}: a slug names an image inside` +
+        ` the output tree, so it cannot be absolute or contain "." or ".."` +
+        ` segments.`,
+    );
+  }
+}
+
+/**
  * Extract {@link MetaImageProps} from a parsed frontmatter object, or return
  * `undefined` if this file should be skipped (nothing to build props from, or
  * no usable template). Pure — no filesystem access.
@@ -222,6 +247,8 @@ export async function walkContent(
         declaredSlug !== undefined && declaredSlug !== ""
           ? declaredSlug
           : slugFromPath(contentPath, slugStrategy);
+
+      assertSlugStaysInside(slug, contentPath);
 
       return {
         contentPath,
