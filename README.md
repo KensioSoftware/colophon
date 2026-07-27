@@ -446,7 +446,8 @@ export default defineConfig({
 });
 ```
 
-Point it at your content directory and every post gets an image.
+Point it at your content directory and the site gets its images, without
+editing a single post.
 
 **Returning `undefined` skips a post.** That is the filter for drafts, section
 indexes and anything else in the tree that is not a page worth sharing —

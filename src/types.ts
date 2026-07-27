@@ -154,7 +154,9 @@ export interface MetaImageProps {
  * Return `undefined` to leave a post without images. That is the filter for
  * drafts, section indexes and anything else in the tree that is not a page
  * worth sharing — without it, mapping frontmatter would mean an image for every
- * markdown file there is.
+ * markdown file there is. It only settles posts that say nothing for
+ * themselves, though: one declaring a props block is rendered either way, since
+ * asking for an image outright beats a blanket rule.
  *
  * The returned fields need not be complete: they are merged under whatever the
  * post declares explicitly, and a missing template falls back to
