@@ -19,8 +19,8 @@ import {
 import { afterEach, beforeEach, describe, it } from "vitest";
 
 import type { ContentFile } from "./content/index.js";
-import { defaultOutputPath, generate } from "./generate.js";
-import type { GenerateOptions } from "./generate.js";
+import { defaultOutputPath, generate } from "./generate/index.js";
+import type { GenerateOptions } from "./generate/index.js";
 import type { OutputSize } from "./types.js";
 
 const tinyOg: OutputSize = { name: "og", width: 32, height: 32 };

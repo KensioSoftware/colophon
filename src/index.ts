@@ -28,12 +28,12 @@ export {
   DEFAULT_SIZES,
   defineConfig,
   resolveConfig,
-  resolveConfigForSize,
   SIZE_PRESETS,
-} from "./config.js";
+} from "./config/index.js";
+export { resolveConfigForSize } from "./config/size.js";
 
 export { backgroundSvg } from "./background.js";
-export { buildSvg, renderMetaImages, renderSvgToPng } from "./render.js";
+export { buildSvg, renderMetaImages, renderSvgToPng } from "./render/index.js";
 export {
   bannerTemplate,
   builtinTemplates,
@@ -46,20 +46,20 @@ export {
   expandTabs,
   highlightCode,
   resolveLanguage,
-} from "./highlight.js";
+} from "./highlight/index.js";
 export type {
   CodeToken,
   HighlightedCode,
   HighlightOptions,
-} from "./highlight.js";
+} from "./highlight/index.js";
 
-export { defaultOutputPath, generate } from "./generate.js";
-export type { GeneratedImage, GenerateOptions } from "./generate.js";
+export { defaultOutputPath, generate } from "./generate/index.js";
+export type { GeneratedImage, GenerateOptions } from "./generate/index.js";
 
-export { createStamper, readPngStamp, stampPng } from "./stamp.js";
-export type { Stamper } from "./stamp.js";
+export { createStamper, readPngStamp, stampPng } from "./stamp/index.js";
+export type { Stamper } from "./stamp/index.js";
 
-export { escapeXml, wrapText } from "./text.js";
+export { escapeXml, wrapText } from "./text/index.js";
 
 export { extractProps, slugFromPath, walkContent } from "./content/index.js";
 export type { ContentFile, WalkOptions } from "./content/index.js";

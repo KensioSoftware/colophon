@@ -1,0 +1,153 @@
+import type {
+  Background,
+  Badge,
+  BrandColors,
+  CodeStyle,
+  ColophonConfig,
+  ContentOptions,
+  FontSource,
+  GradientStop,
+  OutputSize,
+  SlugStrategy,
+} from "../types.js";
+
+/**
+ * The keys of one config object, as a list to check incoming keys against.
+ *
+ * Taking a `Record<keyof T, true>` rather than a plain array of strings is
+ * what keeps the list honest: adding an option to `types.ts` without listing
+ * it here fails the build, which is much better than the new option quietly
+ * becoming an unknown one.
+ */
+function knownKeys<T>(shape: Record<keyof T, true>): readonly string[] {
+  return Object.keys(shape);
+}
+
+type SolidBackground = Extract<Background, { readonly type: "solid" }>;
+type GradientBackground = Extract<Background, { readonly type: "gradient" }>;
+type GradientPoint = NonNullable<GradientBackground["from"]>;
+type FontByPath = Extract<FontSource, { readonly path: string }>;
+type FontByData = Extract<FontSource, { readonly data: Uint8Array }>;
+
+/** Top-level config options. */
+export const configKeys = knownKeys<ColophonConfig>({
+  colors: true,
+  background: true,
+  fonts: true,
+  systemFonts: true,
+  fontFamily: true,
+  footer: true,
+  badge: true,
+  code: true,
+  onWarning: true,
+  sizes: true,
+  templates: true,
+  content: true,
+});
+
+/** Options for reading a project's own frontmatter. */
+export const contentKeys = knownKeys<ContentOptions>({
+  propsKey: true,
+  templateField: true,
+  defaultTemplate: true,
+  props: true,
+  slugField: true,
+  slugStrategy: true,
+  extensions: true,
+});
+
+/** Brand palette shades. */
+export const colorKeys = knownKeys<BrandColors>({
+  brand: true,
+  brandDark: true,
+  brandWarm: true,
+  foreground: true,
+});
+
+/** Corner-badge options. */
+export const badgeKeys = knownKeys<Badge>({
+  text: true,
+  color: true,
+  background: true,
+});
+
+/** `code` template styling options. */
+export const codeKeys = knownKeys<CodeStyle>({
+  theme: true,
+  fontFamily: true,
+  charWidthRatio: true,
+  lineHeight: true,
+  tabSize: true,
+  cornerScale: true,
+  maxFontScale: true,
+  minFontScale: true,
+});
+
+/** One output size, including the overrides it may carry. */
+export const sizeKeys = knownKeys<OutputSize>({
+  name: true,
+  width: true,
+  height: true,
+  colors: true,
+  background: true,
+  fontFamily: true,
+  footer: true,
+  badge: true,
+  code: true,
+});
+
+/**
+ * Both font variants at once. Which of `path` and `data` a font may carry is
+ * `fonts/resolve.ts`'s ruling to make, and it has a better message for it than
+ * a list of keys could.
+ */
+export const fontKeys = [
+  ...new Set([
+    ...knownKeys<FontByPath>({ family: true, path: true }),
+    ...knownKeys<FontByData>({ family: true, data: true }),
+  ]),
+];
+
+/** Keys of a solid background. */
+export const solidBackgroundKeys = knownKeys<SolidBackground>({
+  type: true,
+  color: true,
+});
+
+/** Keys of a gradient background. */
+export const gradientBackgroundKeys = knownKeys<GradientBackground>({
+  type: true,
+  stops: true,
+  from: true,
+  to: true,
+});
+
+/** Keys of one gradient stop. */
+export const gradientStopKeys = knownKeys<GradientStop>({
+  offset: true,
+  color: true,
+});
+
+/** Keys of a gradient's `from` and `to` points. */
+export const gradientPointKeys = knownKeys<GradientPoint>({ x: true, y: true });
+
+/**
+ * The background variants, as values to check a declared `type` against. Typed
+ * against the union for the same reason the key lists are: a variant added to
+ * `Background` and not listed here would otherwise be reported as an unknown
+ * type, rejecting a config that is perfectly valid.
+ */
+export const backgroundTypes = knownKeys<Record<Background["type"], unknown>>({
+  solid: true,
+  gradient: true,
+});
+
+/**
+ * The slug strategies, for the same reason as {@link backgroundTypes}:
+ * `slugFromPath` treats anything that is not `basename` as a route, so a
+ * mistyped `rout` would quietly re-slug a whole site rather than complain.
+ */
+export const slugStrategies = knownKeys<Record<SlugStrategy, unknown>>({
+  basename: true,
+  route: true,
+});

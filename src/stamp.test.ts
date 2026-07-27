@@ -12,9 +12,9 @@ import {
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
 
-import { resolveConfig } from "./config.js";
-import { renderSvgToPng } from "./render.js";
-import { createStamper, readPngStamp, stampPng } from "./stamp.js";
+import { resolveConfig } from "./config/index.js";
+import { renderSvgToPng } from "./render/index.js";
+import { createStamper, readPngStamp, stampPng } from "./stamp/index.js";
 import type { ColophonConfig, MetaImageProps, OutputSize } from "./types.js";
 
 const og: OutputSize = { name: "og", width: 32, height: 16 };

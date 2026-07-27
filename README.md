@@ -559,7 +559,10 @@ Adding the `code` template made two small breaking changes:
 - `pnpm lint` — ESLint + Prettier check.
 - `pnpm fmt` — auto-fix.
 - `pnpm samples` — regenerate the README sample images into `docs/samples/`.
-- `pnpm check` — format, typecheck and test with coverage (run before committing).
+- `pnpm fta` — [FTA](https://ftaproject.dev) maintainability scores for `src/`,
+  failing on any file that scores 50 or above.
+- `pnpm check` — format, FTA, typecheck and test with coverage (run before
+  committing).
 
 ## License
 
