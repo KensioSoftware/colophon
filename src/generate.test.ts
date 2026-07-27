@@ -277,6 +277,55 @@ describe("generate", () => {
     assertStringIncludes(error.message, "expected a positive integer");
   });
 
+  it("takes content options from the config module", async () => {
+    // The route a CLI user has to the walker: the config module, since a props
+    // mapper cannot be passed as a flag.
+    await writeFile(
+      path.join(dir, "guide", "existing.md"),
+      "---\ntitle: Existing\ndescription: No props block here\n---\n",
+    );
+
+    const results = await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          content: {
+            defaultTemplate: "banner",
+            props: (frontmatter) => ({
+              title: frontmatter["title"],
+              subtitle: frontmatter["description"],
+            }),
+          },
+        },
+      }),
+    );
+
+    assertFileExists(path.join(dir, "guide", "existing-og.png"));
+    assertArrayLength(results, 2);
+  }, 10_000);
+
+  it("lets walk options override the config's content options", async () => {
+    await writeFile(
+      path.join(dir, "guide", "other.md"),
+      "---\nog:\n  title: From og\n---\n",
+    );
+
+    const results = await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          content: { propsKey: "meta_img_props" },
+        },
+        walk: { propsKey: "og", defaultTemplate: "card" },
+      }),
+    );
+
+    // `walk` won, so the `og` key was read and `guide/index.md` (which uses
+    // `meta_img_props`) was not.
+    assertArrayLength(results, 1);
+    assertFileExists(path.join(dir, "guide", "other-og.png"));
+  }, 10_000);
+
   it("uses a custom output path and reports each result", async () => {
     const seen: string[] = [];
     const outDir = path.join(dir, "out");

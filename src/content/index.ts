@@ -3,7 +3,7 @@ import path from "node:path";
 
 import matter from "gray-matter";
 
-import type { MetaImageProps } from "../types.js";
+import type { ContentOptions, MetaImageProps } from "../types.js";
 
 const defaultPropsKey = "meta_img_props";
 const defaultTemplateField = "template";
@@ -27,24 +27,12 @@ function coerceString(value: unknown): string | undefined {
 }
 
 /**
- * Options for {@link walkContent}. Only `dir` is required.
+ * Options for {@link walkContent}: everything a project can say about reading
+ * its own content, plus the directory to read it from. Only `dir` is required.
  */
-export interface WalkOptions {
+export interface WalkOptions extends ContentOptions {
   /** Root directory to search recursively for content files. */
   readonly dir: string;
-  /** Frontmatter key holding the image props object. Default `meta_img_props`. */
-  readonly propsKey?: string;
-  /** Field within the props object naming the template. Default `template`. */
-  readonly templateField?: string;
-  /** Template to use when the template field is absent. */
-  readonly defaultTemplate?: string;
-  /**
-   * Top-level frontmatter field to read the post slug from (used as the base
-   * filename). Default `slug`; falls back to the file/directory name.
-   */
-  readonly slugField?: string;
-  /** File extensions to include. Default `.md` and `.markdown`. */
-  readonly extensions?: readonly string[];
 }
 
 /**
@@ -77,24 +65,40 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 /**
  * Extract {@link MetaImageProps} from a parsed frontmatter object, or return
- * `undefined` if this file should be skipped (no props object, or no usable
- * template/title). Pure — no filesystem access.
+ * `undefined` if this file should be skipped (nothing to build props from, or
+ * no usable template). Pure — no filesystem access.
+ *
+ * Props can come from two places: the post's own props object, and a project's
+ * `props` mapper reading the frontmatter it already has. Where both speak the
+ * post wins, field by field — the mapper describes the site's usual shape, and
+ * a post that says otherwise is saying so on purpose.
  */
 export function extractProps(
   frontmatter: Record<string, unknown>,
   options: Pick<
-    WalkOptions,
-    "propsKey" | "templateField" | "defaultTemplate"
+    ContentOptions,
+    "propsKey" | "templateField" | "defaultTemplate" | "props"
   > = {},
 ): MetaImageProps | undefined {
   const propsKey = options.propsKey ?? defaultPropsKey;
   const templateField = options.templateField ?? defaultTemplateField;
 
-  const record = frontmatter[propsKey];
+  const declared = frontmatter[propsKey];
+  const hasDeclared = isRecord(declared);
+  const mapped = options.props?.(frontmatter);
 
-  if (!isRecord(record)) {
+  // A mapper opting a post out cannot overrule a post that asked for an image
+  // outright, so the skip only applies where the post says nothing itself.
+  if (!hasDeclared && mapped === undefined) {
     return undefined;
   }
+
+  // Merged rather than replaced, so a post correcting one field does not have
+  // to restate everything the mapper already got right.
+  const record: Record<string, unknown> = {
+    ...mapped,
+    ...(hasDeclared && declared),
+  };
 
   const templateRaw = record[templateField];
   const template =
@@ -162,8 +166,9 @@ async function collectContentFiles(
 
 /**
  * Walk a content tree, read each file's frontmatter with `gray-matter`, and
- * return the files that declare image props. This is the host-project concern
- * — finding content and reading frontmatter — kept separate from rendering.
+ * return the files that image props can be built for. This is the host-project
+ * concern — finding content and reading frontmatter — kept separate from
+ * rendering.
  */
 export async function walkContent(
   options: WalkOptions,

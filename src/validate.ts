@@ -4,6 +4,7 @@ import type {
   BrandColors,
   CodeStyle,
   ColophonConfig,
+  ContentOptions,
   FontSource,
   GradientStop,
   OutputSize,
@@ -39,6 +40,16 @@ const configKeys = knownKeys<ColophonConfig>({
   onWarning: true,
   sizes: true,
   templates: true,
+  content: true,
+});
+
+const contentKeys = knownKeys<ContentOptions>({
+  propsKey: true,
+  templateField: true,
+  defaultTemplate: true,
+  props: true,
+  slugField: true,
+  extensions: true,
 });
 
 const colorKeys = knownKeys<BrandColors>({
@@ -336,6 +347,7 @@ export function validateConfig(config: ColophonConfig): void {
   // The types say what should be here; validation exists for when it is not.
   const raw = config as {
     readonly colors?: unknown;
+    readonly content?: unknown;
     readonly background?: unknown;
     readonly badge?: unknown;
     readonly code?: unknown;
@@ -348,6 +360,7 @@ export function validateConfig(config: ColophonConfig): void {
   checkKeys(raw.colors, "colors", colorKeys, problems);
   checkKeys(raw.badge, "badge", badgeKeys, problems);
   checkKeys(raw.code, "code", codeKeys, problems);
+  checkKeys(raw.content, "content", contentKeys, problems);
   checkSizes(raw.sizes, problems);
   checkEach(raw.fonts, "fonts", fontKeys, problems);
   checkBackground(raw.background, "background", problems);
