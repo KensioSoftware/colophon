@@ -93,6 +93,25 @@ describe("mapConcurrent", () => {
     assertIdentical(peak, 2);
   });
 
+  it("rejects a limit that would start no workers at all", async () => {
+    let calls = 0;
+
+    const error = await assertThrowsErrorAsync(() =>
+      mapConcurrent([1, 2], 0, (item) => {
+        calls += 1;
+        return Promise.resolve(item);
+      }),
+    );
+
+    // Silence is the dangerous alternative: no workers, an empty result, and a
+    // build that looks like it succeeded.
+    assertIdentical(
+      error.message,
+      "Invalid concurrency limit 0; expected a positive integer.",
+    );
+    assertIdentical(calls, 0);
+  });
+
   it("propagates the first failure and stops starting new items", async () => {
     const held = gate();
     const started: number[] = [];

@@ -11,12 +11,24 @@
  * The first rejection propagates, as it would from `Promise.all`. Items
  * already in flight run to completion — there is no cancelling a render — but
  * no further ones are started.
+ *
+ * Throws if `limit` is not a positive integer.
  */
 export async function mapConcurrent<Item, Result>(
   items: readonly Item[],
   limit: number,
   worker: (item: Item, index: number) => Promise<Result>,
 ): Promise<Result[]> {
+  // A limit below one starts no workers at all, and an empty `Promise.all`
+  // resolves happily — so the caller would get an empty result back as though
+  // there had been nothing to do. A build reporting success having rendered
+  // nothing is the failure worth being loud about.
+  if (!Number.isSafeInteger(limit) || limit < 1) {
+    throw new Error(
+      `Invalid concurrency limit ${String(limit)}; expected a positive integer.`,
+    );
+  }
+
   // Assigned by index rather than pushed, so results come back in input order
   // however the workers interleave.
   const results: Result[] = [];
