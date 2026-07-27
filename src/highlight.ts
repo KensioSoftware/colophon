@@ -106,6 +106,31 @@ export function expandTabs(text: string, tabSize: number): string {
 }
 
 /**
+ * Strip the indentation common to every non-blank line. A snippet lifted out
+ * of a nested block would otherwise spend its width — the scarce dimension on
+ * the landscape sizes — on indentation that carries no meaning once the
+ * surrounding code is gone.
+ */
+export function dedent(text: string): string {
+  const lines = text.split("\n");
+  let common = Infinity;
+
+  for (const line of lines) {
+    if (line.trim() === "") {
+      continue;
+    }
+
+    common = Math.min(common, line.length - line.trimStart().length);
+  }
+
+  if (common === 0 || !Number.isFinite(common)) {
+    return text;
+  }
+
+  return lines.map((line) => line.slice(common)).join("\n");
+}
+
+/**
  * Split an `#rrggbb` or `#rrggbbaa` colour into a fill and an optional opacity,
  * since SVG 1.1 `fill` does not accept an alpha channel.
  */
@@ -128,6 +153,9 @@ function splitColor(color: string | undefined): {
 /**
  * Tokenise a snippet with Shiki and flatten it onto a character grid.
  *
+ * The snippet is first normalised: surrounding blank lines trimmed, tabs
+ * expanded, and common leading indentation removed.
+ *
  * Whitespace-only runs are dropped and each remaining run keeps its starting
  * column, so the renderer can position every run absolutely instead of relying
  * on SVG text flow to preserve indentation.
@@ -136,9 +164,11 @@ export async function highlightCode(
   code: string,
   options: HighlightOptions,
 ): Promise<HighlightedCode> {
-  const source = expandTabs(code.replaceAll("\r\n", "\n"), options.tabSize)
-    .replace(/\n+$/, "")
-    .replace(/^\n+/, "");
+  const source = dedent(
+    expandTabs(code.replaceAll("\r\n", "\n"), options.tabSize)
+      .replace(/\n+$/, "")
+      .replace(/^\n+/, ""),
+  );
 
   const result = await codeToTokens(source, {
     lang: resolveLanguage(options.language),

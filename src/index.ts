@@ -12,6 +12,7 @@ export type {
   ResolvedConfig,
   Template,
   TemplateContext,
+  WarningHandler,
 } from "./types.js";
 
 export {
@@ -34,7 +35,12 @@ export {
   codeTemplate,
 } from "./templates/index.js";
 
-export { expandTabs, highlightCode, resolveLanguage } from "./highlight.js";
+export {
+  dedent,
+  expandTabs,
+  highlightCode,
+  resolveLanguage,
+} from "./highlight.js";
 export type {
   CodeToken,
   HighlightedCode,

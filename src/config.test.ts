@@ -1,5 +1,6 @@
 import {
   assertArrayEquals,
+  assertArrayLength,
   assertIdentical,
   assertNonNullable,
   assertObjectEquals,
@@ -7,7 +8,7 @@ import {
   assertThrowsError,
   assertUndefined,
 } from "@kensio/smartass";
-import { describe, it } from "vitest";
+import { describe, it, vi } from "vitest";
 
 import {
   DEFAULT_CODE_STYLE,
@@ -68,6 +69,23 @@ describe("resolveConfig", () => {
       "code",
     ]);
     assertObjectEquals(resolved.code, DEFAULT_CODE_STYLE);
+  });
+
+  it("warns through console by default, or through a supplied handler", () => {
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    resolveConfig().onWarning("something did not fit");
+
+    assertArrayEquals(spy.mock.calls[0], ["colophon: something did not fit"]);
+
+    const warnings: string[] = [];
+    resolveConfig({
+      onWarning: (m) => {
+        warnings.push(m);
+      },
+    }).onWarning("mine");
+
+    assertArrayEquals(warnings, ["mine"]);
+    assertArrayLength(spy.mock.calls, 1);
   });
 
   it("merges code style over the defaults", () => {

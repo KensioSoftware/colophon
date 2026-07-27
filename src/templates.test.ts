@@ -1,6 +1,8 @@
 import {
   assertArrayLength,
   assertIdentical,
+  assertNonNullable,
+  assertNumberBetween,
   assertStringIncludes,
   assertStringNotIncludes,
   assertTrue,
@@ -22,6 +24,7 @@ import type {
 } from "./types.js";
 
 const square: Dimensions = { width: 1200, height: 1200 };
+const wide: Dimensions = { width: 1200, height: 630 };
 
 async function render(
   template: Template,
@@ -30,6 +33,21 @@ async function render(
   dimensions: Dimensions = square,
 ): Promise<string> {
   return template.render({ props, config: resolveConfig(config), dimensions });
+}
+
+/** Geometry of the code panel: the stroked surface rect, not its shadow. */
+function panelRect(svg: string): { x: number; width: number } {
+  const match = /<rect x="(\d+)" y="\d+" width="(\d+)"[^>]*stroke=/.exec(svg);
+  assertNonNullable(match);
+
+  return { x: Number(match[1]), width: Number(match[2]) };
+}
+
+/** Every x a token is drawn at, in image coordinates. */
+function tspanColumns(svg: string): readonly number[] {
+  return Array.from(svg.matchAll(/<tspan x="(\d+)"/g), (match) =>
+    Number(match[1]),
+  );
 }
 
 describe("builtinTemplates", () => {
@@ -196,6 +214,7 @@ describe("codeTemplate", () => {
   }, 5000);
 
   it("clips lines that overrun the panel at the minimum font size", async () => {
+    const warnings: string[] = [];
     const svg = await render(
       codeTemplate,
       {
@@ -204,29 +223,124 @@ describe("codeTemplate", () => {
         language: "python",
       },
       // A high floor forces the fitted size up past what the width allows.
-      { code: { minFontScale: 0.05 } },
+      {
+        code: { minFontScale: 0.05 },
+        onWarning: (m) => {
+          warnings.push(m);
+        },
+      },
     );
 
-    const rightmost = Math.max(
-      ...Array.from(svg.matchAll(/<tspan x="(\d+)"/g), (m) => Number(m[1])),
-    );
+    const rightmost = Math.max(...tspanColumns(svg));
 
     assertStringIncludes(svg, "\u{2026}</tspan>");
     assertTrue(rightmost < 1200);
+    assertArrayLength(warnings, 1);
+    assertStringIncludes(warnings[0], "1 line clipped to the panel width");
   }, 5000);
 
-  it("truncates code too long to fit legibly", async () => {
+  it("truncates code too long to fit legibly, and says so", async () => {
+    const warnings: string[] = [];
     const code = Array.from(
       { length: 400 },
       (_, i) => `line ${String(i)}`,
     ).join("\n");
-    const svg = await render(codeTemplate, {
-      template: "code",
-      code,
-      language: "text",
-    });
+    const svg = await render(
+      codeTemplate,
+      { template: "code", code, language: "text" },
+      {
+        onWarning: (m) => {
+          warnings.push(m);
+        },
+      },
+    );
 
     assertStringIncludes(svg, ">…</tspan>");
     assertTrue((svg.match(/<text /g) ?? []).length < 400);
+    assertArrayLength(warnings, 1);
+    assertStringIncludes(warnings[0], "the 1200x1200 image");
+    assertStringIncludes(warnings[0], "of 400 lines dropped");
+  }, 5000);
+
+  it("says nothing when the whole snippet fits", async () => {
+    const warnings: string[] = [];
+    await render(
+      codeTemplate,
+      { template: "code", code: bash, language: "bash" },
+      {
+        onWarning: (m) => {
+          warnings.push(m);
+        },
+      },
+    );
+
+    assertArrayLength(warnings, 0);
+  }, 5000);
+
+  it("dedents a snippet lifted out of a nested block", async () => {
+    const svg = await render(codeTemplate, {
+      template: "code",
+      code: "      if x:\n          return 1",
+      language: "python",
+    });
+
+    const { x } = panelRect(svg);
+    const columns = tspanColumns(svg);
+
+    // `if` sits at the panel's left margin, as though the snippet were written
+    // there; `return` keeps its one relative level of indentation.
+    assertNumberBetween(Math.min(...columns) - x, 1, 100);
+    assertTrue(Math.max(...columns) > Math.min(...columns));
+  }, 5000);
+
+  it("left-aligns the code inside a panel hugged to it", async () => {
+    const svg = await render(
+      codeTemplate,
+      {
+        template: "code",
+        code: "const wideEnoughToHugThePanel = true;\nlet x;",
+        language: "typescript",
+      },
+      {},
+      wide,
+    );
+
+    const { x, width } = panelRect(svg);
+    const columns = tspanColumns(svg);
+    const left = Math.min(...columns) - x;
+    const right = x + width - Math.max(...columns);
+
+    // Both unindented lines start at the same margin, and that margin is a
+    // padding rather than the gutter a centred block would leave.
+    assertArrayLength(
+      columns.filter((column) => column === left + x),
+      2,
+    );
+    assertNumberBetween(left, 1, width * 0.12);
+    // The panel hugs the block, so the room left of the code matches the room
+    // right of the longest line.
+    assertNumberBetween(right - left, -2, left);
+  }, 5000);
+
+  it("keeps landscape code no smaller than the legibility floor", async () => {
+    const code = Array.from(
+      { length: 40 },
+      (_, i) => `const line${String(i)} = ${String(i)};`,
+    ).join("\n");
+    const svg = await render(
+      codeTemplate,
+      { template: "code", code, language: "typescript" },
+      {},
+      wide,
+    );
+
+    // The floor is a fraction of the image width, not its height: a landscape
+    // image drops lines rather than rendering them at half the square's size.
+    const sizes = Array.from(svg.matchAll(/font-size="(\d+)"/g), (match) =>
+      Number(match[1]),
+    );
+
+    assertStringIncludes(svg, ">…</tspan>");
+    assertNumberBetween(Math.min(...sizes), wide.width * 0.025, 1200);
   }, 5000);
 });
