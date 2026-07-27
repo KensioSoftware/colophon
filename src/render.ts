@@ -1,7 +1,9 @@
-import sharp from "sharp";
+import type { ResvgRenderOptions } from "@resvg/resvg-js";
+import { renderAsync } from "@resvg/resvg-js";
 
 import { backgroundSvg } from "./background.js";
 import { resolveConfig } from "./config.js";
+import { fallbackFamily, fontFilePaths } from "./fonts.js";
 import type {
   ColophonConfig,
   Dimensions,
@@ -53,16 +55,39 @@ export async function buildSvg(
 }
 
 /**
- * Rasterise an SVG string to a PNG buffer at the given dimensions.
+ * Font options for the rasteriser: the configured font files, and whether to
+ * fall back to the machine's own.
+ */
+async function fontOptions(
+  config: ResolvedConfig,
+): Promise<NonNullable<ResvgRenderOptions["font"]>> {
+  const fallback = fallbackFamily(config.fonts);
+
+  return {
+    loadSystemFonts: config.systemFonts,
+    fontFiles: await fontFilePaths(config.fonts),
+    ...(fallback !== undefined && { defaultFontFamily: fallback }),
+  };
+}
+
+/**
+ * Rasterise an SVG string to a PNG buffer, scaled to `dimensions.width`.
+ *
+ * Text is drawn with the fonts named by `config`, which is what keeps the
+ * output the same on a laptop, in CI and in a container. Height follows the
+ * SVG's own aspect ratio; {@link buildSvg} sizes it to match.
  */
 export async function renderSvgToPng(
   svg: string,
   dimensions: Dimensions,
+  config: ResolvedConfig = resolveConfig(),
 ): Promise<Buffer> {
-  return sharp(Buffer.from(svg))
-    .resize(dimensions.width, dimensions.height, { fit: "fill" })
-    .png()
-    .toBuffer();
+  const rendered = await renderAsync(svg, {
+    fitTo: { mode: "width", value: dimensions.width },
+    font: await fontOptions(config),
+  });
+
+  return rendered.asPng();
 }
 
 /**
@@ -83,7 +108,7 @@ export async function renderMetaImages(
     resolved.sizes.map(async (size) => {
       const dimensions = { width: size.width, height: size.height };
       const svg = await buildSvg(props, resolved, dimensions);
-      const png = await renderSvgToPng(svg, dimensions);
+      const png = await renderSvgToPng(svg, dimensions, resolved);
       return { name: size.name, dimensions, svg, png };
     }),
   );

@@ -1,9 +1,11 @@
+import { resolveFonts } from "./fonts.js";
 import { builtinTemplates } from "./templates/index.js";
 import type {
   Background,
   BrandColors,
   CodeStyle,
   ColophonConfig,
+  FontSource,
   OutputSize,
   ResolvedConfig,
 } from "./types.js";
@@ -34,7 +36,11 @@ export const DEFAULT_SIZES: readonly OutputSize[] = [
   SIZE_PRESETS.square,
 ];
 
-/** Default font stack. Override via `config.fontFamily` for branded fonts. */
+/**
+ * Default font stack, used when no fonts are configured. It names families and
+ * hopes the machine has them, which is exactly what `config.fonts` exists to
+ * avoid: supply a font file and the output stops depending on the machine.
+ */
 export const DEFAULT_FONT_FAMILY = "Arial, Helvetica, sans-serif";
 
 /** Neutral default palette, used when no `colors.brand` is supplied. */
@@ -145,15 +151,42 @@ function resolveSizes(
 }
 
 /**
+ * Whether to load the machine's own fonts. Configured fonts are meant to make
+ * the output the same everywhere, so supplying any turns system fonts off
+ * unless the project asks for them back.
+ */
+function shouldLoadSystemFonts(
+  systemFonts: boolean | undefined,
+  fonts: readonly FontSource[],
+): boolean {
+  if (systemFonts === undefined) {
+    return fonts.length === 0;
+  }
+
+  if (!systemFonts && fonts.length === 0) {
+    throw new Error(
+      "systemFonts is false and no fonts are configured, so no text could be" +
+        " rendered. Add fonts, or leave systemFonts unset.",
+    );
+  }
+
+  return systemFonts;
+}
+
+/**
  * Apply defaults to a user config. Safe to call with no argument.
  */
 export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
   const colors = resolveColors(config.colors);
+  const fonts = resolveFonts(config.fonts);
 
   return {
     colors,
     background: config.background ?? defaultBackground(colors),
-    fontFamily: config.fontFamily ?? DEFAULT_FONT_FAMILY,
+    fonts,
+    systemFonts: shouldLoadSystemFonts(config.systemFonts, fonts),
+    // A project that supplies one font should not have to name it twice.
+    fontFamily: config.fontFamily ?? fonts[0]?.family ?? DEFAULT_FONT_FAMILY,
     footer: config.footer,
     badge: config.badge,
     code: resolveCode(config.code),
