@@ -102,7 +102,16 @@ const gradientStopKeys = knownKeys<GradientStop>({
 
 const gradientPointKeys = knownKeys<GradientPoint>({ x: true, y: true });
 
-const backgroundTypes = ["solid", "gradient"];
+/**
+ * The background variants, as values to check a declared `type` against. Typed
+ * against the union for the same reason the key lists are: a variant added to
+ * `Background` and not listed here would otherwise be reported as an unknown
+ * type, rejecting a config that is perfectly valid.
+ */
+const backgroundTypes = knownKeys<Record<Background["type"], unknown>>({
+  solid: true,
+  gradient: true,
+});
 
 /**
  * Options that have been renamed, keyed by where the old name turns up.
