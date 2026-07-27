@@ -56,7 +56,12 @@ export const DEFAULT_CODE_FONT_FAMILY =
 /**
  * Default `code` template styling. `charWidthRatio` and `lineHeight` drive the
  * monospace grid the snippet is laid out on; the font-size bounds are
- * fractions of the image height so they hold at every output size.
+ * fractions of the image width so they hold at every output size.
+ *
+ * `minFontScale` of `0.025` is roughly 30px on a 1200px-wide image, which
+ * still reads when a feed shows that image at half size. A snippet too long to
+ * fit at that size is truncated rather than shrunk, so a long sample loses
+ * lines on the shorter landscape formats.
  */
 export const DEFAULT_CODE_STYLE: Required<CodeStyle> = {
   theme: "github-dark",
@@ -66,8 +71,17 @@ export const DEFAULT_CODE_STYLE: Required<CodeStyle> = {
   tabSize: 2,
   cornerScale: 0.025,
   maxFontScale: 0.075,
-  minFontScale: 0.018,
+  minFontScale: 0.025,
 };
+
+/**
+ * Default warning handler. Colophon runs at build time, so a compromise the
+ * renderer had to make belongs in the build log by default — silence is opt-in
+ * via `config.onWarning`.
+ */
+function warnToConsole(message: string): void {
+  console.warn(`colophon: ${message}`);
+}
 
 /**
  * Identity helper that returns its argument typed as {@link ColophonConfig}.
@@ -140,6 +154,7 @@ export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
     footer: config.footer,
     badge: config.badge,
     code: resolveCode(config.code),
+    onWarning: config.onWarning ?? warnToConsole,
     sizes: resolveSizes(config.sizes),
     templates: { ...builtinTemplates, ...config.templates },
   };

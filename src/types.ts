@@ -88,12 +88,14 @@ export interface CodeStyle {
   readonly tabSize?: number;
   /** Corner radius of the code panel, as a fraction of the smaller side. */
   readonly cornerScale?: number;
-  /** Upper bound on the auto-fitted font size, as a fraction of image height. */
+  /** Upper bound on the auto-fitted font size, as a fraction of image width. */
   readonly maxFontScale?: number;
   /**
-   * Lower bound on the auto-fitted font size, as a fraction of image height.
-   * Code too long to fit at this size is truncated with an ellipsis rather
-   * than shrunk into illegibility.
+   * Lower bound on the auto-fitted font size, as a fraction of image width —
+   * width, because that is what a feed scales a share image to. Code too long
+   * to fit at this size is truncated with an ellipsis rather than shrunk into
+   * illegibility, so raising this trades lines of code for readability and
+   * lowering it does the reverse.
    */
   readonly minFontScale?: number;
 }
@@ -111,6 +113,14 @@ export interface MetaImageProps {
   readonly version?: string | number;
   readonly [key: string]: unknown;
 }
+
+/**
+ * Reports something a template had to compromise on — code truncated to stay
+ * legible, so far. Rendering carries on regardless: a share image is worth
+ * having even when the input did not quite fit, but the author should hear
+ * about it rather than discover it in someone else's timeline.
+ */
+export type WarningHandler = (message: string) => void;
 
 /**
  * Everything a template needs to produce its SVG foreground content.
@@ -151,6 +161,11 @@ export interface ColophonConfig {
   /** Styling for the `code` template. */
   readonly code?: CodeStyle;
   /**
+   * Where non-fatal rendering complaints go. Defaults to `console.warn`; pass
+   * a no-op to silence them, or your build's logger to route them.
+   */
+  readonly onWarning?: WarningHandler;
+  /**
    * Output sizes, each with a unique `name` used in the filename. Defaults to
    * a 1.91:1 Open Graph landscape plus a 1:1 square (see `DEFAULT_SIZES`).
    */
@@ -169,6 +184,7 @@ export interface ResolvedConfig {
   readonly footer: string | undefined;
   readonly badge: Badge | undefined;
   readonly code: Required<CodeStyle>;
+  readonly onWarning: WarningHandler;
   readonly sizes: readonly OutputSize[];
   readonly templates: Readonly<Record<string, Template>>;
 }

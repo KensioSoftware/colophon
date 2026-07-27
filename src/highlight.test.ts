@@ -8,6 +8,7 @@ import {
 import { describe, it } from "vitest";
 
 import {
+  dedent,
   expandTabs,
   highlightCode,
   resolveLanguage,
@@ -52,6 +53,21 @@ describe("expandTabs", () => {
 
   it("treats a non-positive tab size as one space", () => {
     assertIdentical(expandTabs("a\tb", 0), "a b");
+  });
+});
+
+describe("dedent", () => {
+  it("removes the indentation common to every non-blank line", () => {
+    assertIdentical(dedent("    a\n      b\n\n    c"), "a\n  b\n\nc");
+  });
+
+  it("leaves code that already starts at the left margin", () => {
+    assertIdentical(dedent("a\n  b"), "a\n  b");
+    assertIdentical(dedent(""), "");
+  });
+
+  it("ignores whitespace-only lines when measuring", () => {
+    assertIdentical(dedent("  a\n   \n  b"), "a\n \nb");
   });
 });
 

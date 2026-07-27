@@ -70,7 +70,15 @@ export async function generate(
 
       if (!isSkipped) {
         const dimensions = { width: size.width, height: size.height };
-        const svg = await buildSvg(file.props, resolved, dimensions);
+        // Warnings name the post they came from: a build renders many images,
+        // and "shorten the sample" is no use without knowing which sample.
+        const config = {
+          ...resolved,
+          onWarning: (message: string): void => {
+            resolved.onWarning(`${file.contentPath}: ${message}`);
+          },
+        };
+        const svg = await buildSvg(file.props, config, dimensions);
         const png = await renderSvgToPng(svg, dimensions);
         await mkdir(path.dirname(outputPath), { recursive: true });
         await writeFile(outputPath, png);

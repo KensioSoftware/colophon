@@ -159,12 +159,12 @@ meta_img_props:
 ---
 ```
 
-| Prop       | Notes                                                                |
-| ---------- | -------------------------------------------------------------------- |
-| `code`     | The snippet. Surrounding blank lines are trimmed; tabs are expanded. |
-| `language` | Any [Shiki language]; unknown names fall back to plain text.         |
-| `title`    | Optional heading above the panel. Omit for a bare code image.        |
-| `theme`    | Optional per-post override of `config.code.theme`.                   |
+| Prop       | Notes                                                            |
+| ---------- | ---------------------------------------------------------------- |
+| `code`     | The snippet. Trimmed, tabs expanded, common indentation removed. |
+| `language` | Any [Shiki language]; unknown names fall back to plain text.     |
+| `title`    | Optional heading above the panel. Omit for a bare code image.    |
+| `theme`    | Optional per-post override of `config.code.theme`.               |
 
 [Shiki language]: https://shiki.style/languages
 
@@ -174,9 +174,30 @@ frontmatter usually needs no changes.
 
 The font size is fitted to the snippet: Colophon measures the longest line and
 the line count against a monospace grid and picks the largest size that fits on
-both axes, within `minFontScale`/`maxFontScale`. Code too long to fit legibly is
-truncated with an ellipsis rather than shrunk into unreadability. The panel then
-shrinks vertically onto the result so short snippets aren't left floating.
+both axes, within `minFontScale`/`maxFontScale`. Those bounds are fractions of
+the image _width_, because that is what a feed scales a share image to — a
+landscape image would otherwise render the same snippet at half the size of its
+square counterpart. Code too long to fit at the floor is truncated with an
+ellipsis rather than shrunk into unreadability, and the panel then shrinks onto
+what's left so the code isn't marooned in a larger box.
+
+That trade matters most on the landscape sizes, which have around half the
+vertical room of the square: at the default floor an Open Graph image fits
+roughly nine lines of about sixty characters. Snippets written to that budget
+render identically at every size; longer ones keep their opening lines and lose
+the tail. Lower `minFontScale` if you would rather show the whole snippet small.
+
+Nothing in a finished image says the sample continued, so Colophon says it for
+you — a snippet that had to lose lines is reported through `onWarning`:
+
+```
+colophon: content/post/index.md: code snippet does not fit the 1200x630 image at
+a legible size: 4 of 13 lines dropped. Shorten the sample, or lower
+code.minFontScale to fit it in smaller.
+```
+
+A snippet's leading indentation is dropped before any of this, so lifting a
+sample out of a nested block costs you no width.
 
 Styling comes from `config.code`:
 
@@ -191,8 +212,8 @@ export default defineConfig({
     lineHeight: 1.55,
     tabSize: 2,
     cornerScale: 0.025,
-    maxFontScale: 0.075,
-    minFontScale: 0.018,
+    maxFontScale: 0.075, // fractions of the image width
+    minFontScale: 0.025,
   },
 });
 ```
@@ -215,8 +236,25 @@ All fields are optional; sensible defaults apply.
 | `footer`     | none                           | Footer text; omit the field for none.               |
 | `badge`      | none                           | Corner badge for `banner`; omit the field for none. |
 | `code`       | `github-dark`, monospace stack | Styling for the `code` template (see above).        |
+| `onWarning`  | `console.warn`                 | Where compromises are reported (see below).         |
 | `sizes`      | `og` + `square`                | Named output sizes (see below).                     |
 | `templates`  | `banner`, `card`, `code`       | Merged over the built-ins.                          |
+
+### Warnings
+
+Some inputs can't be honoured exactly — code too long to render legibly, so far.
+Colophon renders anyway and reports the compromise through `onWarning`, which
+defaults to `console.warn`. Pass your build's logger to route them, or a no-op
+to silence them:
+
+```ts
+export default defineConfig({
+  onWarning: () => {},
+});
+```
+
+`generate` prefixes each message with the content file it came from, so a build
+over a whole tree still names the post to fix.
 
 ### Output sizes and filenames
 

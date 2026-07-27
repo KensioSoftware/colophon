@@ -11,6 +11,7 @@ import {
   assertFileExists,
   assertIdentical,
   assertNonNullable,
+  assertStringIncludes,
   assertTrue,
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
@@ -140,6 +141,33 @@ describe("generate", () => {
     // The sentinel is gone, replaced by a real PNG.
     const written = await readFile(target);
     assertBufferEqual(written.subarray(0, 4), pngSignature);
+  }, 5000);
+
+  it("names the content file in a template's warnings", async () => {
+    const warnings: string[] = [];
+    await mkdir(path.join(dir, "snippet"), { recursive: true });
+    await writeFile(
+      path.join(dir, "snippet", "index.md"),
+      "---\nmeta_img_props:\n  template: code\n  language: text\n" +
+        `  code: |\n    ${"x".repeat(200)}\n---\n`,
+    );
+
+    await generate(
+      options(dir, {
+        config: {
+          sizes: tinySizes.slice(0, 1),
+          onWarning: (message) => {
+            warnings.push(message);
+          },
+        },
+      }),
+    );
+
+    assertArrayLength(warnings, 1);
+    assertStringIncludes(
+      warnings[0],
+      `${path.join("snippet", "index.md")}: code snippet does not fit`,
+    );
   }, 5000);
 
   it("uses a custom output path and reports each result", async () => {
