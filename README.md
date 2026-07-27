@@ -273,6 +273,27 @@ All fields are optional; sensible defaults apply.
 | `sizes`       | `og` + `square`                | Named output sizes (see below).                     |
 | `templates`   | `banner`, `card`, `code`       | Merged over the built-ins.                          |
 
+### Unknown options
+
+The config is closed: an option Colophon does not recognise stops the build
+rather than being ignored. A key nobody reads is otherwise a build that
+succeeds and images that are wrong — the default sizes, the default colours,
+and nothing in the log to say why.
+
+```
+Unknown option "dimensions". Did you mean "sizes"?
+```
+
+Where there is an obvious near miss it is named, including options that have
+been renamed between versions; where there is not, the message lists what is
+valid at that point in the config. Nested objects are checked too and named by
+their path — `code.tabsize`, `sizes[1].heigth`, `background.stops[0].ofset` —
+and everything wrong with a config is reported in one go rather than one run
+at a time.
+
+Two parts stay open on purpose: the names under `templates` are your own, and a
+post's props are read by whichever template understands them.
+
 ### Fonts
 
 By default Colophon names font families and hopes the machine has them, which

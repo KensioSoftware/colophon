@@ -1,0 +1,207 @@
+import path from "node:path";
+
+import {
+  assertIdentical,
+  assertStringIncludes,
+  assertStringNotIncludes,
+  assertThrowsError,
+} from "@kensio/smartass";
+import { describe, it } from "vitest";
+
+import type { ColophonConfig } from "./types.js";
+import { validateConfig } from "./validate.js";
+
+const sansFont = path.join(
+  process.cwd(),
+  "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
+);
+
+/** Validate a config that TypeScript would (rightly) refuse to accept. */
+function validateLoosely(config: unknown): void {
+  validateConfig(config as ColophonConfig);
+}
+
+function messageFor(config: unknown): string {
+  return assertThrowsError(() => {
+    validateLoosely(config);
+  }).message;
+}
+
+describe("validateConfig", () => {
+  it("accepts a config using every option", () => {
+    const config: ColophonConfig = {
+      colors: {
+        brand: "#2563eb",
+        brandDark: "#1e3a8a",
+        brandWarm: "#f59e0b",
+        foreground: "#ffffff",
+      },
+      background: {
+        type: "gradient",
+        stops: [{ offset: "0%", color: "#000000" }],
+        from: { x: 0, y: 0 },
+        to: { x: 1, y: 1 },
+      },
+      fonts: [
+        { family: "DejaVu Sans", path: sansFont },
+        { data: new Uint8Array([1, 2, 3]) },
+      ],
+      systemFonts: true,
+      fontFamily: "DejaVu Sans",
+      footer: "example.com",
+      badge: { text: "npm", color: "#fff", background: "#000" },
+      code: {
+        theme: "github-dark",
+        fontFamily: "Menlo",
+        charWidthRatio: 0.6,
+        lineHeight: 1.55,
+        tabSize: 2,
+        cornerScale: 0.025,
+        maxFontScale: 0.075,
+        minFontScale: 0.025,
+      },
+      onWarning: () => undefined,
+      sizes: [{ name: "square", width: 1200, height: 1200 }],
+      templates: {},
+    };
+
+    validateConfig(config);
+  });
+
+  it("accepts an empty config", () => {
+    validateConfig({});
+  });
+
+  it("rejects an unknown option and suggests the nearest one", () => {
+    assertIdentical(
+      messageFor({ colours: { brand: "#000" } }),
+      'Unknown option "colours". Did you mean "colors"?',
+    );
+  });
+
+  it("suggests the current name of a renamed option", () => {
+    assertIdentical(
+      messageFor({ dimensions: [{ width: 1200, height: 1200 }] }),
+      'Unknown option "dimensions". Did you mean "sizes"?',
+    );
+  });
+
+  it("lists the valid options when nothing is close", () => {
+    const message = messageFor({ wibble: true });
+
+    assertStringIncludes(message, 'Unknown option "wibble". Valid options');
+    assertStringIncludes(message, "sizes, templates.");
+    assertStringNotIncludes(message, "Did you mean");
+  });
+
+  it("names a nested option by its path", () => {
+    assertIdentical(
+      messageFor({ colors: { brand: "#000", brnad: "#111" } }),
+      'Unknown option "colors.brnad". Did you mean "brand"?',
+    );
+  });
+
+  it("treats a miscased option as a typo", () => {
+    assertIdentical(
+      messageFor({ code: { tabsize: 4 } }),
+      'Unknown option "code.tabsize". Did you mean "tabSize"?',
+    );
+  });
+
+  it("checks the badge", () => {
+    assertIdentical(
+      messageFor({ badge: { text: "npm", colour: "#fff" } }),
+      'Unknown option "badge.colour". Did you mean "color"?',
+    );
+  });
+
+  it("names the size an unknown option came from", () => {
+    assertIdentical(
+      messageFor({
+        sizes: [
+          { name: "og", width: 1200, height: 630 },
+          { name: "square", width: 1200, heigth: 1200 },
+        ],
+      }),
+      'Unknown option "sizes[1].heigth". Did you mean "height"?',
+    );
+  });
+
+  it("checks fonts against both of their forms", () => {
+    assertIdentical(
+      messageFor({ fonts: [{ familly: "DejaVu Sans", path: sansFont }] }),
+      'Unknown option "fonts[0].familly". Did you mean "family"?',
+    );
+
+    validateLoosely({
+      fonts: [{ path: sansFont }, { data: new Uint8Array() }],
+    });
+  });
+
+  it("checks a solid background", () => {
+    assertIdentical(
+      messageFor({ background: { type: "solid", colour: "#f00" } }),
+      'Unknown option "background.colour". Did you mean "color"?',
+    );
+  });
+
+  it("checks a gradient's stops and its end points", () => {
+    const message = messageFor({
+      background: {
+        type: "gradient",
+        stops: [{ ofset: "0%", color: "#000" }],
+        to: { x: 1, z: 1 },
+      },
+    });
+
+    assertStringIncludes(
+      message,
+      '"background.stops[0].ofset". Did you mean "offset"?',
+    );
+    assertStringIncludes(
+      message,
+      '"background.to.z". Valid options here: x, y.',
+    );
+  });
+
+  it("rejects a misspelt background type", () => {
+    assertIdentical(
+      messageFor({ background: { type: "gradiant", stops: [] } }),
+      'Unknown background type "gradiant". Did you mean "gradient"?',
+    );
+  });
+
+  it("lists the background types when nothing is close", () => {
+    assertIdentical(
+      messageFor({ background: { type: "mesh" } }),
+      'Unknown background type "mesh". Valid types: solid, gradient.',
+    );
+  });
+
+  it("leaves a background with no type alone", () => {
+    // The type is what says which keys apply, so there is nothing to check it
+    // against; `backgroundSvg` renders this as the gradient it looks like.
+    validateLoosely({
+      background: { stops: [{ offset: "0%", color: "#000" }] },
+    });
+  });
+
+  it("allows any template name", () => {
+    validateConfig({
+      templates: { "my-own-thing": { name: "my-own-thing", render: () => "" } },
+    });
+  });
+
+  it("collects every problem into one error", () => {
+    const message = messageFor({
+      dimensions: [],
+      colors: { brand: "#000", forground: "#fff" },
+      code: { tabsize: 4 },
+    });
+
+    assertStringIncludes(message, "Invalid config:");
+    assertStringIncludes(message, '  - Unknown option "dimensions"');
+    assertStringIncludes(message, '  - Unknown option "colors.forground"');
+    assertStringIncludes(message, '  - Unknown option "code.tabsize"');
+  });
+});

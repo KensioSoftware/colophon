@@ -23,6 +23,7 @@ import {
   resolveConfig,
   SIZE_PRESETS,
 } from "./config.js";
+import type { ColophonConfig } from "./types.js";
 
 // A real font file: resolution checks that the path is there, so a fictional
 // one would not get past it.
@@ -161,6 +162,14 @@ describe("resolveConfig", () => {
     );
 
     assertStringIncludes(error.message, 'Duplicate output size name "og"');
+  });
+
+  it("rejects an unknown option before resolving anything", () => {
+    const error = assertThrowsError(() =>
+      resolveConfig({ dimensions: [] } as ColophonConfig),
+    );
+
+    assertStringIncludes(error.message, 'Did you mean "sizes"?');
   });
 
   it("loads no fonts and allows system ones by default", () => {
