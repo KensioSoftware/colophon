@@ -80,6 +80,9 @@ export const DEFAULT_CODE_STYLE: Required<CodeStyle> = {
  * via `config.onWarning`.
  */
 function warnToConsole(message: string): void {
+  // The console is the point: this is the default sink, replaced wholesale by
+  // a caller-supplied `onWarning`.
+  // eslint-disable-next-line no-console
   console.warn(`colophon: ${message}`);
 }
 
