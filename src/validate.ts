@@ -69,6 +69,12 @@ const sizeKeys = knownKeys<OutputSize>({
   name: true,
   width: true,
   height: true,
+  colors: true,
+  background: true,
+  fontFamily: true,
+  footer: true,
+  badge: true,
+  code: true,
 });
 
 /**
@@ -252,7 +258,11 @@ function checkEach(
  * `type` at all is left alone — the type is what says which keys apply, and
  * guessing would report the keys rather than the omission.
  */
-function checkBackground(background: unknown, problems: string[]): void {
+function checkBackground(
+  background: unknown,
+  path: string,
+  problems: string[],
+): void {
   if (!isRecord(background)) {
     return;
   }
@@ -260,15 +270,15 @@ function checkBackground(background: unknown, problems: string[]): void {
   const { type, stops, from, to } = background;
 
   if (type === "solid") {
-    checkKeys(background, "background", solidBackgroundKeys, problems);
+    checkKeys(background, path, solidBackgroundKeys, problems);
     return;
   }
 
   if (type === "gradient") {
-    checkKeys(background, "background", gradientBackgroundKeys, problems);
-    checkEach(stops, "background.stops", gradientStopKeys, problems);
-    checkKeys(from, "background.from", gradientPointKeys, problems);
-    checkKeys(to, "background.to", gradientPointKeys, problems);
+    checkKeys(background, path, gradientBackgroundKeys, problems);
+    checkEach(stops, `${path}.stops`, gradientStopKeys, problems);
+    checkKeys(from, `${path}.from`, gradientPointKeys, problems);
+    checkKeys(to, `${path}.to`, gradientPointKeys, problems);
     return;
   }
 
@@ -280,6 +290,33 @@ function checkBackground(background: unknown, problems: string[]): void {
         ? `Unknown background type "${type}". Valid types: ${backgroundTypes.join(", ")}.`
         : `Unknown background type "${type}". Did you mean "${suggestion}"?`,
     );
+  }
+}
+
+/**
+ * Check each output size, and the overrides it carries.
+ *
+ * A size is the one place the same option names appear twice over, so the paths
+ * matter more here than anywhere else: `sizes[1].code.minFontScal` has to say
+ * which size it is talking about to be worth reading at all.
+ */
+function checkSizes(sizes: unknown, problems: string[]): void {
+  if (!isList(sizes)) {
+    return;
+  }
+
+  for (const [index, size] of sizes.entries()) {
+    const path = `sizes[${String(index)}]`;
+    checkKeys(size, path, sizeKeys, problems);
+
+    if (!isRecord(size)) {
+      continue;
+    }
+
+    checkKeys(size["colors"], `${path}.colors`, colorKeys, problems);
+    checkKeys(size["badge"], `${path}.badge`, badgeKeys, problems);
+    checkKeys(size["code"], `${path}.code`, codeKeys, problems);
+    checkBackground(size["background"], `${path}.background`, problems);
   }
 }
 
@@ -311,9 +348,9 @@ export function validateConfig(config: ColophonConfig): void {
   checkKeys(raw.colors, "colors", colorKeys, problems);
   checkKeys(raw.badge, "badge", badgeKeys, problems);
   checkKeys(raw.code, "code", codeKeys, problems);
-  checkEach(raw.sizes, "sizes", sizeKeys, problems);
+  checkSizes(raw.sizes, problems);
   checkEach(raw.fonts, "fonts", fontKeys, problems);
-  checkBackground(raw.background, problems);
+  checkBackground(raw.background, "background", problems);
 
   const [first, ...rest] = problems;
 

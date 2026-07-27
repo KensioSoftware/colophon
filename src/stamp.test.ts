@@ -121,6 +121,36 @@ describe("createStamper", () => {
     );
   });
 
+  it("changes the stamp when a size's own overrides change", async () => {
+    // The whole point of #19 meeting the stamp: an override is config, so
+    // changing one has to re-render that image and not the others.
+    assertRestamped(
+      await stampFor({}, {}, { ...og, code: { minFontScale: 0.02 } }),
+      await stampFor({}, {}, { ...og, code: { minFontScale: 0.011 } }),
+    );
+  });
+
+  it("changes the stamp when a size gains overrides", async () => {
+    assertRestamped(
+      await stampFor({}, {}, og),
+      await stampFor({}, {}, { ...og, footer: "example.com" }),
+    );
+  });
+
+  it("leaves one size's stamp alone when another's overrides change", async () => {
+    const before: ColophonConfig = {
+      sizes: [og, { ...square, code: { minFontScale: 0.02 } }],
+    };
+    const after: ColophonConfig = {
+      sizes: [og, { ...square, code: { minFontScale: 0.011 } }],
+    };
+
+    assertIdentical(
+      await stampFor(before, {}, og),
+      await stampFor(after, {}, og),
+    );
+  });
+
   it("leaves images alone when an unrelated template or size is added", async () => {
     const extra: ColophonConfig = {
       sizes: [og, square, { name: "wide", width: 64, height: 16 }],

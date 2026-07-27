@@ -10,6 +10,7 @@ export type {
   MetaImageProps,
   OutputSize,
   RenderedMetaImage,
+  SizeOverrides,
   ResolvedConfig,
   Template,
   TemplateContext,
@@ -24,6 +25,7 @@ export {
   DEFAULT_SIZES,
   defineConfig,
   resolveConfig,
+  resolveConfigForSize,
   SIZE_PRESETS,
 } from "./config.js";
 

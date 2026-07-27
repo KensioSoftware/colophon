@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { availableParallelism } from "node:os";
 import path from "node:path";
 
-import { resolveConfig } from "./config.js";
+import { resolveConfig, resolveConfigForSize } from "./config.js";
 import type { ContentFile, WalkOptions } from "./content/index.js";
 import { walkContent } from "./content/index.js";
 import { mapConcurrent } from "./pool.js";
@@ -95,6 +95,14 @@ export async function generate(
   const resolved = resolveConfig(options.config);
   const concurrency = resolveConcurrency(options.concurrency);
   const toOutputPath = options.outputPath ?? defaultOutputPath;
+  // Resolved once per size rather than once per image: the overrides are the
+  // same for every post, and resolving re-reads the configured font files.
+  const configBySize = new Map(
+    resolved.sizes.map((size) => [
+      size.name,
+      resolveConfigForSize(options.config, size),
+    ]),
+  );
   const [stamper, files] = await Promise.all([
     createStamper(resolved),
     walkContent({ dir: options.contentDir, ...options.walk }),
@@ -112,10 +120,11 @@ export async function generate(
 
     if (!isSkipped) {
       const dimensions = { width: size.width, height: size.height };
+      const sizeConfig = configBySize.get(size.name) ?? resolved;
       // Warnings name the post they came from: a build renders many images,
       // and "shorten the sample" is no use without knowing which sample.
       const config = {
-        ...resolved,
+        ...sizeConfig,
         onWarning: (message: string): void => {
           resolved.onWarning(`${file.contentPath}: ${message}`);
         },

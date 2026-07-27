@@ -8,6 +8,7 @@ import {
   assertObjectEquals,
   assertStringEndsWith,
   assertStringIncludes,
+  assertStringNotIncludes,
   assertStringStartsWith,
   assertThrowsErrorAsync,
 } from "@kensio/smartass";
@@ -122,6 +123,34 @@ describe("renderMetaImages", () => {
     assertBufferEqual(images[0].png.subarray(0, 4), pngSignature);
     assertIdentical(images[1].name, "tiny");
     assertObjectEquals(images[1].dimensions, { width: 48, height: 24 });
+  }, 5000);
+
+  it("renders each size with its own overrides", async () => {
+    const images = await renderMetaImages(
+      { template: "banner", title: "hello" },
+      {
+        footer: "example.com",
+        colors: { brand: "#2563eb" },
+        sizes: [
+          { name: "og", width: 64, height: 64 },
+          {
+            name: "square",
+            width: 64,
+            height: 64,
+            footer: "beta.example.com",
+            colors: { brand: "#0d9488" },
+          },
+        ],
+      },
+    );
+
+    assertArrayLength(images, 2);
+    assertStringIncludes(images[0].svg, ">example.com</text>");
+    assertStringIncludes(images[0].svg, "#2563eb");
+    // The override reaches the template, and only for the size carrying it.
+    assertStringIncludes(images[1].svg, ">beta.example.com</text>");
+    assertStringIncludes(images[1].svg, "#0d9488");
+    assertStringNotIncludes(images[1].svg, "#2563eb");
   }, 5000);
 
   it("rejects before rendering when the template is unknown", async () => {

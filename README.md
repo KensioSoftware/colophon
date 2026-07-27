@@ -270,7 +270,7 @@ All fields are optional; sensible defaults apply.
 | `badge`       | none                           | Corner badge for `banner`; omit the field for none. |
 | `code`        | `github-dark`, monospace stack | Styling for the `code` template (see above).        |
 | `onWarning`   | `console.warn`                 | Where compromises are reported (see below).         |
-| `sizes`       | `og` + `square`                | Named output sizes (see below).                     |
+| `sizes`       | `og` + `square`                | Named output sizes, each able to override config.   |
 | `templates`   | `banner`, `card`, `code`       | Merged over the built-ins.                          |
 
 ### Unknown options
@@ -377,6 +377,45 @@ The base filename is the **post slug**: Colophon reads a top-level `slug` from
 frontmatter (SEO-friendly, keyword-rich), falling back to the file name — or the
 parent directory for `index.*` files. Point `slugField` at a different key, or
 override naming entirely with `generate`'s `outputPath` callback.
+
+### Per-size config
+
+Some settings only make sense per size. `code.minFontScale` is the clearest
+case: a 1:1 square and a 1.91:1 landscape have very different amounts of
+vertical room, so a snippet that fits one gets truncated in the other. A size
+can carry its own overrides, applied only when rendering it:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#2563eb" },
+  code: { theme: "github-dark" },
+  sizes: [
+    SIZE_PRESETS.square,
+    { ...SIZE_PRESETS.og, code: { minFontScale: 0.013 } },
+  ],
+});
+```
+
+One pass over the content tree, one config file. The alternative is running
+`generate` once per size with a different config each time, which re-walks and
+re-parses everything for each.
+
+Overridable: `colors`, `background`, `fontFamily`, `footer`, `badge`, `code` —
+what a template reads while drawing. Not overridable: `fonts`, `systemFonts` and
+`templates`, which describe the build rather than the picture and are loaded
+once for all sizes, and `onWarning`, which is where messages go rather than what
+they say. A size naming one of those is an unknown-option error, not a setting
+that quietly does nothing.
+
+`colors` and `code` **merge** over their config-level counterparts, so the
+example above keeps `github-dark` and changes only the minimum font size. The
+rest **replace**: a `background` is a union whose variants have different keys,
+so merging half of one onto half of another would produce a background that is
+neither, and `badge` carries a required `text` a partial override could not
+supply.
+
+Overrides are part of an image's rebuild stamp, so changing one re-renders that
+size and leaves the others alone.
 
 ### Frontmatter shape
 

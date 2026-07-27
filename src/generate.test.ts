@@ -23,10 +23,9 @@ import { defaultOutputPath, generate } from "./generate.js";
 import type { GenerateOptions } from "./generate.js";
 import type { OutputSize } from "./types.js";
 
-const tinySizes: OutputSize[] = [
-  { name: "og", width: 32, height: 32 },
-  { name: "square", width: 16, height: 16 },
-];
+const tinyOg: OutputSize = { name: "og", width: 32, height: 32 };
+const tinySquare: OutputSize = { name: "square", width: 16, height: 16 };
+const tinySizes: OutputSize[] = [tinyOg, tinySquare];
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
@@ -169,6 +168,30 @@ describe("generate", () => {
     const written = await readFile(target);
     assertBufferEqual(written.subarray(0, 4), pngSignature);
   }, 5000);
+
+  /** The og size overriding the config-level brand, and nothing else. */
+  function withOgBrand(brand: string): GenerateOptions {
+    return options(dir, {
+      config: {
+        colors: { brand: "#0d9488" },
+        sizes: [{ ...tinyOg, colors: { brand } }, tinySquare],
+      },
+    });
+  }
+
+  it("re-renders only the size whose overrides changed", async () => {
+    await generate(withOgBrand("#2563eb"));
+    const results = await generate(withOgBrand("#dc2626"));
+
+    const og = results.find((result) => result.size.name === "og");
+    const square = results.find((result) => result.size.name === "square");
+
+    assertNonNullable(og);
+    assertNonNullable(square);
+    // Only og's own override moved, so only og is worth rendering again.
+    assertFalse(og.skipped);
+    assertTrue(square.skipped);
+  }, 10_000);
 
   it("re-renders unchanged images when overwrite is set", async () => {
     await generate(options(dir));

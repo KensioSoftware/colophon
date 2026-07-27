@@ -21,6 +21,7 @@ import {
   DEFAULT_SIZES,
   defineConfig,
   resolveConfig,
+  resolveConfigForSize,
   SIZE_PRESETS,
 } from "./config.js";
 import type { ColophonConfig } from "./types.js";
@@ -234,5 +235,101 @@ describe("resolveConfig", () => {
 
     assertIdentical(resolved.templates["custom"], custom);
     assertNonNullable(resolved.templates["banner"]);
+  });
+});
+
+describe("resolveConfigForSize", () => {
+  const square = SIZE_PRESETS.square;
+
+  it("resolves the config unchanged when a size overrides nothing", () => {
+    const config: ColophonConfig = { colors: { brand: "#2563eb" } };
+    const forSize = resolveConfigForSize(config, square);
+    const plain = resolveConfig(config);
+
+    assertObjectEquals(forSize.colors, plain.colors);
+    assertObjectEquals(forSize.background, plain.background);
+    assertObjectEquals(forSize.code, plain.code);
+    assertIdentical(forSize.fontFamily, plain.fontFamily);
+    assertUndefined(forSize.footer);
+  });
+
+  it("merges a code override over the config's, keeping the rest", () => {
+    const resolved = resolveConfigForSize(
+      { code: { theme: "monokai", minFontScale: 0.03 } },
+      { ...square, code: { minFontScale: 0.011 } },
+    );
+
+    assertIdentical(resolved.code.minFontScale, 0.011);
+    // The point of merging: overriding one setting must not reset the others
+    // to their defaults.
+    assertIdentical(resolved.code.theme, "monokai");
+  });
+
+  it("merges a colors override over the config's", () => {
+    const resolved = resolveConfigForSize(
+      { colors: { brand: "#2563eb", foreground: "#eeeeee" } },
+      { ...square, colors: { brand: "#0d9488" } },
+    );
+
+    assertIdentical(resolved.colors.brand, "#0d9488");
+    assertIdentical(resolved.colors.foreground, "#eeeeee");
+  });
+
+  it("rebuilds the derived gradient around an overridden brand", () => {
+    const resolved = resolveConfigForSize(
+      { colors: { brand: "#2563eb" } },
+      { ...square, colors: { brand: "#0d9488" } },
+    );
+
+    // Nothing derived may be left pointing at the config-level colour: the
+    // background follows the brand exactly as it would at the top level.
+    assertObjectEquals(resolved.background, {
+      type: "gradient",
+      stops: [
+        { offset: "0%", color: "#0d9488" },
+        { offset: "55%", color: "#0d9488" },
+        { offset: "100%", color: "#0d9488" },
+      ],
+    });
+  });
+
+  it("replaces the background rather than merging the variants", () => {
+    const resolved = resolveConfigForSize(
+      {
+        background: {
+          type: "gradient",
+          stops: [{ offset: "0%", color: "#000000" }],
+        },
+      },
+      { ...square, background: { type: "solid", color: "#ffffff" } },
+    );
+
+    // A gradient's `stops` surviving onto a solid would be a background that is
+    // neither variant.
+    assertObjectEquals(resolved.background, {
+      type: "solid",
+      color: "#ffffff",
+    });
+  });
+
+  it("overrides the plain settings a size can carry", () => {
+    const resolved = resolveConfigForSize(
+      { footer: "example.com", fontFamily: "Georgia, serif" },
+      { ...square, footer: "beta.example.com", badge: { text: "beta" } },
+    );
+
+    assertIdentical(resolved.footer, "beta.example.com");
+    assertIdentical(resolved.fontFamily, "Georgia, serif");
+    assertObjectEquals(resolved.badge, { text: "beta" });
+  });
+
+  it("is safe with no config at all", () => {
+    const resolved = resolveConfigForSize(undefined, {
+      ...square,
+      footer: "example.com",
+    });
+
+    assertIdentical(resolved.footer, "example.com");
+    assertIdentical(resolved.colors.brand, DEFAULT_COLORS.brand);
   });
 });
