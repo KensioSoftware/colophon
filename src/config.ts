@@ -1,5 +1,6 @@
 import { resolveFonts } from "./fonts.js";
 import { builtinTemplates } from "./templates/index.js";
+import { validateConfig } from "./validate.js";
 import type {
   Background,
   BrandColors,
@@ -175,8 +176,14 @@ function shouldLoadSystemFonts(
 
 /**
  * Apply defaults to a user config. Safe to call with no argument.
+ *
+ * Unknown options are rejected before anything is resolved, so a config
+ * written against a different version of the package is a build error rather
+ * than a set of images quietly rendered with the defaults.
  */
 export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
+  validateConfig(config);
+
   const colors = resolveColors(config.colors);
   const fonts = resolveFonts(config.fonts);
 
