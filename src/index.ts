@@ -51,6 +51,9 @@ export type {
 export { defaultOutputPath, generate } from "./generate.js";
 export type { GeneratedImage, GenerateOptions } from "./generate.js";
 
+export { createStamper, readPngStamp, stampPng } from "./stamp.js";
+export type { Stamper } from "./stamp.js";
+
 export { escapeXml, wrapText } from "./text.js";
 
 export { extractProps, slugFromPath, walkContent } from "./content/index.js";

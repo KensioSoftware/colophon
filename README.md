@@ -66,18 +66,37 @@ colophon content --config colophon.config.ts
 
 For every file that declares `meta_img_props`, Colophon writes one PNG per
 output size next to it, named `<slug>-<size>.png`
-(`post/index.md` → `post/post-og.png` and `post/post-square.png`). Existing
-files are skipped unless you pass `--overwrite`.
+(`post/index.md` → `post/post-og.png` and `post/post-square.png`).
 
 ```
 colophon [contentDir] [options]
 
   -c, --config <path>   Config module whose default export is a ColophonConfig
-  -o, --overwrite       Re-render even if the output file already exists
+  -f, --force           Re-render every image, ignoring the stamps
+  -o, --overwrite       Alias for --force
   -h, --help            Show help
 
   contentDir            defaults to "content"
 ```
+
+### Rebuilds
+
+Every image Colophon writes carries a stamp — a hash of the props, the config
+and the output size it was rendered from, stored in the PNG itself as a `tEXt`
+chunk. On the next run an image whose stamp still matches is left alone, and
+one whose title, colours, template or size has moved on is rendered again. So
+correcting a single post's title re-renders that post's images and nothing
+else.
+
+There is no cache directory and nothing to keep in sync: delete an image and
+its stamp goes with it. An image Colophon did not write, or one written by an
+older version, has no stamp and is rendered over.
+
+The stamp covers the Colophon version too, since the built-in templates ship
+with it — upgrading the package re-renders the tree once. A custom template is
+covered by its own source code, which means a template that reads something its
+source does not name (a closed-over value, a file it loads itself) can change
+without being noticed; `--force` is the way out.
 
 ## Programmatic use
 
