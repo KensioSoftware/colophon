@@ -12,16 +12,18 @@ import {
   assertIdentical,
   assertNonNullable,
   assertNumberBetween,
+  assertPathNotExists,
   assertStringIncludes,
   assertThrowsErrorAsync,
   assertTrue,
+  assertUndefined,
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
 
 import type { ContentFile } from "./content/index.js";
 import { defaultOutputPath, generate } from "./generate/index.js";
 import type { GenerateOptions } from "./generate/index.js";
-import type { OutputSize } from "./types.js";
+import type { ExtraImage, OutputSize } from "./types.js";
 
 const tinyOg: OutputSize = { name: "og", width: 32, height: 32 };
 const tinySquare: OutputSize = { name: "square", width: 16, height: 16 };
@@ -31,6 +33,11 @@ const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
 function byPath(a: string, b: string): number {
   return a.localeCompare(b);
+}
+
+/** An extra image rendering at the og size with a brand colour of its own. */
+function cardBrand(color: string): Partial<ExtraImage> {
+  return { size: { ...tinyOg, colors: { brand: color } } };
 }
 
 function options(
@@ -341,6 +348,199 @@ describe("generate", () => {
     assertArrayLength(results, 1);
     assertFileExists(path.join(dir, "guide", "other-og.png"));
   }, 10_000);
+
+  /** A config declaring one ad hoc card, written wherever `output` says. */
+  function withExtra(
+    output: string,
+    extra: Partial<ExtraImage> = {},
+  ): GenerateOptions {
+    return options(dir, {
+      config: {
+        sizes: [tinyOg],
+        extra: [
+          {
+            props: { template: "banner", title: "@kensio/colophon" },
+            output,
+            ...extra,
+          },
+        ],
+      },
+    });
+  }
+
+  it("renders an image the config declares outright", async () => {
+    const card = path.join(dir, "cards", "npm.png");
+
+    const results = await generate(withExtra(card));
+    const extra = results.find((result) => result.outputPath === card);
+
+    assertNonNullable(extra);
+    assertFalse(extra.skipped);
+    assertFileExists(card);
+    // Nothing in the tree produced it, so there is no post to name.
+    assertUndefined(extra.contentPath);
+    // The tree's own image is still rendered alongside it.
+    assertArrayLength(results, 2);
+  }, 5000);
+
+  it("renders an extra image at the first configured size by default", async () => {
+    const results = await generate(withExtra(path.join(dir, "npm.png")));
+    const extra = results.find((result) => result.contentPath === undefined);
+
+    assertNonNullable(extra);
+    const { size } = extra;
+    assertIdentical(size, tinyOg);
+  }, 5000);
+
+  it("renders an extra image at a size of its own", async () => {
+    const results = await generate(
+      withExtra(path.join(dir, "npm.png"), { size: tinySquare }),
+    );
+    const extra = results.find((result) => result.contentPath === undefined);
+
+    assertNonNullable(extra);
+    const { size } = extra;
+    assertIdentical(size, tinySquare);
+  }, 5000);
+
+  it("skips an extra image it has already rendered", async () => {
+    const card = path.join(dir, "npm.png");
+    await generate(withExtra(card));
+    const first = await readFile(card);
+
+    const results = await generate(withExtra(card));
+    const extra = results.find((result) => result.outputPath === card);
+
+    assertNonNullable(extra);
+    assertTrue(extra.skipped);
+    assertBufferEqual(await readFile(card), first);
+  }, 10_000);
+
+  it("re-renders an extra image when its own overrides change", async () => {
+    const card = path.join(dir, "npm.png");
+
+    await generate(withExtra(card, cardBrand("#2563eb")));
+    const results = await generate(withExtra(card, cardBrand("#dc2626")));
+
+    const extra = results.find((result) => result.outputPath === card);
+    const post = results.find((result) => result.contentPath !== undefined);
+
+    assertNonNullable(extra);
+    assertNonNullable(post);
+    // The card's own palette moved; the post's did not.
+    assertFalse(extra.skipped);
+    assertTrue(post.skipped);
+  }, 10_000);
+
+  it("rejects an extra image with nowhere to write it", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      // A config module is plain JavaScript, so this reaches `generate`.
+      generate(withExtra(undefined as unknown as string)),
+    );
+
+    assertStringIncludes(error.message, 'extra[0] needs an "output" path');
+  });
+
+  it("rejects an extra image with nothing to draw", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          config: {
+            sizes: [tinyOg],
+            extra: [{ output: "card.png" } as unknown as ExtraImage],
+          },
+        }),
+      ),
+    );
+
+    assertStringIncludes(error.message, 'extra[0] needs a "props" object');
+  });
+
+  it("rejects two images written to the same path", async () => {
+    const card = path.join(dir, "npm.png");
+    const image: ExtraImage = {
+      props: { template: "banner", title: "@kensio/colophon" },
+      output: card,
+    };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, { config: { sizes: [tinyOg], extra: [image, image] } }),
+      ),
+    );
+
+    // Both would stamp the one file, so every later build would render both.
+    assertStringIncludes(error.message, "Two images would be written to");
+    // The whole build stops, rather than leaving half of it on disk.
+    assertPathNotExists([card, target]);
+  });
+
+  it("rejects an extra image landing on a post's own image", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(withExtra(target)),
+    );
+
+    assertStringIncludes(error.message, "Two images would be written to");
+    assertPathNotExists(target);
+  });
+
+  // Where case does not distinguish two files, it must not distinguish two
+  // jobs: both of these write one image, which then re-renders on every build.
+  it.runIf(process.platform === "darwin" || process.platform === "win32")(
+    "rejects outputs differing only in case where the filesystem ignores it",
+    async () => {
+      const error = await assertThrowsErrorAsync(async () =>
+        generate(
+          options(dir, {
+            config: {
+              sizes: [tinyOg],
+              extra: [
+                {
+                  props: { template: "banner" },
+                  output: path.join(dir, "Card.png"),
+                },
+                {
+                  props: { template: "card" },
+                  output: path.join(dir, "card.png"),
+                },
+              ],
+            },
+          }),
+        ),
+      );
+
+      assertStringIncludes(error.message, "Two images would be written to");
+    },
+  );
+
+  it("names an extra image by its output path in warnings", async () => {
+    const warnings: string[] = [];
+    const card = path.join(dir, "snippet.png");
+
+    await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          onWarning: (message) => {
+            warnings.push(message);
+          },
+          extra: [
+            {
+              props: {
+                template: "code",
+                language: "text",
+                code: "x".repeat(200),
+              },
+              output: card,
+            },
+          ],
+        },
+      }),
+    );
+
+    assertArrayLength(warnings, 1);
+    assertStringIncludes(warnings[0], `${card}: code snippet does not fit`);
+  }, 5000);
 
   it("uses a custom output path and reports each result", async () => {
     const seen: string[] = [];

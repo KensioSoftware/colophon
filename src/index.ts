@@ -6,6 +6,7 @@ export type {
   ColophonConfig,
   ContentOptions,
   Dimensions,
+  ExtraImage,
   FontSource,
   GradientStop,
   MetaImageProps,

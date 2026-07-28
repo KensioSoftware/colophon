@@ -63,6 +63,14 @@ describe("validateConfig", () => {
       onWarning: () => undefined,
       sizes: [{ name: "square", width: 1200, height: 1200 }],
       templates: {},
+      content: { slugStrategy: "route" },
+      extra: [
+        {
+          props: { template: "banner", title: "@kensio/colophon" },
+          output: "docs/npm-card.png",
+          size: { name: "square", width: 1200, height: 1200 },
+        },
+      ],
     };
 
     validateConfig(config);
@@ -90,7 +98,7 @@ describe("validateConfig", () => {
     const message = messageFor({ wibble: true });
 
     assertStringIncludes(message, 'Unknown option "wibble". Valid options');
-    assertStringIncludes(message, "sizes, templates, content.");
+    assertStringIncludes(message, "sizes, templates, content, extra.");
     assertStringNotIncludes(message, "Did you mean");
   });
 
@@ -290,6 +298,33 @@ describe("validateConfig", () => {
     // Fonts are loaded once for every size, so overriding them per size would
     // be a setting that silently did nothing.
     assertStringIncludes(message, 'Unknown option "sizes[0].systemFonts"');
+  });
+
+  it("names the extra image an unknown option came from", () => {
+    assertIdentical(
+      messageFor({
+        extra: [
+          { props: { template: "banner" }, output: "card.png" },
+          { props: { template: "banner" }, outptu: "card.png" },
+        ],
+      }),
+      'Unknown option "extra[1].outptu". Did you mean "output"?',
+    );
+  });
+
+  it("checks the size an extra image renders at", () => {
+    assertIdentical(
+      messageFor({
+        extra: [
+          {
+            props: { template: "banner" },
+            output: "card.png",
+            size: { name: "card", width: 1200, height: 1200, footr: "x" },
+          },
+        ],
+      }),
+      'Unknown option "extra[0].size.footr". Did you mean "footer"?',
+    );
   });
 
   it("collects every problem into one error", () => {

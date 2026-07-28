@@ -1,36 +1,35 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-import type { ContentFile } from "../content/index.js";
 import { buildSvg, renderSvgToPng } from "../render/index.js";
 import { stampPng } from "../stamp/index.js";
-import type { OutputSize, ResolvedConfig } from "../types.js";
+import type { ResolvedConfig } from "../types.js";
+import type { RenderJob } from "./job.js";
 
 /**
- * Render one image and write it, stamped, to `outputPath`, creating whatever
- * directories the path needs.
+ * Render one image and write it, stamped, to its output path, creating
+ * whatever directories that path needs.
  *
- * Warnings name the post they came from: a build renders many images, and
- * "shorten the sample" is no use without knowing which sample.
+ * Warnings name the image they came from: a build renders many, and "shorten
+ * the sample" is no use without knowing which sample. An extra image has no
+ * content file to name, so it is named by where it is being written.
  */
 export async function renderImage(
-  file: ContentFile,
-  size: OutputSize,
-  sizeConfig: ResolvedConfig,
-  outputPath: string,
+  job: RenderJob,
   stamp: string,
 ): Promise<void> {
-  const dimensions = { width: size.width, height: size.height };
+  const dimensions = { width: job.size.width, height: job.size.height };
+  const source = job.contentPath ?? job.outputPath;
   const config: ResolvedConfig = {
-    ...sizeConfig,
+    ...job.config,
     onWarning: (message: string): void => {
-      sizeConfig.onWarning(`${file.contentPath}: ${message}`);
+      job.config.onWarning(`${source}: ${message}`);
     },
   };
 
-  const svg = await buildSvg(file.props, config, dimensions);
+  const svg = await buildSvg(job.props, config, dimensions);
   const png = await renderSvgToPng(svg, dimensions, config);
 
-  await mkdir(path.dirname(outputPath), { recursive: true });
-  await writeFile(outputPath, stampPng(png, stamp));
+  await mkdir(path.dirname(job.outputPath), { recursive: true });
+  await writeFile(job.outputPath, stampPng(png, stamp));
 }

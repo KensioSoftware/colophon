@@ -1,6 +1,5 @@
 import { mapConcurrent } from "../pool.js";
 import { readPngStamp } from "../stamp/index.js";
-import { defaultOutputPath } from "./output-path.js";
 import type { GeneratedImage, GenerateOptions } from "./options.js";
 import { resolveConcurrency } from "./options.js";
 import { planBuild } from "./plan.js";
@@ -11,7 +10,8 @@ export type { GeneratedImage, GenerateOptions } from "./options.js";
 
 /**
  * Walk a content tree and render meta images for every file that declares
- * props, writing PNGs to disk.
+ * props, writing PNGs to disk. Images the config declares outright under
+ * `extra` are rendered by the same pass, on the same terms.
  *
  * Each image is stamped with a digest of the props, config and size it came
  * from, so a rebuild renders only what has actually changed: an image whose
@@ -26,24 +26,22 @@ export async function generate(
   options: GenerateOptions,
 ): Promise<GeneratedImage[]> {
   const concurrency = resolveConcurrency(options.concurrency);
-  const toOutputPath = options.outputPath ?? defaultOutputPath;
   const plan = await planBuild(options);
 
-  return mapConcurrent(plan.jobs, concurrency, async ({ file, size }) => {
-    const outputPath = toOutputPath(file, size);
-    const stamp = plan.stamper.stamp(file.props, size);
+  return mapConcurrent(plan.jobs, concurrency, async (job) => {
+    const stamp = plan.stamper.stamp(job.props, job.size);
     const isSkipped =
-      options.overwrite !== true && (await readPngStamp(outputPath)) === stamp;
+      options.overwrite !== true &&
+      (await readPngStamp(job.outputPath)) === stamp;
 
     if (!isSkipped) {
-      const config = plan.configBySize.get(size.name) ?? plan.fallbackConfig;
-      await renderImage(file, size, config, outputPath, stamp);
+      await renderImage(job, stamp);
     }
 
     const result: GeneratedImage = {
-      contentPath: file.contentPath,
-      size,
-      outputPath,
+      contentPath: job.contentPath,
+      size: job.size,
+      outputPath: job.outputPath,
       skipped: isSkipped,
     };
     options.onResult?.(result);
