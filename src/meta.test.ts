@@ -36,6 +36,16 @@ const manifest: Manifest = {
 
 const site = { baseUrl: "https://example.com" };
 
+/** A one-page manifest whose image is served from `url`. */
+function servedAt(url: string): Manifest {
+  return {
+    version: 1,
+    pages: {
+      post: { images: { og: { url, width: 1200, height: 630 } }, widest: "og" },
+    },
+  };
+}
+
 /** The name a tag is written under, whichever attribute carries it. */
 function keyOf(tag: MetaTag): string {
   return "property" in tag ? tag.property : tag.name;
@@ -117,6 +127,37 @@ describe("metaTags", () => {
       contentOf(metaTags(cdn, "post", site), "og:image"),
       "https://cdn.example.com/og/post.png",
     );
+  });
+
+  it("leaves a URL alone whatever case its scheme is written in", () => {
+    // Schemes are case-insensitive, and prefixing this would produce nonsense.
+    const tags = metaTags(
+      servedAt("HTTPS://cdn.example.com/a.png"),
+      "post",
+      site,
+    );
+
+    assertIdentical(
+      contentOf(tags, "og:image"),
+      "HTTPS://cdn.example.com/a.png",
+    );
+  });
+
+  it("gives a scheme-relative URL the site's own scheme", () => {
+    // It is relative to the page's scheme, which is the one thing a crawler
+    // reading the tag somewhere else does not have.
+    const tags = metaTags(servedAt("//cdn.example.com/a.png"), "post", site);
+
+    assertIdentical(
+      contentOf(tags, "og:image"),
+      "https://cdn.example.com/a.png",
+    );
+  });
+
+  it("leaves a scheme-relative URL alone when there is no base to borrow from", () => {
+    const tags = metaTags(servedAt("//cdn.example.com/a.png"), "post");
+
+    assertIdentical(contentOf(tags, "og:image"), "//cdn.example.com/a.png");
   });
 
   it("emits site-relative URLs when no base is given", () => {
