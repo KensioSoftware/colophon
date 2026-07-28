@@ -12,6 +12,7 @@ import {
   assertIdentical,
   assertNonNullable,
   assertNumberBetween,
+  assertObjectMatches,
   assertPathNotExists,
   assertStringIncludes,
   assertThrowsErrorAsync,
@@ -23,13 +24,17 @@ import { afterEach, beforeEach, describe, it } from "vitest";
 import type { ContentFile } from "./content/index.js";
 import { defaultOutputPath, generate } from "./generate/index.js";
 import type { GenerateOptions } from "./generate/index.js";
-import type { ExtraImage, OutputSize } from "./types.js";
+import type { ExtraImage, Manifest, OutputSize } from "./types.js";
 
 const tinyOg: OutputSize = { name: "og", width: 32, height: 32 };
 const tinySquare: OutputSize = { name: "square", width: 16, height: 16 };
 const tinySizes: OutputSize[] = [tinyOg, tinySquare];
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+
+async function readManifest(file: string): Promise<Manifest> {
+  return JSON.parse(await readFile(file, "utf8")) as Manifest;
+}
 
 function byPath(a: string, b: string): number {
   return a.localeCompare(b);
@@ -611,6 +616,87 @@ describe("generate", () => {
     assertStringIncludes(error.message, path.join("guide", "index.md"));
     assertStringIncludes(error.message, path.join("docs", "guide.md"));
     assertPathNotExists(path.join(dir, "og", "guide-og.png"));
+  }, 5000);
+
+  /** A build that writes a manifest into the scratch directory. */
+  function withManifest(overrides: Partial<GenerateOptions> = {}) {
+    const manifest = path.join(dir, "data", "colophon.json");
+
+    return {
+      manifest,
+      options: options(dir, {
+        config: {
+          sizes: tinySizes,
+          manifest,
+          placement: { strategy: "beside-content", urlBase: "/" },
+        },
+        ...overrides,
+      }),
+    };
+  }
+
+  it("writes a manifest of everything it generated", async () => {
+    const { manifest, options: withIt } = withManifest();
+
+    await generate(withIt);
+
+    const written = await readManifest(manifest);
+    assertIdentical(written.version, 1);
+    assertObjectMatches(written.pages["guide"], {
+      images: {
+        og: { url: "/guide/guide-og.png", width: 32, height: 32 },
+        square: { url: "/guide/guide-square.png", width: 16, height: 16 },
+      },
+      // Both fixtures are square, so this is the tie going to the first size.
+      widest: "og",
+      alt: "Guide",
+    });
+  }, 5000);
+
+  it("refuses a manifest written over one of its own images", async () => {
+    const card = path.join(dir, "card.json");
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          config: {
+            sizes: [tinyOg],
+            manifest: card,
+            extra: [{ props: { template: "banner" }, output: card }],
+          },
+        }),
+      ),
+    );
+
+    // Written last, it would replace the image and re-render it every build.
+    assertStringIncludes(error.message, "manifest path");
+    assertPathNotExists([card, target]);
+  }, 5000);
+
+  it("writes the manifest even when every image is skipped", async () => {
+    const { manifest, options: withIt } = withManifest();
+    await generate(withIt);
+    await rm(manifest);
+
+    const results = await generate(withIt);
+
+    // The manifest says what exists, not what this run happened to do.
+    assertTrue(results.every((result) => result.skipped));
+    assertFileExists(manifest);
+  }, 10_000);
+
+  it("refuses a manifest two pages would share, before rendering anything", async () => {
+    await mkdir(path.join(dir, "docs"), { recursive: true });
+    await writeFile(
+      path.join(dir, "docs", "guide.md"),
+      "---\nmeta_img_props:\n  template: card\n  title: Other guide\n---\n",
+    );
+    const { manifest, options: withIt } = withManifest();
+
+    const error = await assertThrowsErrorAsync(async () => generate(withIt));
+
+    assertStringIncludes(error.message, 'Two pages share the slug "guide"');
+    assertPathNotExists([manifest, target]);
   }, 5000);
 
   it("uses a custom output path and reports each result", async () => {

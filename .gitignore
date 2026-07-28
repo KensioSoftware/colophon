@@ -256,7 +256,9 @@ share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
+# Anchored: setuptools writes this at the repository root, and unanchored it
+# matches any directory called `manifest` too — git ignores case on macOS.
+/MANIFEST
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

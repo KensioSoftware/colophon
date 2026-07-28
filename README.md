@@ -275,6 +275,7 @@ All fields are optional; sensible defaults apply.
 | `templates`   | `banner`, `card`, `code`       | Merged over the built-ins.                          |
 | `content`     | `meta_img_props`, `.md` files  | How props are read from the tree (see below).       |
 | `placement`   | `beside-content`               | Where images go and what URL they get (see below).  |
+| `manifest`    | none                           | Path to write a JSON manifest to (see below).       |
 | `extra`       | none                           | One-off images not tied to a post (see below).      |
 
 ### Unknown options
@@ -466,6 +467,76 @@ export default defineConfig({
 });
 // public/og/blog/intro-og.png -> /og/blog/intro-og.png
 ```
+
+### Manifest
+
+Colophon writes PNGs and then goes quiet, so the site works out for itself what
+was generated, where it lives and how big it is — globbing for `*-og.png` to
+find the landscape variant, or hardcoding 1200 and 630 into its meta tags. All
+of that is known while generating. Point `manifest` at a file and it is written
+down:
+
+```ts
+export default defineConfig({
+  placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og" },
+  manifest: "data/colophon.json", // src/data/ for Astro, _data/ for Eleventy
+});
+```
+
+```json
+{
+  "version": 1,
+  "pages": {
+    "blog/my-post": {
+      "images": {
+        "og": {
+          "url": "/og/blog/my-post-og.png",
+          "width": 1200,
+          "height": 630
+        },
+        "square": {
+          "url": "/og/blog/my-post-square.png",
+          "width": 1200,
+          "height": 1200
+        }
+      },
+      "widest": "og",
+      "alt": "My post"
+    }
+  }
+}
+```
+
+Every generator in scope reads JSON as native data: Hugo picks it up from
+`data/`, Astro imports it, Eleventy and Jekyll read `_data/`, Zola has
+`load_data`. Which makes the meta tags a lookup rather than a convention:
+
+```ts
+const page = manifest.pages["blog/my-post"];
+const image = page.images[page.widest];
+// <meta property="og:image" content={image.url}>
+// <meta property="og:image:width" content={image.width}>
+// <meta name="twitter:card" content={image.width / image.height > 1.5
+//   ? "summary_large_image" : "summary"}>
+```
+
+- **Pages are keyed by slug** — what the site addresses a page by, which under
+  `slugStrategy: "route"` is the route itself. Two pages cannot share one, and
+  a build that would need them to fails saying so, since a lookup that returned
+  the wrong post's image is worse than no manifest at all.
+- **`widest`** names the most landscape image by aspect ratio, ties going to
+  the size configured first. It is what a `summary_large_image` card wants, and
+  the check every site currently writes for itself. Note that og (1200×630) and
+  square (1200×1200) are equally _wide_, so comparing widths would pick either.
+- **`url`** is absent where the placement knows none — see
+  [Placement](#placement). The dimensions are always there.
+- **`alt`** comes from the props' title, and is absent for a page without one.
+- **`extra` images are not pages**, so they are not listed. A project that named
+  the output path of one already knows where it is.
+
+The manifest describes what exists, not what a given run did: a rebuild that
+skips every image still writes the whole thing. Pages and sizes are sorted, so
+a manifest committed to a repository changes only when the build does.
 
 ### Per-size config
 

@@ -27,6 +27,34 @@ function describe(job: RenderJob): string {
 }
 
 /**
+ * Reject a manifest written over one of the images it describes.
+ *
+ * The manifest is written last, so it wins: the image is replaced by JSON, and
+ * — its stamp gone with it — rendered again on every build afterwards. It is
+ * the same collision as two images sharing a path, so it is answered here,
+ * where a path is already compared the way the filesystem would.
+ */
+export function assertManifestIsNotAnImage(
+  manifestPath: string | undefined,
+  jobs: readonly RenderJob[],
+): void {
+  if (manifestPath === undefined) {
+    return;
+  }
+
+  const key = comparable(manifestPath);
+  const clash = jobs.find((job) => comparable(job.outputPath) === key);
+
+  if (clash !== undefined) {
+    throw new Error(
+      `The manifest path "${manifestPath}" is where ${describe(clash)} is` +
+        ` written. The manifest is written last, so it would replace the` +
+        ` image; give one of them a path of its own.`,
+    );
+  }
+}
+
+/**
  * Reject a build in which two images would be written to one path.
  *
  * They do not merely lose an image between them: each stamps the file with its

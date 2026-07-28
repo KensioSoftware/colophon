@@ -1,6 +1,8 @@
 import { resolveConfig } from "../config/index.js";
 import { resolveConfigForSize } from "../config/size.js";
 import { walkContent } from "../content/index.js";
+import type { PlannedManifest } from "../manifest/index.js";
+import { planManifest } from "../manifest/index.js";
 import type { Stamper } from "../stamp/index.js";
 import { createStamper } from "../stamp/index.js";
 import type { Placer } from "../placement/index.js";
@@ -8,7 +10,10 @@ import { createPlacer } from "../placement/index.js";
 import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
-import { assertDistinctOutputs } from "./outputs.js";
+import {
+  assertDistinctOutputs,
+  assertManifestIsNotAnImage,
+} from "./outputs.js";
 
 /**
  * Everything a build needs before it starts rendering: one job per image, and
@@ -17,6 +22,8 @@ import { assertDistinctOutputs } from "./outputs.js";
 export interface BuildPlan {
   readonly jobs: readonly RenderJob[];
   readonly stamper: Stamper;
+  /** What to write down about the build, where a config asked for it. */
+  readonly manifest: PlannedManifest | undefined;
 }
 
 /**
@@ -71,6 +78,7 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
 
       return {
         contentPath: file.contentPath,
+        slug: file.slug,
         props: file.props,
         size,
         outputPath: placed.path,
@@ -82,6 +90,11 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
 
   const all = [...jobs, ...extraJobs(options.config, resolved)];
   assertDistinctOutputs(all);
+  assertManifestIsNotAnImage(options.config?.manifest, all);
 
-  return { jobs: all, stamper };
+  return {
+    jobs: all,
+    stamper,
+    manifest: planManifest(options.config?.manifest, all),
+  };
 }
