@@ -7,7 +7,13 @@ import type { ColophonConfig, OutputSize } from "../types.js";
  * Outcome for one generated (or skipped) image.
  */
 export interface GeneratedImage {
-  readonly contentPath: string;
+  /**
+   * The content file this image came from, relative to the content root.
+   * `undefined` for a config `extra` image: there is no post behind it, and
+   * naming one — the output path, say — would quietly break anything grouping
+   * results by the post they belong to.
+   */
+  readonly contentPath: string | undefined;
   readonly size: OutputSize;
   readonly outputPath: string;
   /** True when an up-to-date image was left in place (no `overwrite`). */

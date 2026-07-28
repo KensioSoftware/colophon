@@ -273,6 +273,7 @@ All fields are optional; sensible defaults apply.
 | `sizes`       | `og` + `square`                | Named output sizes, each able to override config.   |
 | `templates`   | `banner`, `card`, `code`       | Merged over the built-ins.                          |
 | `content`     | `meta_img_props`, `.md` files  | How props are read from the tree (see below).       |
+| `extra`       | none                           | One-off images not tied to a post (see below).      |
 
 ### Unknown options
 
@@ -447,6 +448,60 @@ supply.
 
 Overrides are part of an image's rebuild stamp, so changing one re-renders that
 size and leaves the others alone.
+
+### One-off images
+
+Not every image belongs to a post. A package card, a repository social preview
+and a home page share image all want the same brand and the same templates, and
+none of them has a markdown file behind it. List them under `extra` and the
+build renders them alongside the tree:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#2563eb" },
+  footer: "example.com",
+  extra: [
+    {
+      props: {
+        template: "banner",
+        title: "@kensio/colophon",
+        version: "2.0.0",
+      },
+      output: "public/npm-card.png",
+    },
+    {
+      props: {
+        template: "card",
+        title: "colophon",
+        subtitle: "social meta images",
+      },
+      output: "public/repo-preview.png",
+      size: {
+        name: "repo",
+        width: 1280,
+        height: 640,
+        footer: "github.com/KensioSoftware/colophon",
+      },
+    },
+  ],
+});
+```
+
+`output` is the path to write, relative to the working directory, and any
+directories it names are created. It is the whole path: an extra image has no
+post to sit beside, so `generate`'s `outputPath` callback is not consulted and
+nothing is appended to the filename.
+
+`size` is an output size like any other, [overrides](#per-size-config) and all —
+that is how the preview above gets its own footer without adding an entry to
+`sizes` that every post would then be rendered at. Leave it out and the image
+takes the first configured size, which for the card above is the default `og`
+1200×630.
+
+Extras are stamped and skipped exactly as content images are, so editing one
+card's title re-renders that card and leaves the rest of the build alone. They
+are reported by `onResult` too, with `contentPath` left `undefined`: there is no
+post behind them to name.
 
 ### Frontmatter shape
 

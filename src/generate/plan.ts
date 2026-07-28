@@ -1,21 +1,19 @@
 import { resolveConfig } from "../config/index.js";
 import { resolveConfigForSize } from "../config/size.js";
-import type { ContentFile } from "../content/index.js";
 import { walkContent } from "../content/index.js";
 import type { Stamper } from "../stamp/index.js";
 import { createStamper } from "../stamp/index.js";
-import type { OutputSize, ResolvedConfig } from "../types.js";
+import { extraJobs } from "./extra.js";
+import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
+import { defaultOutputPath } from "./output-path.js";
 
 /**
- * Everything a build needs before it starts rendering: one job per image, the
- * config each size renders with, and the stamper that says which of them can
- * be skipped.
+ * Everything a build needs before it starts rendering: one job per image, and
+ * the stamper that says which of them can be skipped.
  */
 export interface BuildPlan {
-  readonly jobs: readonly { file: ContentFile; size: OutputSize }[];
-  readonly configBySize: ReadonlyMap<string, ResolvedConfig>;
-  readonly fallbackConfig: ResolvedConfig;
+  readonly jobs: readonly RenderJob[];
   readonly stamper: Stamper;
 }
 
@@ -26,6 +24,7 @@ export interface BuildPlan {
  */
 export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   const resolved = resolveConfig(options.config);
+  const toOutputPath = options.outputPath ?? defaultOutputPath;
 
   const configBySize = new Map(
     resolved.sizes.map((size) => [
@@ -46,8 +45,14 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   ]);
 
   const jobs = files.flatMap((file) =>
-    resolved.sizes.map((size) => ({ file, size })),
+    resolved.sizes.map((size) => ({
+      contentPath: file.contentPath,
+      props: file.props,
+      size,
+      outputPath: toOutputPath(file, size),
+      config: configBySize.get(size.name) ?? resolved,
+    })),
   );
 
-  return { jobs, configBySize, fallbackConfig: resolved, stamper };
+  return { jobs: [...jobs, ...extraJobs(options.config, resolved)], stamper };
 }

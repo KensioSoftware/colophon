@@ -5,6 +5,7 @@ import type {
   CodeStyle,
   ColophonConfig,
   ContentOptions,
+  ExtraImage,
   FontSource,
   GradientStop,
   OutputSize,
@@ -43,6 +44,14 @@ export const configKeys = knownKeys<ColophonConfig>({
   sizes: true,
   templates: true,
   content: true,
+  extra: true,
+});
+
+/** One ad hoc image declared in config. */
+export const extraKeys = knownKeys<ExtraImage>({
+  props: true,
+  output: true,
+  size: true,
 });
 
 /** Options for reading a project's own frontmatter. */

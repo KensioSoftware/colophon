@@ -294,6 +294,12 @@ export interface ColophonConfig {
    * the render core never sees it.
    */
   readonly content?: ContentOptions;
+  /**
+   * One-off images that belong to the project rather than to any post — a
+   * package card, a repository social preview. Rendered by the same build, and
+   * skipped or re-rendered on the same stamps.
+   */
+  readonly extra?: readonly ExtraImage[];
 }
 
 /**
@@ -323,6 +329,31 @@ export interface SizeOverrides {
   readonly badge?: Badge;
   /** Merged over the config's `code`, so a size can change one setting. */
   readonly code?: CodeStyle;
+}
+
+/**
+ * A single image that is not tied to a content file: props, somewhere to write
+ * it, and the size to draw it at.
+ *
+ * The alternative is a script that calls `renderMetaImages` and writes the
+ * bytes itself, which is a lot of machinery for one card — and one that keeps
+ * neither the rebuild stamps nor the build log a content image gets.
+ */
+export interface ExtraImage {
+  readonly props: MetaImageProps;
+  /**
+   * Where to write the PNG, resolved from the current working directory when
+   * relative. This image has no post to sit beside, so there is nothing to
+   * derive a path from and `generate`'s `outputPath` is not consulted.
+   */
+  readonly output: string;
+  /**
+   * The size to render at, {@link SizeOverrides} and all — an inline size is
+   * how a one-off image gets its own footer or palette without a whole entry
+   * in `sizes`. Defaults to the first configured size, since a one-off card
+   * usually wants to match the site's primary share format.
+   */
+  readonly size?: OutputSize;
 }
 
 /**
