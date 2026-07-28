@@ -14,6 +14,8 @@ export type {
   ManifestImage,
   ManifestPage,
   MetaImageProps,
+  MetaTag,
+  MetaTagOptions,
   OutputSize,
   Placement,
   PropsFromFrontmatter,
@@ -69,6 +71,8 @@ export { escapeXml, wrapText } from "./text/index.js";
 
 export { extractProps, slugFromPath, walkContent } from "./content/index.js";
 export type { WalkOptions } from "./content/index.js";
+
+export { metaTags, metaTagsHtml } from "./meta/index.js";
 
 export { createPlacer } from "./placement/index.js";
 export type { PlacedImage, Placer } from "./placement/index.js";

@@ -312,6 +312,31 @@ export interface Manifest {
 }
 
 /**
+ * One `<meta>` tag, as the attributes it carries.
+ *
+ * Open Graph names its tags with `property` and Twitter with `name`, which is
+ * a distinction sites get wrong routinely. Keeping them apart in the type
+ * means a component can spread a tag — `<meta {...tag} />` — and be right
+ * either way.
+ */
+export type MetaTag =
+  | { readonly property: string; readonly content: string }
+  | { readonly name: string; readonly content: string };
+
+/** Options for {@link MetaTag} generation. */
+export interface MetaTagOptions {
+  /**
+   * Absolute base for a site-relative image URL, e.g. `https://example.com`.
+   *
+   * Open Graph wants an absolute URL — a crawler has no page to resolve a
+   * relative one against — and a manifest records whatever the placement's
+   * `urlBase` said, which is usually site-relative. A URL that is already
+   * absolute is left alone, so a CDN base needs nothing here.
+   */
+  readonly baseUrl?: string;
+}
+
+/**
  * Reports something a template had to compromise on — code truncated to stay
  * legible, so far. Rendering carries on regardless: a share image is worth
  * having even when the input did not quite fit, but the author should hear
