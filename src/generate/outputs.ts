@@ -3,6 +3,25 @@ import path from "node:path";
 import type { RenderJob } from "./job.js";
 
 /**
+ * Whether the filesystem underneath treats `Card.png` and `card.png` as one
+ * file. Read off the platform rather than probed: a case-sensitive volume on
+ * macOS would have two images it could have kept told to rename one of them,
+ * which is a rare config and an obvious fix, where missing a real collision
+ * leaves a build re-rendering for ever.
+ */
+const isCaseInsensitive =
+  process.platform === "darwin" || process.platform === "win32";
+
+/**
+ * How a path is compared, which is not always how it is written: where case
+ * does not distinguish two files, it must not distinguish two jobs either.
+ */
+function comparable(outputPath: string): string {
+  const absolute = path.resolve(outputPath);
+  return isCaseInsensitive ? absolute.toLowerCase() : absolute;
+}
+
+/**
  * Reject an extra image that would be written over another image in the same
  * build.
  *
@@ -23,18 +42,18 @@ export function assertDistinctOutputs(
   content: readonly RenderJob[],
   extras: readonly RenderJob[],
 ): void {
-  const taken = new Set(content.map((job) => path.resolve(job.outputPath)));
+  const taken = new Set(content.map((job) => comparable(job.outputPath)));
 
   for (const job of extras) {
-    const absolute = path.resolve(job.outputPath);
+    const key = comparable(job.outputPath);
 
-    if (taken.has(absolute)) {
+    if (taken.has(key)) {
       throw new Error(
         `Two images would be written to "${job.outputPath}"; an extra image` +
           ` needs an output path of its own, or one of them is lost.`,
       );
     }
 
-    taken.add(absolute);
+    taken.add(key);
   }
 }

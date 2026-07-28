@@ -12,6 +12,7 @@ import {
   assertIdentical,
   assertNonNullable,
   assertNumberBetween,
+  assertPathNotExists,
   assertStringIncludes,
   assertThrowsErrorAsync,
   assertTrue,
@@ -456,9 +457,10 @@ describe("generate", () => {
   });
 
   it("rejects two images written to the same path", async () => {
+    const card = path.join(dir, "npm.png");
     const image: ExtraImage = {
       props: { template: "banner", title: "@kensio/colophon" },
-      output: path.join(dir, "npm.png"),
+      output: card,
     };
 
     const error = await assertThrowsErrorAsync(async () =>
@@ -469,15 +471,47 @@ describe("generate", () => {
 
     // Both would stamp the one file, so every later build would render both.
     assertStringIncludes(error.message, "Two images would be written to");
+    // The whole build stops, rather than leaving half of it on disk.
+    assertPathNotExists([card, target]);
   });
 
   it("rejects an extra image landing on a post's own image", async () => {
     const error = await assertThrowsErrorAsync(async () =>
-      generate(withExtra(path.join(dir, "guide", "guide-og.png"))),
+      generate(withExtra(target)),
     );
 
     assertStringIncludes(error.message, "Two images would be written to");
+    assertPathNotExists(target);
   });
+
+  // Where case does not distinguish two files, it must not distinguish two
+  // jobs: both of these write one image, which then re-renders on every build.
+  it.runIf(process.platform === "darwin" || process.platform === "win32")(
+    "rejects outputs differing only in case where the filesystem ignores it",
+    async () => {
+      const error = await assertThrowsErrorAsync(async () =>
+        generate(
+          options(dir, {
+            config: {
+              sizes: [tinyOg],
+              extra: [
+                {
+                  props: { template: "banner" },
+                  output: path.join(dir, "Card.png"),
+                },
+                {
+                  props: { template: "card" },
+                  output: path.join(dir, "card.png"),
+                },
+              ],
+            },
+          }),
+        ),
+      );
+
+      assertStringIncludes(error.message, "Two images would be written to");
+    },
+  );
 
   it("names an extra image by its output path in warnings", async () => {
     const warnings: string[] = [];
