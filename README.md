@@ -467,14 +467,14 @@ placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og", hash: tru
 ```
 
 ```text
-wrote public/og/blog/my-post-og.ecd0aab2.png -> /og/blog/my-post-og.ecd0aab2.png
+wrote public/og/my-post-og.ecd0aab2.png -> /og/my-post-og.ecd0aab2.png
 ```
 
 Correct the post and the name moves with it, so the URL is one nothing has
 cached:
 
 ```text
-wrote public/og/blog/my-post-og.2e7bd5a9.png -> /og/blog/my-post-og.2e7bd5a9.png
+wrote public/og/my-post-og.2e7bd5a9.png -> /og/my-post-og.2e7bd5a9.png
 ```
 
 The hash is the image's [rebuild stamp](#rebuilds) — its props, config and

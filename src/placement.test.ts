@@ -201,6 +201,23 @@ describe("createPlacer", () => {
     assertStringIncludes(error.message, 'takes a "url" function');
   });
 
+  it("rejects a hash that is not a boolean", () => {
+    // A string reads as neither true nor false, so the images would come out
+    // unhashed and nothing would say why.
+    const error = assertThrowsError(() =>
+      createPlacer(
+        {
+          strategy: "public-dir",
+          dir: "public",
+          hash: "true",
+        } as unknown as Placement,
+        "content",
+      ),
+    );
+
+    assertStringIncludes(error.message, "hash must be true or false");
+  });
+
   it("rejects a URL base that is not a string", () => {
     const error = assertThrowsError(() =>
       createPlacer(
