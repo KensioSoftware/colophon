@@ -268,6 +268,50 @@ export type Placement =
     };
 
 /**
+ * One image in the manifest.
+ *
+ * The dimensions are the ones it was actually rendered at, which is the point:
+ * sites hardcode 1200 and 630 into their meta tags because nothing told them
+ * otherwise, and a size they later change leaves the tags behind.
+ */
+export interface ManifestImage {
+  /** Absent where the placement knows no URL — see {@link Placement}. */
+  readonly url?: string;
+  readonly width: number;
+  readonly height: number;
+}
+
+/** One page's images, keyed by output size name. */
+export interface ManifestPage {
+  readonly images: Readonly<Record<string, ManifestImage>>;
+  /**
+   * The name of the most landscape image, by aspect ratio, with ties going to
+   * the first size configured. It is what a `summary_large_image` card wants,
+   * and picking it is a check every site currently writes for itself.
+   */
+  readonly widest: string;
+  /** Alt text, from the props' title. Absent for a page that has no title. */
+  readonly alt?: string;
+}
+
+/**
+ * What a build generated, for the site to read back: a JSON file listing every
+ * page's images, their URLs and the dimensions they were rendered at.
+ *
+ * Without it a site reconstructs all of that in template code — globbing for
+ * `*-og.png` to find the landscape variant, or writing image paths back into
+ * each post's frontmatter. All of it is known while generating.
+ *
+ * Pages are keyed by slug, which is what a site addresses a page by: with
+ * `slugStrategy: "route"` that is the route itself.
+ */
+export interface Manifest {
+  /** Schema version, so a reader can tell what it is holding. */
+  readonly version: 1;
+  readonly pages: Readonly<Record<string, ManifestPage>>;
+}
+
+/**
  * Reports something a template had to compromise on — code truncated to stay
  * legible, so far. Rendering carries on regardless: a share image is worth
  * having even when the input did not quite fit, but the author should hear
@@ -353,6 +397,14 @@ export interface ColophonConfig {
    * `beside-content`, which is what Colophon did before there was a choice.
    */
   readonly placement?: Placement;
+  /**
+   * Where to write a {@link Manifest} of everything the build generated,
+   * relative to the working directory. Omit (the default) to write none.
+   *
+   * Somewhere the site reads data from: `data/colophon.json` for Hugo,
+   * `src/data/` for Astro, `_data/` for Eleventy and Jekyll.
+   */
+  readonly manifest?: string;
   /**
    * One-off images that belong to the project rather than to any post — a
    * package card, a repository social preview. Rendered by the same build, and

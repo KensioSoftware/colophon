@@ -54,6 +54,8 @@ export function extraJobs(
 
     return {
       contentPath: undefined,
+      // Not a page, so not something the manifest can key by.
+      slug: undefined,
       props: image.props,
       size,
       // Left as written rather than made absolute: the file system resolves a

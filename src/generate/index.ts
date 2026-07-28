@@ -1,3 +1,4 @@
+import { writeManifest } from "../manifest/index.js";
 import { mapConcurrent } from "../pool.js";
 import { readPngStamp } from "../stamp/index.js";
 import type { GeneratedImage, GenerateOptions } from "./options.js";
@@ -28,7 +29,7 @@ export async function generate(
   const concurrency = resolveConcurrency(options.concurrency);
   const plan = await planBuild(options);
 
-  return mapConcurrent(plan.jobs, concurrency, async (job) => {
+  const results = await mapConcurrent(plan.jobs, concurrency, async (job) => {
     const stamp = plan.stamper.stamp(job.props, job.size);
     const isSkipped =
       options.overwrite !== true &&
@@ -48,4 +49,10 @@ export async function generate(
     options.onResult?.(result);
     return result;
   });
+
+  // Written last, and only once every image is on disk: a manifest naming a
+  // file that failed to render would outlive the build that failed.
+  await writeManifest(plan.manifest);
+
+  return results;
 }

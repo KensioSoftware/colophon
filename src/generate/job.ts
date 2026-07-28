@@ -15,6 +15,11 @@ export interface RenderJob {
    * `undefined` for an extra image, which has no content file.
    */
   readonly contentPath: string | undefined;
+  /**
+   * The slug the page is addressed by, and the key it appears under in the
+   * manifest. `undefined` for an extra image, which is not a page.
+   */
+  readonly slug: string | undefined;
   readonly props: MetaImageProps;
   readonly size: OutputSize;
   readonly outputPath: string;
