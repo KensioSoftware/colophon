@@ -647,8 +647,30 @@ describe("generate", () => {
         og: { url: "/guide/guide-og.png", width: 32, height: 32 },
         square: { url: "/guide/guide-square.png", width: 16, height: 16 },
       },
+      // Both fixtures are square, so this is the tie going to the first size.
+      widest: "og",
       alt: "Guide",
     });
+  }, 5000);
+
+  it("refuses a manifest written over one of its own images", async () => {
+    const card = path.join(dir, "card.json");
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          config: {
+            sizes: [tinyOg],
+            manifest: card,
+            extra: [{ props: { template: "banner" }, output: card }],
+          },
+        }),
+      ),
+    );
+
+    // Written last, it would replace the image and re-render it every build.
+    assertStringIncludes(error.message, "manifest path");
+    assertPathNotExists([card, target]);
   }, 5000);
 
   it("writes the manifest even when every image is skipped", async () => {

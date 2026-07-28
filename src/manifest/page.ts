@@ -1,5 +1,6 @@
 import type { RenderJob } from "../generate/job.js";
 import type { ManifestImage, ManifestPage } from "../types.js";
+import { byName } from "./order.js";
 
 /**
  * One page as it is collected: the jobs that draw it, and the most landscape
@@ -74,7 +75,7 @@ export function toPage(slug: string, page: PageDraft): ManifestPage {
     images: Object.fromEntries(
       page.jobs
         .map((job): [string, ManifestImage] => [job.size.name, toImage(job)])
-        .toSorted(([a], [b]) => a.localeCompare(b)),
+        .toSorted(([a], [b]) => byName(a, b)),
     ),
     widest: page.widest.size.name,
     ...(typeof title === "string" && title !== "" && { alt: title }),

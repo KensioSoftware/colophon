@@ -1,5 +1,6 @@
 import type { RenderJob } from "../generate/job.js";
 import type { Manifest } from "../types.js";
+import { byName } from "./order.js";
 import type { PageDraft } from "./page.js";
 import { addToPage, startPage, toPage } from "./page.js";
 
@@ -41,7 +42,7 @@ function drafts(jobs: readonly RenderJob[]): Map<string, PageDraft> {
  * committed to a repository changes only when the build does.
  */
 export function buildManifest(jobs: readonly RenderJob[]): Manifest {
-  const pages = [...drafts(jobs)].toSorted(([a], [b]) => a.localeCompare(b));
+  const pages = [...drafts(jobs)].toSorted(([a], [b]) => byName(a, b));
 
   return {
     version: 1,

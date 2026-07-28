@@ -10,7 +10,10 @@ import { createPlacer } from "../placement/index.js";
 import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
-import { assertDistinctOutputs } from "./outputs.js";
+import {
+  assertDistinctOutputs,
+  assertManifestIsNotAnImage,
+} from "./outputs.js";
 
 /**
  * Everything a build needs before it starts rendering: one job per image, and
@@ -87,6 +90,7 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
 
   const all = [...jobs, ...extraJobs(options.config, resolved)];
   assertDistinctOutputs(all);
+  assertManifestIsNotAnImage(options.config?.manifest, all);
 
   return {
     jobs: all,

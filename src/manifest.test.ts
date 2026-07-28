@@ -103,6 +103,18 @@ describe("buildManifest", () => {
     ]);
   });
 
+  it("sorts by code unit, so the file reads the same wherever it is built", () => {
+    // A locale-aware sort puts these in either order depending on the machine,
+    // which is a diff in a committed file saying nothing happened.
+    const manifest = buildManifest([
+      job("Über", og),
+      job("apple", og),
+      job("Zebra", og),
+    ]);
+
+    assertArrayEquals(Object.keys(manifest.pages), ["Zebra", "apple", "Über"]);
+  });
+
   it("rejects two pages that would share one entry", () => {
     const error = assertThrowsError(() =>
       buildManifest([
