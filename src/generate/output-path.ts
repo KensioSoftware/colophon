@@ -9,7 +9,8 @@ import type { ContentFile, OutputSize } from "../types.js";
  * This is the `beside-content` placement reached without a content root to
  * place from, so it takes the root off the file itself. It stays its own
  * export because it is what `generate`'s `outputPath` callback replaces, and
- * a caller wrapping the default has to be able to call it.
+ * a caller wrapping the default has to be able to call it. It never hashes:
+ * a hash names one rendering of an image, and this has no way to know which.
  */
 export function defaultOutputPath(file: ContentFile, size: OutputSize): string {
   // `absolutePath` ends with `contentPath` by construction, so dropping it
@@ -19,5 +20,5 @@ export function defaultOutputPath(file: ContentFile, size: OutputSize): string {
     file.absolutePath.length - file.contentPath.length,
   );
 
-  return path.join(root, ...besideContent(file, size).split("/"));
+  return path.join(root, ...besideContent(file, size, undefined).split("/"));
 }

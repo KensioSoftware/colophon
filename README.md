@@ -456,6 +456,45 @@ no `urlBase`, an image placed by `generate`'s `outputPath` callback (which
 still wins, and then the placement no longer describes where the file went), or
 an `extra` that named its own path.
 
+#### Content hashed filenames
+
+Social platforms cache share images hard, and they cache by **URL**. Correct a
+post's image and the old one can keep turning up in feeds for a long time
+afterwards. A hash in the filename is the reliable way round it:
+
+```ts
+placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og", hash: true }
+```
+
+```text
+wrote public/og/blog/my-post-og.ecd0aab2.png -> /og/blog/my-post-og.ecd0aab2.png
+```
+
+Correct the post and the name moves with it, so the URL is one nothing has
+cached:
+
+```text
+wrote public/og/blog/my-post-og.2e7bd5a9.png -> /og/blog/my-post-og.2e7bd5a9.png
+```
+
+The hash is the image's [rebuild stamp](#rebuilds) — its props, config and
+size. Hashing the rendered bytes would be a truer name, but they are not known
+until the image has been rendered, and not rendering the unchanged ones is the
+point of the stamp. It follows that anything the stamp covers moves the name,
+including a Colophon upgrade: the images are re-rendered by that anyway, and a
+fresh URL is the correct answer for an image that may have changed.
+
+It is opt-in because the filename then moves whenever the image does, which not
+every setup wants, and because it leaves the old files behind. **Nothing deletes
+them** — which is the point under a `public-dir` you can rebuild from scratch,
+since a crawler holding the old URL still gets an image, but means a
+`beside-content` tree slowly accumulates them in your content directory. The
+manifest always names the current one, so a site never has to work out which is
+which.
+
+`custom` has no `hash` option: a placement naming its own paths is the one that
+can hash them itself.
+
 A flat placement makes filename collisions much easier to hit — two posts named
 `intro.md` in different sections both want `public/og/intro-og.png`. Colophon
 refuses the build and names both posts rather than letting one overwrite the

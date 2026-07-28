@@ -63,6 +63,7 @@ export const configKeys = knownKeys<ColophonConfig>({
 export const besideContentKeys = knownKeys<BesidePlacement>({
   strategy: true,
   urlBase: true,
+  hash: true,
 });
 
 /** Keys of a placement that gathers images into one directory. */
@@ -70,6 +71,7 @@ export const publicDirKeys = knownKeys<PublicDirPlacement>({
   strategy: true,
   dir: true,
   urlBase: true,
+  hash: true,
 });
 
 /** Keys of a placement that works both halves out for itself. */

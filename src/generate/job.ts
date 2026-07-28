@@ -25,5 +25,11 @@ export interface RenderJob {
   readonly outputPath: string;
   /** Where the image is served, if the placement knows. */
   readonly url: string | undefined;
+  /**
+   * The digest of everything this image is drawn from. An image on disk
+   * carrying the same one is already up to date, and a placement that hashes
+   * filenames names the file after it.
+   */
+  readonly stamp: string;
   readonly config: ResolvedConfig;
 }

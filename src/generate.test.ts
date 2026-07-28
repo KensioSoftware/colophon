@@ -14,7 +14,9 @@ import {
   assertNumberBetween,
   assertObjectMatches,
   assertPathNotExists,
+  assertSetSize,
   assertStringIncludes,
+  assertStringLength,
   assertThrowsErrorAsync,
   assertTrue,
   assertUndefined,
@@ -698,6 +700,70 @@ describe("generate", () => {
     assertStringIncludes(error.message, 'Two pages share the slug "guide"');
     assertPathNotExists([manifest, target]);
   }, 5000);
+
+  /** A build whose images are named after their own digest. */
+  function hashed(): GenerateOptions {
+    return options(dir, {
+      config: {
+        sizes: [tinyOg],
+        manifest: path.join(dir, "data", "colophon.json"),
+        placement: {
+          strategy: "public-dir",
+          dir: path.join(dir, "og"),
+          urlBase: "/og",
+          hash: true,
+        },
+      },
+    });
+  }
+
+  it("names an image after its own digest when asked", async () => {
+    const results = await generate(hashed());
+
+    assertArrayLength(results, 1);
+    const name = path.basename(results[0].outputPath);
+    const [stem, hash, extension] = name.split(".");
+    assertIdentical(stem, "guide-og");
+    assertStringLength(hash ?? "", 8);
+    assertIdentical(extension, "png");
+
+    // The URL is built from the same name, so the two cannot disagree.
+    assertIdentical(results[0].url, `/og/${name}`);
+    assertFileExists(results[0].outputPath);
+  }, 5000);
+
+  it("gives a corrected post a URL nobody has cached", async () => {
+    const [before] = await generate(hashed());
+    await writeFile(
+      path.join(dir, "guide", "index.md"),
+      "---\nmeta_img_props:\n  template: banner\n  title: Corrected\n---\n",
+    );
+
+    const [after] = await generate(hashed());
+
+    assertNonNullable(before);
+    assertNonNullable(after);
+    assertFalse(after.skipped);
+    // A new name, so a platform caching the old URL is not the problem it was.
+    assertSetSize(new Set([before.url, after.url]), 2);
+    // And the old file is still there, for whoever already has its URL.
+    assertFileExists(before.outputPath);
+    assertFileExists(after.outputPath);
+
+    // The manifest is how a site finds the current one.
+    const manifest = await readManifest(
+      path.join(dir, "data", "colophon.json"),
+    );
+    assertIdentical(manifest.pages["guide"]?.images["og"]?.url, after.url);
+  }, 10_000);
+
+  it("still skips a hashed image that has not changed", async () => {
+    await generate(hashed());
+
+    const results = await generate(hashed());
+
+    assertTrue(results.every((result) => result.skipped));
+  }, 10_000);
 
   it("uses a custom output path and reports each result", async () => {
     const seen: string[] = [];

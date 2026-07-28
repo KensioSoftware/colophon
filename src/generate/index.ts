@@ -30,13 +30,12 @@ export async function generate(
   const plan = await planBuild(options);
 
   const results = await mapConcurrent(plan.jobs, concurrency, async (job) => {
-    const stamp = plan.stamper.stamp(job.props, job.size);
     const isSkipped =
       options.overwrite !== true &&
-      (await readPngStamp(job.outputPath)) === stamp;
+      (await readPngStamp(job.outputPath)) === job.stamp;
 
     if (!isSkipped) {
-      await renderImage(job, stamp);
+      await renderImage(job, job.stamp);
     }
 
     const result: GeneratedImage = {

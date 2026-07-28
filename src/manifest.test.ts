@@ -32,6 +32,7 @@ function job(
     size,
     outputPath: `public/og/${slug ?? "extra"}-${size.name}.png`,
     url: `/og/${slug ?? "extra"}-${size.name}.png`,
+    stamp: `stamp-${slug ?? "extra"}-${size.name}`,
     config,
     ...overrides,
   };
