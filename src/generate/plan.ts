@@ -3,10 +3,11 @@ import { resolveConfigForSize } from "../config/size.js";
 import { walkContent } from "../content/index.js";
 import type { Stamper } from "../stamp/index.js";
 import { createStamper } from "../stamp/index.js";
+import type { Placer } from "../placement/index.js";
+import { createPlacer } from "../placement/index.js";
 import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
-import { defaultOutputPath } from "./output-path.js";
 import { assertDistinctOutputs } from "./outputs.js";
 
 /**
@@ -19,13 +20,32 @@ export interface BuildPlan {
 }
 
 /**
+ * How this build places its images: the configured placement, or `outputPath`
+ * where a caller passed one.
+ *
+ * `outputPath` is the programmatic equivalent of a `custom` placement and wins
+ * for the same reason `walk` beats `config.content`. The URL then comes from
+ * nowhere: the placement no longer describes where the file went, and the one
+ * it would have named is not where the image is.
+ */
+function placer(options: GenerateOptions): Placer {
+  const override = options.outputPath;
+
+  if (override === undefined) {
+    return createPlacer(options.config?.placement, options.contentDir);
+  }
+
+  return (file, size) => ({ path: override(file, size), url: undefined });
+}
+
+/**
  * Work out what a build has to render. The per-size configs are resolved once
  * rather than once per image: the overrides are the same for every post, and
  * resolving re-reads the configured font files.
  */
 export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   const resolved = resolveConfig(options.config);
-  const toOutputPath = options.outputPath ?? defaultOutputPath;
+  const place = placer(options);
 
   const configBySize = new Map(
     resolved.sizes.map((size) => [
@@ -46,17 +66,22 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   ]);
 
   const jobs = files.flatMap((file) =>
-    resolved.sizes.map((size) => ({
-      contentPath: file.contentPath,
-      props: file.props,
-      size,
-      outputPath: toOutputPath(file, size),
-      config: configBySize.get(size.name) ?? resolved,
-    })),
+    resolved.sizes.map((size) => {
+      const placed = place(file, size);
+
+      return {
+        contentPath: file.contentPath,
+        props: file.props,
+        size,
+        outputPath: placed.path,
+        url: placed.url,
+        config: configBySize.get(size.name) ?? resolved,
+      };
+    }),
   );
 
-  const extras = extraJobs(options.config, resolved);
-  assertDistinctOutputs(jobs, extras);
+  const all = [...jobs, ...extraJobs(options.config, resolved)];
+  assertDistinctOutputs(all);
 
-  return { jobs: [...jobs, ...extras], stamper };
+  return { jobs: all, stamper };
 }

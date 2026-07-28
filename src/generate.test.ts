@@ -542,6 +542,77 @@ describe("generate", () => {
     assertStringIncludes(warnings[0], `${card}: code snippet does not fit`);
   }, 5000);
 
+  it("gathers images into a public directory and reports their URLs", async () => {
+    const out = path.join(dir, "public", "og");
+
+    const results = await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          placement: { strategy: "public-dir", dir: out, urlBase: "/og" },
+        },
+      }),
+    );
+
+    assertArrayLength(results, 1);
+    assertIdentical(results[0].outputPath, path.join(out, "guide-og.png"));
+    assertIdentical(results[0].url, "/og/guide-og.png");
+    assertFileExists(path.join(out, "guide-og.png"));
+  }, 5000);
+
+  it("reports no URL when nothing says how the images are served", async () => {
+    const results = await generate(
+      options(dir, { config: { sizes: [tinyOg] } }),
+    );
+
+    assertArrayLength(results, 1);
+    // The default placement is unchanged: beside the post, and silent on URLs.
+    assertIdentical(results[0].outputPath, target);
+    assertUndefined(results[0].url);
+  }, 5000);
+
+  it("builds URLs beside the content when given a base", async () => {
+    const results = await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          placement: {
+            strategy: "beside-content",
+            urlBase: "https://example.com",
+          },
+        },
+      }),
+    );
+
+    assertArrayLength(results, 1);
+    assertIdentical(results[0].url, "https://example.com/guide/guide-og.png");
+  }, 5000);
+
+  it("rejects two posts placed on the same path", async () => {
+    // Flat placement, and both posts slugged after their own filename.
+    await mkdir(path.join(dir, "docs"), { recursive: true });
+    await writeFile(
+      path.join(dir, "docs", "guide.md"),
+      "---\nmeta_img_props:\n  template: card\n  title: Other guide\n---\n",
+    );
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          config: {
+            sizes: [tinyOg],
+            placement: { strategy: "public-dir", dir: path.join(dir, "og") },
+          },
+        }),
+      ),
+    );
+
+    // Naming both is the point: the path alone does not say which two posts.
+    assertStringIncludes(error.message, path.join("guide", "index.md"));
+    assertStringIncludes(error.message, path.join("docs", "guide.md"));
+    assertPathNotExists(path.join(dir, "og", "guide-og.png"));
+  }, 5000);
+
   it("uses a custom output path and reports each result", async () => {
     const seen: string[] = [];
     const outDir = path.join(dir, "out");
@@ -561,5 +632,22 @@ describe("generate", () => {
       seen.toSorted(byPath),
       results.map((result) => result.outputPath).toSorted(byPath),
     );
+  }, 5000);
+
+  it("has no URL for an image a callback placed", async () => {
+    const results = await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          placement: { strategy: "public-dir", dir: "public", urlBase: "/og" },
+        },
+        outputPath: (file) => path.join(dir, `${file.slug}.png`),
+      }),
+    );
+
+    assertArrayLength(results, 1);
+    // The callback won, so the placement's URL would name the wrong file.
+    assertIdentical(results[0].outputPath, path.join(dir, "guide.png"));
+    assertUndefined(results[0].url);
   }, 5000);
 });

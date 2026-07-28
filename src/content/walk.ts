@@ -3,7 +3,7 @@ import path from "node:path";
 
 import matter from "gray-matter";
 
-import type { ContentOptions, MetaImageProps } from "../types.js";
+import type { ContentFile, ContentOptions } from "../types.js";
 import { coerceString, extractProps } from "./props.js";
 import { assertSlugStaysInside, slugFromPath } from "./slug.js";
 
@@ -18,19 +18,6 @@ const defaultExtensions: readonly string[] = [".md", ".markdown"];
 export interface WalkOptions extends ContentOptions {
   /** Root directory to search recursively for content files. */
   readonly dir: string;
-}
-
-/**
- * A discovered content file with the image props read from its frontmatter.
- */
-export interface ContentFile {
-  /** Path relative to the walk `dir`. */
-  readonly contentPath: string;
-  /** Absolute path on disk. */
-  readonly absolutePath: string;
-  /** Base filename for this post's images (frontmatter slug, or path-derived). */
-  readonly slug: string;
-  readonly props: MetaImageProps;
 }
 
 async function collectContentFiles(

@@ -9,6 +9,7 @@ import type {
   FontSource,
   GradientStop,
   OutputSize,
+  Placement,
   SlugStrategy,
 } from "../types.js";
 
@@ -24,6 +25,15 @@ function knownKeys<T>(shape: Record<keyof T, true>): readonly string[] {
   return Object.keys(shape);
 }
 
+type BesidePlacement = Extract<
+  Placement,
+  { readonly strategy: "beside-content" }
+>;
+type PublicDirPlacement = Extract<
+  Placement,
+  { readonly strategy: "public-dir" }
+>;
+type CustomPlacement = Extract<Placement, { readonly strategy: "custom" }>;
 type SolidBackground = Extract<Background, { readonly type: "solid" }>;
 type GradientBackground = Extract<Background, { readonly type: "gradient" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
@@ -44,7 +54,47 @@ export const configKeys = knownKeys<ColophonConfig>({
   sizes: true,
   templates: true,
   content: true,
+  placement: true,
   extra: true,
+});
+
+/** Keys of a placement that writes each image beside its post. */
+export const besideContentKeys = knownKeys<BesidePlacement>({
+  strategy: true,
+  urlBase: true,
+});
+
+/** Keys of a placement that gathers images into one directory. */
+export const publicDirKeys = knownKeys<PublicDirPlacement>({
+  strategy: true,
+  dir: true,
+  urlBase: true,
+});
+
+/** Keys of a placement that works both halves out for itself. */
+export const customPlacementKeys = knownKeys<CustomPlacement>({
+  strategy: true,
+  path: true,
+  url: true,
+});
+
+/**
+ * The placement strategies, for the same reason as {@link backgroundTypes}: a
+ * mistyped one would otherwise be reported as an unknown key on whichever
+ * variant it was guessed to be.
+ *
+ * Two of the names are hyphenated because they are values a user writes in a
+ * config, not identifiers — the casing rule is about the latter. Keeping them
+ * as keys is what keeps the list exhaustive, which is the whole point of it.
+ */
+export const placementStrategies = knownKeys<
+  Record<Placement["strategy"], unknown>
+>({
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  "beside-content": true,
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  "public-dir": true,
+  custom: true,
 });
 
 /** One ad hoc image declared in config. */

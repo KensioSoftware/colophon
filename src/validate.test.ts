@@ -64,6 +64,7 @@ describe("validateConfig", () => {
       sizes: [{ name: "square", width: 1200, height: 1200 }],
       templates: {},
       content: { slugStrategy: "route" },
+      placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og" },
       extra: [
         {
           props: { template: "banner", title: "@kensio/colophon" },
@@ -98,7 +99,10 @@ describe("validateConfig", () => {
     const message = messageFor({ wibble: true });
 
     assertStringIncludes(message, 'Unknown option "wibble". Valid options');
-    assertStringIncludes(message, "sizes, templates, content, extra.");
+    assertStringIncludes(
+      message,
+      "sizes, templates, content, placement, extra.",
+    );
     assertStringNotIncludes(message, "Did you mean");
   });
 
@@ -298,6 +302,31 @@ describe("validateConfig", () => {
     // Fonts are loaded once for every size, so overriding them per size would
     // be a setting that silently did nothing.
     assertStringIncludes(message, 'Unknown option "sizes[0].systemFonts"');
+  });
+
+  it("checks a placement against the strategy it declares", () => {
+    assertIdentical(
+      messageFor({
+        placement: { strategy: "public-dir", dir: "public/og", urlbase: "/og" },
+      }),
+      'Unknown option "placement.urlbase". Did you mean "urlBase"?',
+    );
+  });
+
+  it("rejects a placement strategy that does not exist", () => {
+    assertIdentical(
+      messageFor({ placement: { strategy: "public-dirs" } }),
+      'Unknown placement strategy "public-dirs". Did you mean "public-dir"?',
+    );
+  });
+
+  it("rejects a placement that does not say which strategy it is", () => {
+    // Without one there is nothing to say which keys apply, and the images
+    // would go somewhere else entirely while the config read correctly.
+    assertStringIncludes(
+      messageFor({ placement: { dir: "public/og", urlBase: "/og" } }),
+      'placement needs a "strategy"',
+    );
   });
 
   it("names the extra image an unknown option came from", () => {

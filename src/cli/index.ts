@@ -35,7 +35,12 @@ async function main(): Promise<void> {
     ...(config !== undefined && { config }),
     ...(args.concurrency !== undefined && { concurrency: args.concurrency }),
     onResult: (result) => {
-      console.log(`${result.skipped ? "skip " : "wrote"} ${result.outputPath}`);
+      // The URL is the half of a placement nothing else on the command line
+      // would show, and the quickest way to see a `urlBase` is wrong.
+      const served = result.url === undefined ? "" : ` -> ${result.url}`;
+      console.log(
+        `${result.skipped ? "skip " : "wrote"} ${result.outputPath}${served}`,
+      );
     },
   });
 

@@ -60,6 +60,9 @@ export function extraJobs(
       // relative path against the working directory anyway, and the build log
       // reads better saying what the config said.
       outputPath: image.output,
+      // An extra names its own path, so the placement — which maps posts to
+      // paths — has nothing to say about where this one is served.
+      url: undefined,
       config: resolveConfigForSize(config, size),
     };
   });

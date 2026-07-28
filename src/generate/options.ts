@@ -16,6 +16,12 @@ export interface GeneratedImage {
   readonly contentPath: string | undefined;
   readonly size: OutputSize;
   readonly outputPath: string;
+  /**
+   * Where the image is served, from the configured placement. `undefined`
+   * when nothing says: no `urlBase`, an image placed by `outputPath`, or an
+   * `extra` that named its own path.
+   */
+  readonly url: string | undefined;
   /** True when an up-to-date image was left in place (no `overwrite`). */
   readonly skipped: boolean;
 }

@@ -21,39 +21,42 @@ function comparable(outputPath: string): string {
   return isCaseInsensitive ? absolute.toLowerCase() : absolute;
 }
 
+/** What to call a job in a message: the post it came from, or its path. */
+function describe(job: RenderJob): string {
+  return job.contentPath ?? `extra "${job.outputPath}"`;
+}
+
 /**
- * Reject an extra image that would be written over another image in the same
- * build.
+ * Reject a build in which two images would be written to one path.
  *
- * Two jobs writing one path do not merely lose an image: each stamps the file
- * with its own digest, so every later build finds a stamp that does not match
- * and renders both again, for ever. A config naming the same path twice is a
- * copy-paste away, and an extra landing on a post's image is the kind of thing
- * a `route` slug strategy makes possible without anybody meaning it.
+ * They do not merely lose an image between them: each stamps the file with its
+ * own digest, so every later build finds a stamp that does not match and
+ * renders both again, for ever.
  *
- * Only extras are checked. Two posts resolving to one filename is older ground
- * — a shared frontmatter slug, and the same before extras existed — so failing
- * on it here would be a separate decision about content, not this one.
+ * Every job is checked, posts included. That used to be older ground worth
+ * leaving alone — two posts collided only if they shared a directory and a
+ * slug — but `public-dir` gathers a whole tree into one directory, where every
+ * post sharing a basename with another lands on it. Naming both sides is what
+ * makes that worth reporting: the path alone does not say which two posts.
  *
- * Paths are compared resolved, since a content image names an absolute path
- * and an extra names whatever the config wrote.
+ * Paths are compared resolved, since a placement names an absolute path and an
+ * extra names whatever the config wrote.
  */
-export function assertDistinctOutputs(
-  content: readonly RenderJob[],
-  extras: readonly RenderJob[],
-): void {
-  const taken = new Set(content.map((job) => comparable(job.outputPath)));
+export function assertDistinctOutputs(jobs: readonly RenderJob[]): void {
+  const taken = new Map<string, RenderJob>();
 
-  for (const job of extras) {
+  for (const job of jobs) {
     const key = comparable(job.outputPath);
+    const first = taken.get(key);
 
-    if (taken.has(key)) {
+    if (first !== undefined) {
       throw new Error(
-        `Two images would be written to "${job.outputPath}"; an extra image` +
-          ` needs an output path of its own, or one of them is lost.`,
+        `Two images would be written to "${job.outputPath}":` +
+          ` ${describe(first)} and ${describe(job)}. Each image needs a path` +
+          ` of its own, or one is lost and both re-render on every build.`,
       );
     }
 
-    taken.add(key);
+    taken.set(key, job);
   }
 }
