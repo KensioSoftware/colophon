@@ -151,6 +151,7 @@ await generate({
   overwrite: false,
   concurrency: 4, // defaults to one per available CPU
   onResult: (result) =>
+    // result.url is where it is served, when the placement knows.
     console.log(`${result.skipped ? "skip" : "wrote"} ${result.outputPath}`),
 });
 ```
@@ -273,6 +274,7 @@ All fields are optional; sensible defaults apply.
 | `sizes`       | `og` + `square`                | Named output sizes, each able to override config.   |
 | `templates`   | `banner`, `card`, `code`       | Merged over the built-ins.                          |
 | `content`     | `meta_img_props`, `.md` files  | How props are read from the tree (see below).       |
+| `placement`   | `beside-content`               | Where images go and what URL they get (see below).  |
 | `extra`       | none                           | One-off images not tied to a post (see below).      |
 
 ### Unknown options
@@ -406,6 +408,64 @@ A slug carrying directories is written from the **content root** rather than
 beside the file, so `services/iam` becomes `content/services/iam-og.png`.
 Resolving it beside the file would repeat the directories already in the slug.
 A frontmatter `slug` still wins over either strategy.
+
+### Placement
+
+`outputPath` says where the bytes go and nothing about how anyone reaches them,
+so every site rebuilds that mapping in its own templates — from information
+Colophon had while generating and threw away. A placement says both:
+
+```ts
+export default defineConfig({
+  // Astro, Eleventy, Vite: one directory, served under one prefix.
+  placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og" },
+});
+```
+
+```
+wrote public/og/my-post-og.png -> /og/my-post-og.png
+```
+
+| Strategy         | Writes                                | Suits                   |
+| ---------------- | ------------------------------------- | ----------------------- |
+| `beside-content` | Next to the post, as it always has    | Hugo-style page bundles |
+| `public-dir`     | Into `dir`, one directory for the lot | Astro, Eleventy, Vite   |
+| `custom`         | Wherever `path` says                  | Anything else           |
+
+The URL comes from `urlBase`, prefixed to the image's path under whatever root
+placed it. **No `urlBase`, no URL** — a directory on disk does not say how, or
+whether, it is served, and a URL Colophon invented would be worse than the gap
+it fills. It can be site-relative (`/og`) or absolute, for images on a CDN.
+
+`custom` works both halves out itself, for a mapping that is nobody else's —
+images under a dated directory, say:
+
+```ts
+placement: {
+  strategy: "custom",
+  path: (file, size) => `public/og/2026/${file.slug}-${size.name}.png`,
+  url: (file, size) => `/og/2026/${file.slug}-${size.name}.png`,
+}
+```
+
+Each result carries the URL as `result.url`, `undefined` where nothing says:
+no `urlBase`, an image placed by `generate`'s `outputPath` callback (which
+still wins, and then the placement no longer describes where the file went), or
+an `extra` that named its own path.
+
+A flat placement makes filename collisions much easier to hit — two posts named
+`intro.md` in different sections both want `public/og/intro-og.png`. Colophon
+refuses the build and names both posts rather than letting one overwrite the
+other, which would also leave the pair re-rendering on every build. Pair
+`public-dir` with `slugStrategy: "route"` and each post keeps its section:
+
+```ts
+export default defineConfig({
+  content: { slugStrategy: "route" },
+  placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og" },
+});
+// public/og/blog/intro-og.png -> /og/blog/intro-og.png
+```
 
 ### Per-size config
 

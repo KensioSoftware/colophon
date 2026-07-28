@@ -4,6 +4,7 @@ export type {
   BrandColors,
   CodeStyle,
   ColophonConfig,
+  ContentFile,
   ContentOptions,
   Dimensions,
   ExtraImage,
@@ -11,6 +12,7 @@ export type {
   GradientStop,
   MetaImageProps,
   OutputSize,
+  Placement,
   PropsFromFrontmatter,
   RenderedMetaImage,
   SlugStrategy,
@@ -63,4 +65,7 @@ export type { Stamper } from "./stamp/index.js";
 export { escapeXml, wrapText } from "./text/index.js";
 
 export { extractProps, slugFromPath, walkContent } from "./content/index.js";
-export type { ContentFile, WalkOptions } from "./content/index.js";
+export type { WalkOptions } from "./content/index.js";
+
+export { createPlacer } from "./placement/index.js";
+export type { PlacedImage, Placer } from "./placement/index.js";

@@ -18,5 +18,7 @@ export interface RenderJob {
   readonly props: MetaImageProps;
   readonly size: OutputSize;
   readonly outputPath: string;
+  /** Where the image is served, if the placement knows. */
+  readonly url: string | undefined;
   readonly config: ResolvedConfig;
 }

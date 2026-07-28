@@ -42,6 +42,7 @@ export async function generate(
       contentPath: job.contentPath,
       size: job.size,
       outputPath: job.outputPath,
+      url: job.url,
       skipped: isSkipped,
     };
     options.onResult?.(result);

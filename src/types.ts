@@ -214,6 +214,60 @@ export interface ContentOptions {
 }
 
 /**
+ * A discovered content file with the image props read from its frontmatter.
+ *
+ * It lives here rather than with the walker so that {@link Placement} can name
+ * it without the config module depending on the content module, for the reason
+ * {@link ContentOptions} does.
+ */
+export interface ContentFile {
+  /** Path relative to the walk `dir`. */
+  readonly contentPath: string;
+  /** Absolute path on disk. */
+  readonly absolutePath: string;
+  /** Base filename for this post's images (frontmatter slug, or path-derived). */
+  readonly slug: string;
+  readonly props: MetaImageProps;
+}
+
+/**
+ * Where an image is written, and the URL it is served at once it is.
+ *
+ * `outputPath` alone says where the bytes go and nothing about how anyone
+ * reaches them, so every site ends up rebuilding that mapping in its own
+ * templates — from information Colophon had at generate time and threw away.
+ *
+ * - `beside-content`: next to the post, which is the page-bundle convention
+ *   and what Colophon has always done. Still the default.
+ * - `public-dir`: gathered into one directory, as Astro, Eleventy and Vite
+ *   expect. A slug carrying directories keeps them underneath it.
+ * - `custom`: for a site whose mapping is its own — images under a dated
+ *   directory, say.
+ *
+ * `urlBase` is what makes a URL: it is prefixed to the image's path under the
+ * root that placed it, and without one there is no URL, because no directory
+ * on disk says by itself how it is served. It can be a site-relative path
+ * (`/og`) or an absolute one, for images served from a CDN.
+ */
+export type Placement =
+  | { readonly strategy: "beside-content"; readonly urlBase?: string }
+  | {
+      readonly strategy: "public-dir";
+      /** Directory to gather images into, relative to the working directory. */
+      readonly dir: string;
+      readonly urlBase?: string;
+    }
+  | {
+      readonly strategy: "custom";
+      readonly path: (file: ContentFile, size: OutputSize) => string;
+      /** Omit for images that are written but not served. */
+      readonly url?: (
+        file: ContentFile,
+        size: OutputSize,
+      ) => string | undefined;
+    };
+
+/**
  * Reports something a template had to compromise on — code truncated to stay
  * legible, so far. Rendering carries on regardless: a share image is worth
  * having even when the input did not quite fit, but the author should hear
@@ -294,6 +348,11 @@ export interface ColophonConfig {
    * the render core never sees it.
    */
   readonly content?: ContentOptions;
+  /**
+   * Where images are written and what URL they end up at. Defaults to
+   * `beside-content`, which is what Colophon did before there was a choice.
+   */
+  readonly placement?: Placement;
   /**
    * One-off images that belong to the project rather than to any post — a
    * package card, a repository social preview. Rendered by the same build, and

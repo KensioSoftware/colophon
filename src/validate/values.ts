@@ -13,7 +13,7 @@ import { nearestName } from "./suggest.js";
  * Report a value that is not one of the names a field accepts. `noun` names
  * the field, `plural` heads the list of what it does accept.
  */
-function describeUnknownValue(
+export function describeUnknownValue(
   noun: string,
   plural: string,
   value: string,

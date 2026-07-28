@@ -9,6 +9,7 @@ import {
   fontKeys,
 } from "./keys.js";
 import { checkExtras, checkSizes } from "./overrides.js";
+import { checkPlacement } from "./placement.js";
 import { checkBackground, checkSlugStrategy } from "./values.js";
 
 /**
@@ -34,6 +35,7 @@ export function validateConfig(config: ColophonConfig): void {
     readonly sizes?: unknown;
     readonly fonts?: unknown;
     readonly extra?: unknown;
+    readonly placement?: unknown;
   };
   const problems: string[] = [];
 
@@ -47,6 +49,7 @@ export function validateConfig(config: ColophonConfig): void {
   checkExtras(raw.extra, problems);
   checkEach(raw.fonts, "fonts", fontKeys, problems);
   checkBackground(raw.background, "background", problems);
+  checkPlacement(raw.placement, problems);
 
   const [first, ...rest] = problems;
 
