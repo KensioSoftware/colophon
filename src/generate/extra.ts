@@ -1,5 +1,6 @@
 import { SIZE_PRESETS } from "../config/defaults.js";
 import { resolveConfigForSize } from "../config/size.js";
+import type { Stamper } from "../stamp/index.js";
 import type { ColophonConfig, ExtraImage, ResolvedConfig } from "../types.js";
 import { isRecord } from "../validate/check.js";
 import type { RenderJob } from "./job.js";
@@ -44,6 +45,7 @@ function checkImage(image: ExtraImage, index: number): void {
 export function extraJobs(
   config: ColophonConfig | undefined,
   resolved: ResolvedConfig,
+  stamper: Stamper,
 ): RenderJob[] {
   // `resolveSizes` never returns an empty list; the default is for the type.
   const [firstSize = SIZE_PRESETS.og] = resolved.sizes;
@@ -63,8 +65,10 @@ export function extraJobs(
       // reads better saying what the config said.
       outputPath: image.output,
       // An extra names its own path, so the placement — which maps posts to
-      // paths — has nothing to say about where this one is served.
+      // paths — has nothing to say about where this one is served, nor about
+      // hashing a filename it did not choose.
       url: undefined,
+      stamp: stamper.stamp(image.props, size),
       config: resolveConfigForSize(config, size),
     };
   });

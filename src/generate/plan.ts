@@ -74,7 +74,10 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
 
   const jobs = files.flatMap((file) =>
     resolved.sizes.map((size) => {
-      const placed = place(file, size);
+      // Stamped before it is placed, not after: a hashed filename is built
+      // from the stamp, so the name cannot be known before the digest is.
+      const stamp = stamper.stamp(file.props, size);
+      const placed = place(file, size, stamp);
 
       return {
         contentPath: file.contentPath,
@@ -83,12 +86,13 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
         size,
         outputPath: placed.path,
         url: placed.url,
+        stamp,
         config: configBySize.get(size.name) ?? resolved,
       };
     }),
   );
 
-  const all = [...jobs, ...extraJobs(options.config, resolved)];
+  const all = [...jobs, ...extraJobs(options.config, resolved, stamper)];
   assertDistinctOutputs(all);
   assertManifestIsNotAnImage(options.config?.manifest, all);
 

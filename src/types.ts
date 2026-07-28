@@ -248,14 +248,25 @@ export interface ContentFile {
  * root that placed it, and without one there is no URL, because no directory
  * on disk says by itself how it is served. It can be a site-relative path
  * (`/og`) or an absolute one, for images served from a CDN.
+ *
+ * `hash` puts a digest of the image's inputs in its filename, so that changing
+ * a post gives its image a URL nobody has cached yet. It is opt-in because it
+ * also means the filename moves whenever the image does, which not every setup
+ * wants. `custom` has no say in it: a placement naming its own paths is the
+ * one that can hash them itself.
  */
 export type Placement =
-  | { readonly strategy: "beside-content"; readonly urlBase?: string }
+  | {
+      readonly strategy: "beside-content";
+      readonly urlBase?: string;
+      readonly hash?: boolean;
+    }
   | {
       readonly strategy: "public-dir";
       /** Directory to gather images into, relative to the working directory. */
       readonly dir: string;
       readonly urlBase?: string;
+      readonly hash?: boolean;
     }
   | {
       readonly strategy: "custom";

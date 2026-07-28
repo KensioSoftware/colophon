@@ -17,6 +17,7 @@ export function assertPlacement(placement: Placement): void {
   const declared = placement as {
     readonly dir?: unknown;
     readonly urlBase?: unknown;
+    readonly hash?: unknown;
     readonly path?: unknown;
     readonly url?: unknown;
   };
@@ -24,6 +25,13 @@ export function assertPlacement(placement: Placement): void {
   if (declared.urlBase !== undefined && typeof declared.urlBase !== "string") {
     throw new TypeError(
       `placement urlBase must be a string; it is prefixed to each image's path.`,
+    );
+  }
+
+  if (declared.hash !== undefined && typeof declared.hash !== "boolean") {
+    throw new TypeError(
+      `placement hash must be true or false. Anything else reads as neither,` +
+        ` so the images would be written unhashed without a word about it.`,
     );
   }
 

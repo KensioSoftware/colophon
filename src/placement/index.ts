@@ -15,8 +15,18 @@ export interface PlacedImage {
   readonly url: string | undefined;
 }
 
-/** Places each image of a build. */
-export type Placer = (file: ContentFile, size: OutputSize) => PlacedImage;
+/**
+ * Places each image of a build.
+ *
+ * The stamp is handed over whether or not the placement wants it: it is what a
+ * hashed filename is built from, and a placement that does not hash simply
+ * ignores it.
+ */
+export type Placer = (
+  file: ContentFile,
+  size: OutputSize,
+  stamp: string,
+) => PlacedImage;
 
 /**
  * Prefix a `urlBase` onto an image's path under the root that placed it.
@@ -60,9 +70,10 @@ export function createPlacer(
 
   if (placement === undefined || placement.strategy === "beside-content") {
     const urlBase = placement?.urlBase;
+    const isHashes = placement?.hash === true;
 
-    return (file, size) => {
-      const relative = besideContent(file, size);
+    return (file, size, stamp) => {
+      const relative = besideContent(file, size, isHashes ? stamp : undefined);
       return {
         path: under(contentDir, relative),
         url: toUrl(urlBase, relative),
@@ -71,8 +82,10 @@ export function createPlacer(
   }
 
   if (placement.strategy === "public-dir") {
-    return (file, size) => {
-      const relative = imageName(file, size);
+    const isHashes = placement.hash === true;
+
+    return (file, size, stamp) => {
+      const relative = imageName(file, size, isHashes ? stamp : undefined);
       return {
         path: under(placement.dir, relative),
         url: toUrl(placement.urlBase, relative),
