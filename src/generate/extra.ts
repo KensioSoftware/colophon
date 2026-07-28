@@ -1,7 +1,34 @@
 import { SIZE_PRESETS } from "../config/defaults.js";
 import { resolveConfigForSize } from "../config/size.js";
-import type { ColophonConfig, ResolvedConfig } from "../types.js";
+import type { ColophonConfig, ExtraImage, ResolvedConfig } from "../types.js";
+import { isRecord } from "../validate/check.js";
 import type { RenderJob } from "./job.js";
+
+/**
+ * Reject an extra image that says too little to be rendered or written.
+ *
+ * The type requires both fields, but a CLI user's config module is plain
+ * JavaScript with nothing checking it, and neither omission fails anywhere
+ * near the config: a missing `output` surfaces as a complaint about an
+ * argument to `path`, and missing props as a property read on `undefined`.
+ * Key validation is no help either — it is the option that is not there.
+ */
+function checkImage(image: ExtraImage, index: number): void {
+  // The types say what should be here; this exists for when it is not.
+  const declared = image as {
+    readonly props?: unknown;
+    readonly output?: unknown;
+  };
+  const label = `extra[${String(index)}]`;
+
+  if (typeof declared.output !== "string" || declared.output === "") {
+    throw new Error(`${label} needs an "output" path to write the image to.`);
+  }
+
+  if (!isRecord(declared.props)) {
+    throw new Error(`${label} needs a "props" object describing the image.`);
+  }
+}
 
 /**
  * The jobs for the images a config declares outright, rather than finding in
@@ -21,7 +48,8 @@ export function extraJobs(
   // `resolveSizes` never returns an empty list; the default is for the type.
   const [firstSize = SIZE_PRESETS.og] = resolved.sizes;
 
-  return (config?.extra ?? []).map((image) => {
+  return (config?.extra ?? []).map((image, index) => {
+    checkImage(image, index);
     const size = image.size ?? firstSize;
 
     return {

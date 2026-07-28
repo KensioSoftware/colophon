@@ -7,6 +7,7 @@ import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
 import { defaultOutputPath } from "./output-path.js";
+import { assertDistinctOutputs } from "./outputs.js";
 
 /**
  * Everything a build needs before it starts rendering: one job per image, and
@@ -54,5 +55,8 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
     })),
   );
 
-  return { jobs: [...jobs, ...extraJobs(options.config, resolved)], stamper };
+  const extras = extraJobs(options.config, resolved);
+  assertDistinctOutputs(jobs, extras);
+
+  return { jobs: [...jobs, ...extras], stamper };
 }

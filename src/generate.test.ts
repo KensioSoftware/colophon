@@ -431,6 +431,54 @@ describe("generate", () => {
     assertTrue(post.skipped);
   }, 10_000);
 
+  it("rejects an extra image with nowhere to write it", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      // A config module is plain JavaScript, so this reaches `generate`.
+      generate(withExtra(undefined as unknown as string)),
+    );
+
+    assertStringIncludes(error.message, 'extra[0] needs an "output" path');
+  });
+
+  it("rejects an extra image with nothing to draw", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          config: {
+            sizes: [tinyOg],
+            extra: [{ output: "card.png" } as unknown as ExtraImage],
+          },
+        }),
+      ),
+    );
+
+    assertStringIncludes(error.message, 'extra[0] needs a "props" object');
+  });
+
+  it("rejects two images written to the same path", async () => {
+    const image: ExtraImage = {
+      props: { template: "banner", title: "@kensio/colophon" },
+      output: path.join(dir, "npm.png"),
+    };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, { config: { sizes: [tinyOg], extra: [image, image] } }),
+      ),
+    );
+
+    // Both would stamp the one file, so every later build would render both.
+    assertStringIncludes(error.message, "Two images would be written to");
+  });
+
+  it("rejects an extra image landing on a post's own image", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(withExtra(path.join(dir, "guide", "guide-og.png"))),
+    );
+
+    assertStringIncludes(error.message, "Two images would be written to");
+  });
+
   it("names an extra image by its output path in warnings", async () => {
     const warnings: string[] = [];
     const card = path.join(dir, "snippet.png");

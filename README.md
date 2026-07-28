@@ -490,7 +490,10 @@ export default defineConfig({
 `output` is the path to write, relative to the working directory, and any
 directories it names are created. It is the whole path: an extra image has no
 post to sit beside, so `generate`'s `outputPath` callback is not consulted and
-nothing is appended to the filename.
+nothing is appended to the filename. An extra that would land on another image
+in the same build stops it before anything is written — two images sharing a
+path do not merely lose one of themselves, they each stamp the file and so
+re-render on every build afterwards.
 
 `size` is an output size like any other, [overrides](#per-size-config) and all —
 that is how the preview above gets its own footer without adding an entry to
