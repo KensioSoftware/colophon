@@ -422,7 +422,7 @@ export default defineConfig({
 });
 ```
 
-```
+```text
 wrote public/og/my-post-og.png -> /og/my-post-og.png
 ```
 

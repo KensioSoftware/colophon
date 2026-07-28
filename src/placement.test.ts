@@ -1,10 +1,15 @@
 import path from "node:path";
 
-import { assertIdentical, assertUndefined } from "@kensio/smartass";
+import {
+  assertIdentical,
+  assertStringIncludes,
+  assertThrowsError,
+  assertUndefined,
+} from "@kensio/smartass";
 import { describe, it } from "vitest";
 
 import { createPlacer } from "./placement/index.js";
-import type { ContentFile, OutputSize } from "./types.js";
+import type { ContentFile, OutputSize, Placement } from "./types.js";
 
 const og: OutputSize = { name: "og", width: 1200, height: 630 };
 
@@ -114,6 +119,57 @@ describe("createPlacer", () => {
 
     assertIdentical(placed.path, "dated/2026/guide.og.png");
     assertIdentical(placed.url, "/img/2026/guide.og.png");
+  });
+
+  // A config module is plain JavaScript, so all of these reach the placer;
+  // without the check each fails as a complaint about `path` or a function.
+  it("rejects a public directory with nowhere to write", () => {
+    const error = assertThrowsError(() =>
+      createPlacer(
+        { strategy: "public-dir" } as unknown as Placement,
+        "content",
+      ),
+    );
+
+    assertStringIncludes(error.message, 'needs a "dir"');
+  });
+
+  it("rejects a custom placement with no path function", () => {
+    const error = assertThrowsError(() =>
+      createPlacer({ strategy: "custom" } as unknown as Placement, "content"),
+    );
+
+    assertStringIncludes(error.message, 'needs a "path" function');
+  });
+
+  it("rejects a custom URL that is not a function", () => {
+    const error = assertThrowsError(() =>
+      createPlacer(
+        {
+          strategy: "custom",
+          path: () => "a.png",
+          url: "/og",
+        } as unknown as Placement,
+        "content",
+      ),
+    );
+
+    assertStringIncludes(error.message, 'takes a "url" function');
+  });
+
+  it("rejects a URL base that is not a string", () => {
+    const error = assertThrowsError(() =>
+      createPlacer(
+        {
+          strategy: "public-dir",
+          dir: "public",
+          urlBase: 42,
+        } as unknown as Placement,
+        "content",
+      ),
+    );
+
+    assertStringIncludes(error.message, "urlBase must be a string");
   });
 
   it("lets a custom placement write an image it does not serve", () => {

@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import type { ContentFile, OutputSize, Placement } from "../types.js";
+import { assertPlacement } from "./check.js";
 import { besideContent, imageName } from "./relative.js";
 
 export { besideContent, imageName } from "./relative.js";
@@ -53,6 +54,10 @@ export function createPlacer(
   placement: Placement | undefined,
   contentDir: string,
 ): Placer {
+  if (placement !== undefined) {
+    assertPlacement(placement);
+  }
+
   if (placement === undefined || placement.strategy === "beside-content") {
     const urlBase = placement?.urlBase;
 
