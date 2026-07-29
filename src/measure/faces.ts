@@ -27,8 +27,26 @@ const byPath = new Map<string, Promise<readonly Face[]>>();
  */
 const byData = new WeakMap<Uint8Array, Promise<readonly Face[]>>();
 
+/**
+ * What a face declares about itself. The types say both of these are always
+ * there, and a font file is data: one missing its name or its `OS/2` table
+ * would otherwise take the build down inside `selectFace`, rather than being
+ * measured as well as it can be. A face with no family name matches no stack,
+ * so it is only ever reached as the fallback that the first configured font is.
+ */
 function toFace(font: Font): Face {
-  return { family: font.familyName, weight: font["OS/2"].usWeightClass, font };
+  const declared = font as {
+    readonly familyName?: string;
+    // The table is named by the format, not by us.
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    readonly "OS/2"?: { readonly usWeightClass?: number };
+  };
+
+  return {
+    family: declared.familyName ?? "",
+    weight: declared["OS/2"]?.usWeightClass ?? 400,
+    font,
+  };
 }
 
 /** A collection file holds several faces; a plain font file holds one. */

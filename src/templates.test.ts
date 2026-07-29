@@ -230,8 +230,10 @@ describe("codeTemplate", () => {
     };
     const assumed = await render(codeTemplate, props);
     const measured = await render(codeTemplate, props, {
-      // A proportional face, so its digit advance of 0.636 em is far enough
-      // from the 0.6 assumed for monospace to show in the geometry.
+      // A proportional face, which is not a configuration the template
+      // supports: it draws on a character grid and wants a monospace font. It
+      // is here because its digit advance of 0.636 em is far enough from the
+      // 0.6 assumed for monospace to show up in the geometry.
       fonts: [{ family: "DejaVu Sans", path: sansFont }],
       code: { fontFamily: "DejaVu Sans" },
     });
