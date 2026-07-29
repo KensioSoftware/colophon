@@ -31,7 +31,7 @@ export type { Align, BoxStyle, Extent, Placed, Rect, Span } from "./types.js";
 
 export { blockLines } from "./block.js";
 export type { StyledBlock, TextBlock, TextLine } from "./block.js";
-export { drawLines, placeLines } from "./lines.js";
+export { baselineFor, drawLines, placeLines } from "./lines.js";
 export type { LinesStyle, PlacedLine } from "./lines.js";
 export { measureIn } from "./measure.js";
 

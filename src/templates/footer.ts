@@ -1,4 +1,4 @@
-import { textElement } from "../layout/index.js";
+import { baselineFor, textElement } from "../layout/index.js";
 import type { ResolvedConfig } from "../types.js";
 
 /**
@@ -12,6 +12,21 @@ export interface FooterPlacement {
   readonly fontSize: number;
   readonly opacity: number;
   readonly anchor?: "start" | "middle" | "end";
+}
+
+/**
+ * The baseline of a footer sitting on the bottom margin.
+ *
+ * The margin is where the line's ink stops rather than where its baseline
+ * goes, so the last line of an image keeps the same clear space below it as
+ * the content beside it has either side, and the descenders stay inside it.
+ */
+export function footerBaseline(
+  height: number,
+  pad: number,
+  fontSize: number,
+): number {
+  return baselineFor(height - pad - fontSize, fontSize);
 }
 
 /** Whether the config carries a footer worth drawing. */

@@ -204,11 +204,23 @@ describe("cardTemplate", () => {
 });
 
 /** Geometry of the code panel: the stroked surface rect, not its shadow. */
-function panelRect(svg: string): { x: number; width: number } {
-  const match = /<rect x="(\d+)" y="\d+" width="(\d+)"[^>]*stroke=/.exec(svg);
+function panelRect(svg: string): { x: number; y: number; width: number } {
+  const match = /<rect x="(\d+)" y="(\d+)" width="(\d+)"[^>]*stroke=/.exec(svg);
   assertNonNullable(match);
 
-  return { x: Number(match[1]), width: Number(match[2]) };
+  return {
+    x: Number(match[1]),
+    y: Number(match[2]),
+    width: Number(match[3]),
+  };
+}
+
+/** The baseline of the one `<text>` element a pattern matches. */
+function baselineOf(svg: string, pattern: RegExp): number {
+  const match = pattern.exec(svg);
+  assertNonNullable(match);
+
+  return Number(match[1]);
 }
 
 /** Every x a token is drawn at, in image coordinates. */
@@ -307,6 +319,38 @@ describe("codeTemplate", () => {
 
     assertStringIncludes(svg, ">Listing</text>");
     assertStringIncludes(svg, ">example.com</text>");
+  }, 5000);
+
+  it("clears the panel by the gap the layout reserved for the title", async () => {
+    const svg = await render(codeTemplate, {
+      template: "code",
+      code: "ls -la",
+      language: "bash",
+      title: "Listing",
+    });
+
+    // `layoutPanel` sets 2.8% of the shorter side aside above the panel, and
+    // the title's descender takes a fifth of its 54px size below the baseline.
+    // Both have to come off, or the gap that is reserved is not the gap seen.
+    assertIdentical(
+      panelRect(svg).y - baselineOf(svg, /y="(\d+)"[^>]*>Listing</),
+      34 + 11,
+    );
+  }, 5000);
+
+  it("keeps the footer's descender inside the bottom margin", async () => {
+    const svg = await render(
+      codeTemplate,
+      { template: "code", code: "ls -la", language: "bash" },
+      { footer: "example.com" },
+    );
+
+    // The 5% margin is where the ink stops, so the 38px footer's baseline sits
+    // its own descender above it.
+    assertIdentical(
+      baselineOf(svg, /y="(\d+)"[^>]*>example\.com</),
+      1200 - 60 - 8,
+    );
   }, 5000);
 
   it("clips lines that overrun the panel at the minimum font size", async () => {

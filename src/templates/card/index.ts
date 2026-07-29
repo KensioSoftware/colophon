@@ -1,7 +1,7 @@
 import { drawLines, inset } from "../../layout/index.js";
 import type { Template, TemplateContext } from "../../types.js";
 import { attribution } from "../attribution.js";
-import { hasFooter } from "../footer.js";
+import { footerBaseline, hasFooter } from "../footer.js";
 import { logoElement, logoRect } from "../logo.js";
 import { cardLines } from "./lines.js";
 
@@ -47,11 +47,13 @@ export const cardTemplate: Template = {
       contentWidth: area.width,
       titleFs: Math.round(height * 0.1),
       subFs: Math.round(height * 0.045),
+      height,
     });
 
     const body = drawLines(lines, area, {
       fontFamily: config.fontFamily,
       fill: config.colors.foreground,
+      lineHeight: 1.28,
       anchor: "middle",
     });
 
@@ -59,7 +61,7 @@ export const cardTemplate: Template = {
       config,
       {
         x: Math.round(width / 2),
-        y: height - pad,
+        y: footerBaseline(height, pad, footerFs),
         fontSize: footerFs,
         opacity: 0.75,
         anchor: "middle",

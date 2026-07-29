@@ -14,6 +14,20 @@ const defaultLineHeight = 1.2;
  */
 const baselineRatio = 0.8;
 
+/**
+ * The baseline of one line of text sitting in a band of its own font size.
+ *
+ * A template that has set room aside for a single line, rather than stacking
+ * several, wants this rather than a fraction of the font size chosen by eye:
+ * the ink then lands inside the band that was written down, so the clear space
+ * either side of it is the space that was reserved. The descender takes the
+ * rest of the band, which is why the room below a line is not the same as the
+ * room above it.
+ */
+export function baselineFor(top: number, fontSize: number): number {
+  return Math.round(top + fontSize * baselineRatio);
+}
+
 /** How a block of lines is drawn: the font, the fill, and where it sits. */
 export interface LinesStyle {
   readonly fontFamily: string;
@@ -56,9 +70,7 @@ export function placeLines(
   );
 
   return placed.map((placement, index) => ({
-    y: Math.round(
-      placement.start + (lines[index]?.fontSize ?? 0) * baselineRatio,
-    ),
+    y: baselineFor(placement.start, lines[index]?.fontSize ?? 0),
     index,
   }));
 }
