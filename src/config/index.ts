@@ -1,6 +1,11 @@
 import { resolveFonts } from "../fonts/index.js";
 import { builtinTemplates } from "../templates/index.js";
-import type { ColophonConfig, ResolvedConfig } from "../types.js";
+import type {
+  ColophonConfig,
+  ColophonConfigFactory,
+  ColophonConfigInput,
+  ResolvedConfig,
+} from "../types.js";
 import { validateConfig } from "../validate/index.js";
 import { DEFAULT_FONT_FAMILY } from "./defaults.js";
 import {
@@ -36,7 +41,21 @@ function warnToConsole(message: string): void {
  * Identity helper that returns its argument typed as {@link ColophonConfig}.
  * Use it in a config module to get editor completion and type-checking.
  */
-export function defineConfig(config: ColophonConfig): ColophonConfig {
+export function defineConfig(config: ColophonConfig): ColophonConfig;
+/**
+ * Overload for a config module that computes its config rather than declaring
+ * it. The function is typed, not called: this is still just an identity
+ * helper, and whoever loads the module is the one who runs it.
+ */
+export function defineConfig(
+  factory: ColophonConfigFactory,
+): ColophonConfigFactory;
+/**
+ * Implementation signature. Two overloads rather than one union parameter, so
+ * an object literal is still checked against {@link ColophonConfig} for
+ * misspelled keys before it ever reaches `validateConfig`.
+ */
+export function defineConfig(config: ColophonConfigInput): ColophonConfigInput {
   return config;
 }
 

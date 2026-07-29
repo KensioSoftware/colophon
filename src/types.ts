@@ -450,6 +450,20 @@ export interface ColophonConfig {
 }
 
 /**
+ * A function a config module may export instead of a config object, so that a
+ * config which has to compute something — brand colours read out of the site's
+ * own stylesheet, say — can still be a config module rather than a script.
+ *
+ * It takes no arguments. Anything it might be handed is either already on the
+ * command line or a decision the config itself is making.
+ */
+export type ColophonConfigFactory = () =>
+  ColophonConfig | Promise<ColophonConfig>;
+
+/** What a config module's default export may be. */
+export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
+
+/**
  * Config an {@link OutputSize} may override for itself.
  *
  * Some settings only make sense per size: `code.minFontScale` is the clearest

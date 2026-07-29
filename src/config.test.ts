@@ -33,10 +33,17 @@ const sansFont = path.join(
   "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
 );
 
+/** A config module's other shape: a function computing the config. */
+const georgia = (): ColophonConfig => ({ fontFamily: "Georgia" });
+
 describe("defineConfig", () => {
   it("returns the config unchanged", () => {
     const config = { fontFamily: "Georgia" };
     assertIdentical(defineConfig(config), config);
+  });
+
+  it("returns a config function unchanged, without calling it", () => {
+    assertIdentical(defineConfig(georgia), georgia);
   });
 });
 

@@ -1,22 +1,7 @@
 #!/usr/bin/env node
-import path from "node:path";
-import { pathToFileURL } from "node:url";
-
 import { generate } from "../generate/index.js";
-import type { ColophonConfig } from "../types.js";
 import { parseCliArgs, usage } from "./args.js";
-
-async function loadConfig(
-  configPath: string | undefined,
-): Promise<ColophonConfig | undefined> {
-  if (configPath === undefined) {
-    return undefined;
-  }
-
-  const url = pathToFileURL(path.resolve(configPath)).href;
-  const module = (await import(url)) as { default?: ColophonConfig };
-  return module.default;
-}
+import { loadConfig } from "./config.js";
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
