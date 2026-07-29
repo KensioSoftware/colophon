@@ -3,7 +3,11 @@ import {
   backgroundTypes,
   gradientBackgroundKeys,
   gradientPointKeys,
+  backgroundFits,
   gradientStopKeys,
+  imageBackgroundKeys,
+  imageSourceKeys,
+  scrimKeys,
   slugStrategies,
   solidBackgroundKeys,
 } from "./keys.js";
@@ -51,6 +55,19 @@ export function checkBackground(
     return;
   }
 
+  if (type === "image") {
+    checkKeys(background, path, imageBackgroundKeys, problems);
+    checkKeys(
+      background["source"],
+      `${path}.source`,
+      imageSourceKeys,
+      problems,
+    );
+    checkKeys(background["scrim"], `${path}.scrim`, scrimKeys, problems);
+    checkFit(background["fit"], problems);
+    return;
+  }
+
   if (type === "gradient") {
     checkKeys(background, path, gradientBackgroundKeys, problems);
     checkEach(stops, `${path}.stops`, gradientStopKeys, problems);
@@ -64,6 +81,17 @@ export function checkBackground(
       describeUnknownValue("background type", "types", type, backgroundTypes),
     );
   }
+}
+
+/** Check a background image's fit names one of the two there are. */
+function checkFit(fit: unknown, problems: string[]): void {
+  if (typeof fit !== "string" || backgroundFits.includes(fit)) {
+    return;
+  }
+
+  problems.push(
+    describeUnknownValue("background fit", "fits", fit, backgroundFits),
+  );
 }
 
 /**

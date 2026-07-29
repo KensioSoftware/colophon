@@ -1,4 +1,5 @@
 import { resolveFonts } from "../fonts/index.js";
+import { resolveOptionalImage } from "../image/index.js";
 import { builtinTemplates } from "../templates/index.js";
 import type {
   ColophonConfig,
@@ -10,6 +11,7 @@ import { validateConfig } from "../validate/index.js";
 import { DEFAULT_FONT_FAMILY } from "./defaults.js";
 import {
   defaultBackground,
+  resolveBackground,
   resolveCode,
   resolveColors,
   resolveSizes,
@@ -74,13 +76,15 @@ export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
 
   return {
     colors,
-    background: config.background ?? defaultBackground(colors),
+    background:
+      resolveBackground(config.background) ?? defaultBackground(colors),
     fonts,
     systemFonts: shouldLoadSystemFonts(config.systemFonts, fonts),
     // A project that supplies one font should not have to name it twice.
     fontFamily: config.fontFamily ?? fonts[0]?.family ?? DEFAULT_FONT_FAMILY,
     footer: config.footer,
     badge: config.badge,
+    logo: resolveOptionalImage(config.logo, "logo"),
     code: resolveCode(config.code),
     onWarning: config.onWarning ?? warnToConsole,
     sizes: resolveSizes(config.sizes),

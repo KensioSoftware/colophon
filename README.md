@@ -92,6 +92,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Templates](./docs/templates/ "The built-in layouts and how to register your own")
 - [The code template](./docs/code-template/ "Syntax-highlighted code images")
 - [The layout toolkit](./docs/layout/ "The primitives templates are built from")
+- [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")
 - [Configuration](./docs/configuration/ "Every option, and what happens to an unknown one")
 - [Rebuilds](./docs/rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./docs/programmatic-use/ "The API behind the CLI")

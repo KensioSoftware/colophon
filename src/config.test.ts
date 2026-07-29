@@ -233,6 +233,21 @@ describe("resolveConfig", () => {
     assertIdentical(resolved.fontFamily, DEFAULT_FONT_FAMILY);
   });
 
+  it("makes a logo path absolute and checks it is there", () => {
+    const logo = "docs/samples/card-wide-solid.png";
+
+    assertObjectEquals(resolveConfig({ logo: { path: logo } }).logo, {
+      path: path.join(process.cwd(), logo),
+    });
+  });
+
+  it("rejects a logo that is not there", () => {
+    assertThrowsError(
+      () => resolveConfig({ logo: { path: "nope.png" } }),
+      "image file not found",
+    );
+  });
+
   it("merges custom templates over the built-ins", () => {
     const custom = { name: "custom", render: (): string => "" };
     const resolved = resolveConfig({ templates: { custom } });

@@ -1,27 +1,43 @@
 import { drawLines, inset } from "../../layout/index.js";
 import type { Template, TemplateContext } from "../../types.js";
-import { footerElement, hasFooter } from "../footer.js";
+import { attribution } from "../attribution.js";
+import { hasFooter } from "../footer.js";
+import { logoElement, logoRect } from "../logo.js";
 import { cardLines } from "./lines.js";
 
 /**
  * Minimal "card" template: a centred title with an optional subtitle. No
  * badge or version, so it is a quieter alternative to `banner`.
+ *
+ * A logo goes above the title, centred like everything else here, and the
+ * avatar sits with the footer along the bottom.
  */
 export const cardTemplate: Template = {
   name: "card",
-  render({ props, config, dimensions, measure }: TemplateContext): string {
+  render({
+    props,
+    config,
+    dimensions,
+    measure,
+    logo,
+    avatar,
+  }: TemplateContext): string {
     const { width, height } = dimensions;
     const pad = Math.round(width * 0.09);
     const footerFs = Math.round(height * 0.032);
+    const mark = logoRect(logo, dimensions, pad, "middle");
 
     const area = inset(
       { x: 0, y: 0, width, height },
       {
-        top: pad,
+        top: pad + (mark === undefined ? 0 : mark.height + pad / 2),
         right: pad,
         left: pad,
         bottom:
-          pad + (hasFooter(config) ? footerFs + Math.round(height * 0.02) : 0),
+          pad +
+          (hasFooter(config) || avatar !== undefined
+            ? footerFs + Math.round(height * 0.02)
+            : 0),
       },
     );
 
@@ -39,14 +55,21 @@ export const cardTemplate: Template = {
       anchor: "middle",
     });
 
-    const footer = footerElement(config, {
-      x: Math.round(width / 2),
-      y: height - pad,
-      fontSize: footerFs,
-      opacity: 0.75,
-      anchor: "middle",
-    });
+    const footer = attribution(
+      config,
+      {
+        x: Math.round(width / 2),
+        y: height - pad,
+        fontSize: footerFs,
+        opacity: 0.75,
+        anchor: "middle",
+        left: pad,
+        width: width - pad * 2,
+      },
+      avatar,
+      measure,
+    );
 
-    return body + footer;
+    return logoElement(logo, mark) + body + footer;
   },
 };

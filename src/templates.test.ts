@@ -12,6 +12,7 @@ import {
 import { describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
+import { loadImages } from "./image/index.js";
 import { createMeasurer } from "./measure/index.js";
 import {
   bannerTemplate,
@@ -35,6 +36,9 @@ const sansFont = path.join(
   "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
 );
 
+// A real 1200x630 PNG, so the logo has proportions worth laying out.
+const samplePng = path.join(process.cwd(), "docs/samples/card-wide-solid.png");
+
 async function render(
   template: Template,
   props: MetaImageProps,
@@ -42,33 +46,21 @@ async function render(
   dimensions: Dimensions = square,
 ): Promise<string> {
   const resolved = resolveConfig(config);
+  const images = await loadImages(resolved, props);
 
   return template.render({
     props,
     config: resolved,
     dimensions,
     measure: await createMeasurer(resolved),
+    logo: images.logo,
+    avatar: images.avatar,
   });
-}
-
-/** Geometry of the code panel: the stroked surface rect, not its shadow. */
-function panelRect(svg: string): { x: number; width: number } {
-  const match = /<rect x="(\d+)" y="\d+" width="(\d+)"[^>]*stroke=/.exec(svg);
-  assertNonNullable(match);
-
-  return { x: Number(match[1]), width: Number(match[2]) };
 }
 
 /** The size the first line of text is drawn at. */
 function titleSize(svg: string): number {
   return Number(/font-size="(\d+)"/.exec(svg)?.[1] ?? 0);
-}
-
-/** Every x a token is drawn at, in image coordinates. */
-function tspanColumns(svg: string): readonly number[] {
-  return Array.from(svg.matchAll(/<tspan x="(\d+)"/g), (match) =>
-    Number(match[1]),
-  );
 }
 
 describe("builtinTemplates", () => {
@@ -109,6 +101,17 @@ describe("bannerTemplate", () => {
     assertStringIncludes(svg, ">just a title</text>");
     assertStringNotIncludes(svg, "<rect");
     assertArrayLength(svg.match(/<text/g), 1);
+  });
+
+  it("draws a logo in the corner the badge is not in", async () => {
+    const svg = await render(
+      bannerTemplate,
+      { template: "banner", title: "t" },
+      { logo: { path: samplePng }, badge: { text: "npm" } },
+    );
+
+    // Against the right margin: 1200 - 90 padding - 171 wide.
+    assertStringIncludes(svg, '<image x="939" y="90" width="171" height="90"');
   });
 
   it("coerces a numeric version and escapes the title", async () => {
@@ -162,6 +165,18 @@ describe("cardTemplate", () => {
     assertArrayLength(svg.match(/<text/g), 1);
   });
 
+  it("draws the avatar alone when there is no footer to sit beside", async () => {
+    const svg = await render(cardTemplate, {
+      template: "card",
+      title: "t",
+      avatar: samplePng,
+    });
+
+    assertStringIncludes(svg, 'clip-path="url(#colophon-avatar)"');
+    // Centred on its own rather than shifted left to make room for words.
+    assertStringIncludes(svg, '<image x="564"');
+  });
+
   it("shrinks a long title instead of losing the end of it", async () => {
     const svg = await render(cardTemplate, {
       template: "card",
@@ -187,6 +202,21 @@ describe("cardTemplate", () => {
     assertStringIncludes(svg, ">を生成します<");
   });
 });
+
+/** Geometry of the code panel: the stroked surface rect, not its shadow. */
+function panelRect(svg: string): { x: number; width: number } {
+  const match = /<rect x="(\d+)" y="\d+" width="(\d+)"[^>]*stroke=/.exec(svg);
+  assertNonNullable(match);
+
+  return { x: Number(match[1]), width: Number(match[2]) };
+}
+
+/** Every x a token is drawn at, in image coordinates. */
+function tspanColumns(svg: string): readonly number[] {
+  return Array.from(svg.matchAll(/<tspan x="(\d+)"/g), (match) =>
+    Number(match[1]),
+  );
+}
 
 describe("codeTemplate", () => {
   const bash = "#!/usr/bin/env bash\n\necho 'hello'\n";

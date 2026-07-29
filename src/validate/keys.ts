@@ -8,8 +8,10 @@ import type {
   ExtraImage,
   FontSource,
   GradientStop,
+  ImageSource,
   OutputSize,
   Placement,
+  Scrim,
   SlugStrategy,
 } from "../types.js";
 
@@ -35,8 +37,11 @@ type PublicDirPlacement = Extract<
 >;
 type CustomPlacement = Extract<Placement, { readonly strategy: "custom" }>;
 type SolidBackground = Extract<Background, { readonly type: "solid" }>;
+type ImageBackground = Extract<Background, { readonly type: "image" }>;
 type GradientBackground = Extract<Background, { readonly type: "gradient" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
+type ImageByPath = Extract<ImageSource, { readonly path: string }>;
+type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
 type FontByPath = Extract<FontSource, { readonly path: string }>;
 type FontByData = Extract<FontSource, { readonly data: Uint8Array }>;
 
@@ -49,6 +54,7 @@ export const configKeys = knownKeys<ColophonConfig>({
   fontFamily: true,
   footer: true,
   badge: true,
+  logo: true,
   code: true,
   onWarning: true,
   sizes: true,
@@ -155,6 +161,7 @@ export const sizeKeys = knownKeys<OutputSize>({
   fontFamily: true,
   footer: true,
   badge: true,
+  logo: true,
   code: true,
 });
 
@@ -175,6 +182,46 @@ export const solidBackgroundKeys = knownKeys<SolidBackground>({
   type: true,
   color: true,
 });
+
+/** Keys of a background that draws a picture. */
+export const imageBackgroundKeys = knownKeys<ImageBackground>({
+  type: true,
+  source: true,
+  fit: true,
+  color: true,
+  scrim: true,
+});
+
+/**
+ * The fits an image background accepts, as values rather than keys. `image`
+ * draws anything that is not `cover` as `contain`, so a mistyped `crop` would
+ * quietly change how every image in the build is cropped.
+ */
+export const backgroundFits = knownKeys<
+  Record<NonNullable<ImageBackground["fit"]>, unknown>
+>({
+  cover: true,
+  contain: true,
+});
+
+/** Keys of the wash over a background image. */
+export const scrimKeys = knownKeys<Scrim>({
+  color: true,
+  from: true,
+  to: true,
+});
+
+/**
+ * Both image-source variants at once, for the same reason {@link fontKeys}
+ * takes both: which of `path` and `data` a source may carry is a question
+ * `image/resolve.ts` has a better message for than a key list does.
+ */
+export const imageSourceKeys = [
+  ...new Set([
+    ...knownKeys<ImageByPath>({ path: true }),
+    ...knownKeys<ImageByData>({ data: true }),
+  ]),
+];
 
 /** Keys of a gradient background. */
 export const gradientBackgroundKeys = knownKeys<GradientBackground>({
@@ -202,6 +249,7 @@ export const gradientPointKeys = knownKeys<GradientPoint>({ x: true, y: true });
 export const backgroundTypes = knownKeys<Record<Background["type"], unknown>>({
   solid: true,
   gradient: true,
+  image: true,
 });
 
 /**

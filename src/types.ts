@@ -29,7 +29,41 @@ export interface GradientStop {
 }
 
 /**
- * Background fill for an image: a flat colour or a linear gradient.
+ * A raster or SVG image to draw into a generated one, given either as a file
+ * path or as its bytes. It mirrors {@link FontSource}, and for the same
+ * reasons: a path is checked when the config is resolved rather than when the
+ * image is drawn, and the bytes are what the rebuild stamp hashes, so replacing
+ * a logo at the same path re-renders everything drawn with it.
+ *
+ * PNG, JPEG, GIF, WebP and SVG are understood. Text inside an SVG is not
+ * rendered, because a nested document is drawn without the fonts the build
+ * loaded; convert it to paths first, or use a raster image.
+ */
+export type ImageSource =
+  | {
+      /** Resolved from the working directory when relative. */
+      readonly path: string;
+    }
+  | {
+      /**
+       * The image file's bytes. The format is read from them, so there is
+       * nothing to declare and nothing to get wrong.
+       */
+      readonly data: Uint8Array;
+    };
+
+/** A wash of colour over a background image, so that text stays legible. */
+export interface Scrim {
+  /** Defaults to black. */
+  readonly color?: string;
+  /** Opacity at the top edge. Defaults to `0.25`. */
+  readonly from?: number;
+  /** Opacity at the bottom edge. Defaults to `0.65`. */
+  readonly to?: number;
+}
+
+/**
+ * Background fill for an image: a flat colour, a linear gradient, or a photo.
  *
  * Gradient coordinates use SVG object-bounding-box units (0–1); the default
  * runs diagonally from the top-left `(0, 0)` to the bottom-right `(1, 1)`.
@@ -41,7 +75,40 @@ export type Background =
       readonly stops: readonly GradientStop[];
       readonly from?: { readonly x: number; readonly y: number };
       readonly to?: { readonly x: number; readonly y: number };
+    }
+  | {
+      readonly type: "image";
+      readonly source: ImageSource;
+      /**
+       * `cover` fills the image and crops the overflow, which is what a photo
+       * behind a headline wants. `contain` fits the whole picture in and shows
+       * `color` in what is left over.
+       */
+      readonly fit?: "cover" | "contain";
+      /** Behind the image, and either side of a `contain` fit. */
+      readonly color?: string;
+      /**
+       * Defaults to a gentle shade towards the bottom. A photograph is light
+       * and dark wherever it likes, and white text over a bright sky cannot be
+       * read, so this is what makes the difference between a designed image and
+       * text sitting on a picture. Set `to: 0` for none.
+       */
+      readonly scrim?: Scrim;
     };
+
+/**
+ * An image that has been loaded and is ready to draw: the `data:` URI a
+ * template hands to `image`, and the shape of the picture behind it.
+ */
+export interface ImageAsset {
+  readonly href: string;
+  /**
+   * Width divided by height. `1` where the format is one whose dimensions
+   * cannot be read, so a template reserves a square and the picture sits
+   * inside it rather than being stretched.
+   */
+  readonly aspect: number;
+}
 
 /**
  * Brand colours used to derive the default gradient and text colour. All are
@@ -138,6 +205,12 @@ export interface MetaImageProps {
   readonly title?: string;
   readonly subtitle?: string;
   readonly version?: string | number;
+  /**
+   * An author photo, as a path to an image file or its `data:` URI. Named here
+   * with the other well-known props because the renderer has to load it before
+   * a template can draw it, which it cannot do for a prop it does not know.
+   */
+  readonly avatar?: string;
   readonly [key: string]: unknown;
 }
 
@@ -392,6 +465,18 @@ export interface TemplateContext {
    * wrap and fit its text to the space it has rather than guessing.
    */
   readonly measure: MeasureText;
+  /**
+   * The configured logo, loaded and ready to draw, or `undefined` where there
+   * is none. Reading the file is the renderer's job rather than the template's,
+   * so that a template stays a synchronous function over values it was handed.
+   *
+   * Present and possibly undefined, as `footer` and `badge` are on a resolved
+   * config: a context is built once and handed over whole, and a field that is
+   * sometimes absent makes every construction of one a conditional.
+   */
+  readonly logo: ImageAsset | undefined;
+  /** The same for a post's `avatar` prop. */
+  readonly avatar: ImageAsset | undefined;
 }
 
 /**
@@ -439,6 +524,12 @@ export interface ColophonConfig {
   readonly footer?: string;
   /** Corner badge for the `banner` template. Omit (the default) for none. */
   readonly badge?: Badge;
+  /**
+   * A logo to draw in the corner, which is most of what branding an image
+   * means. Where it goes is the template's business; how big it is comes from
+   * the image's own proportions and the size being drawn.
+   */
+  readonly logo?: ImageSource;
   /** Styling for the `code` template. */
   readonly code?: CodeStyle;
   /**
@@ -518,6 +609,8 @@ export interface SizeOverrides {
   readonly fontFamily?: string;
   readonly footer?: string;
   readonly badge?: Badge;
+  /** Replaces the config's logo, for a size that wants a different mark. */
+  readonly logo?: ImageSource;
   /** Merged over the config's `code`, so a size can change one setting. */
   readonly code?: CodeStyle;
 }
@@ -559,6 +652,7 @@ export interface ResolvedConfig {
   readonly fontFamily: string;
   readonly footer: string | undefined;
   readonly badge: Badge | undefined;
+  readonly logo: ImageSource | undefined;
   readonly code: Required<CodeStyle>;
   readonly onWarning: WarningHandler;
   readonly sizes: readonly OutputSize[];

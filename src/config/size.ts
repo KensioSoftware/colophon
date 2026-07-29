@@ -56,5 +56,6 @@ export function resolveConfigForSize(
     ...(size.fontFamily !== undefined && { fontFamily: size.fontFamily }),
     ...(size.footer !== undefined && { footer: size.footer }),
     ...(size.badge !== undefined && { badge: size.badge }),
+    ...(size.logo !== undefined && { logo: size.logo }),
   });
 }
