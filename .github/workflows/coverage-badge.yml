@@ -1,0 +1,77 @@
+---
+# Keep the README coverage badge in step with main.
+#
+# Shields has no way to see a project's coverage, so the number is published to
+# a gist and the badge reads that gist as an endpoint. The gist ID below is
+# public; the token that writes to it is the GIST_SECRET repository secret.
+name: Coverage Badge
+
+on:
+  push:
+    branches:
+      - main
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  CI: true
+
+jobs:
+  coverage-badge:
+    name: Coverage Badge
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      # The job needs nothing from git after the checkout, and a later step
+      # hands a token to a third-party action. Leaving the checkout credentials
+      # in .git/config would put them within that action's reach.
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:coverage
+
+      - name: Read coverage
+        id: coverage
+        run: |
+          SUMMARY=test/.coverage/coverage-summary.json
+
+          if [ ! -f "$SUMMARY" ]; then
+            echo "No coverage summary at $SUMMARY."
+            echo "The json-summary reporter is what writes it; see vitest.config.ts."
+            exit 1
+          fi
+
+          COVERAGE=$(jq '.total.lines.pct | floor' "$SUMMARY")
+
+          if [ "$COVERAGE" -ge 90 ]; then
+            COLOR=brightgreen
+          elif [ "$COVERAGE" -ge 80 ]; then
+            COLOR=green
+          elif [ "$COVERAGE" -ge 70 ]; then
+            COLOR=yellow
+          else
+            COLOR=red
+          fi
+
+          echo "coverage=$COVERAGE" >> "$GITHUB_OUTPUT"
+          echo "color=$COLOR" >> "$GITHUB_OUTPUT"
+
+      - name: Update coverage badge
+        # Pinned to a commit rather than the tag: this is a third-party action
+        # and it is handed GIST_SECRET, so it should not be able to change under
+        # us. Bump both the SHA and the comment together.
+        uses: schneegans/dynamic-badges-action@28b0fa8bdeb46170ac397105ece0c1fe58f68910 # v1.9.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: f2d667bbcc14dab9efa679f2113b1e00
+          filename: coverage.json
+          label: coverage
+          message: ${{ steps.coverage.outputs.coverage }}%
+          color: ${{ steps.coverage.outputs.color }}
