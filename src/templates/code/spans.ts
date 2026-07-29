@@ -1,5 +1,5 @@
 import type { CodeToken } from "../../highlight/index.js";
-import { escapeXml } from "../../text/index.js";
+import { escapeXml } from "../../layout/index.js";
 
 /** Fraction of the font size the baseline sits below the glyph box top. */
 const ascentRatio = 0.78;

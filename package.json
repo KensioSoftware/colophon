@@ -21,6 +21,10 @@
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"
     },
+    "./layout": {
+      "types": "./dist/layout/index.d.ts",
+      "import": "./dist/layout/index.js"
+    },
     "./meta": {
       "types": "./dist/meta/index.d.ts",
       "import": "./dist/meta/index.js"

@@ -1,4 +1,4 @@
-import { textElement } from "../text/index.js";
+import { textElement } from "../layout/index.js";
 import type { ResolvedConfig } from "../types.js";
 
 /**

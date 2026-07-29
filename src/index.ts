@@ -73,13 +73,50 @@ export type { Stamper } from "./stamp/index.js";
 
 export { createMeasurer } from "./measure/index.js";
 
-export { escapeXml, fitText, wrapText } from "./text/index.js";
+export { escapeXml, fitText, textElement, wrapText } from "./text/index.js";
 export type {
   FitOptions,
   FittedText,
   MeasureAt,
   MeasureLine,
+  TextAttributes,
 } from "./text/index.js";
+
+// The layout toolkit, which also has its own `@kensio/colophon/layout` subpath
+// for a template that would rather not pull the rasteriser in with it.
+export {
+  blockLines,
+  box,
+  distribute,
+  drawLines,
+  image,
+  inset,
+  measureIn,
+  optionalString,
+  panel,
+  placeLines,
+  row,
+  scrim,
+  stack,
+} from "./layout/index.js";
+export type {
+  Align,
+  BoxStyle,
+  Extent,
+  ImageOptions,
+  LinesStyle,
+  Placed,
+  PlacedLine,
+  PanelStyle,
+  Rect,
+  RowRect,
+  ScrimOptions,
+  Span,
+  StackedRect,
+  StyledBlock,
+  TextBlock,
+  TextLine,
+} from "./layout/index.js";
 
 export { extractProps, slugFromPath, walkContent } from "./content/index.js";
 export type { WalkOptions } from "./content/index.js";

@@ -1,3 +1,4 @@
+import { panel } from "../../layout/index.js";
 import type { Panel } from "./panel.js";
 
 /**
@@ -31,22 +32,19 @@ export function hugPanel(
 
 /**
  * The panel itself: a drop shadow, then the theme-coloured surface it sits on.
+ * The surface is stroked rather than left flat, so a dark theme still has an
+ * edge against a dark background.
  */
 export function panelSvg(
-  panel: Panel,
+  available: Panel,
   background: string,
   shadowOffset: number,
 ): string {
-  const shadow =
-    `<rect x="${String(panel.x)}" y="${String(panel.y + shadowOffset)}"` +
-    ` width="${String(panel.width)}" height="${String(panel.height)}"` +
-    ` rx="${String(panel.radius)}" fill="#000000" fill-opacity="0.22"/>`;
-
-  const surface =
-    `<rect x="${String(panel.x)}" y="${String(panel.y)}"` +
-    ` width="${String(panel.width)}" height="${String(panel.height)}"` +
-    ` rx="${String(panel.radius)}" fill="${background}"` +
-    ` stroke="#ffffff" stroke-opacity="0.12"/>`;
-
-  return shadow + surface;
+  return panel(available, {
+    radius: available.radius,
+    fill: background,
+    stroke: "#ffffff",
+    strokeOpacity: 0.12,
+    shadow: shadowOffset,
+  });
 }

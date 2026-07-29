@@ -96,9 +96,11 @@ highlighter, and this subpath does not.
 
 The pieces the above are built from are exported too, for anything that needs to
 work at a lower level: `buildSvg` and `renderSvgToPng` for the two halves of
-rendering, `resolveConfig` and `resolveConfigForSize` for config, `escapeXml`,
-`wrapText`, `fitText` and `createMeasurer` for template authors, and
+rendering, `resolveConfig` and `resolveConfigForSize` for config, the
+[layout toolkit](../layout/) and `createMeasurer` for template authors, and
 `createStamper`, `readPngStamp` and `stampPng` for the rebuild stamps.
 
 [`metaTags`](../configuration/meta-tags/) has its own `@kensio/colophon/meta`
-subpath, which loads neither the rasteriser nor the highlighter.
+subpath, which loads neither the rasteriser nor the highlighter. So does
+[the layout toolkit](../layout/), as `@kensio/colophon/layout`, which loads
+nothing from Node at all.

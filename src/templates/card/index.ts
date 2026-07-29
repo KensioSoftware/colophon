@@ -1,4 +1,4 @@
-import { layoutStack, textElement } from "../../text/index.js";
+import { drawLines, inset } from "../../layout/index.js";
 import type { Template, TemplateContext } from "../../types.js";
 import { footerElement, hasFooter } from "../footer.js";
 import { cardLines } from "./lines.js";
@@ -12,47 +12,35 @@ export const cardTemplate: Template = {
   render({ props, config, dimensions, measure }: TemplateContext): string {
     const { width, height } = dimensions;
     const pad = Math.round(width * 0.09);
-    const centreX = Math.round(width / 2);
-
-    const titleFs = Math.round(height * 0.1);
     const footerFs = Math.round(height * 0.032);
+
+    const area = inset(
+      { x: 0, y: 0, width, height },
+      {
+        top: pad,
+        right: pad,
+        left: pad,
+        bottom:
+          pad + (hasFooter(config) ? footerFs + Math.round(height * 0.02) : 0),
+      },
+    );
 
     const lines = cardLines(props, {
       measure,
       fontFamily: config.fontFamily,
-      contentWidth: width - pad * 2,
-      titleFs,
+      contentWidth: area.width,
+      titleFs: Math.round(height * 0.1),
       subFs: Math.round(height * 0.045),
     });
 
-    const bottom =
-      height -
-      pad -
-      (hasFooter(config) ? footerFs + Math.round(height * 0.02) : 0);
-
-    const placed = layoutStack(
-      lines.map((line) => ({ fontSize: line.fontSize, lineHeight: 1.2 })),
-      pad,
-      bottom,
-    );
-
-    const body = lines
-      .map((line, index) =>
-        textElement(line.text, {
-          x: centreX,
-          y: placed[index]?.y ?? pad,
-          fontFamily: config.fontFamily,
-          fontSize: line.fontSize,
-          fontWeight: line.fontWeight,
-          fill: config.colors.foreground,
-          fillOpacity: line.opacity,
-          anchor: "middle",
-        }),
-      )
-      .join("");
+    const body = drawLines(lines, area, {
+      fontFamily: config.fontFamily,
+      fill: config.colors.foreground,
+      anchor: "middle",
+    });
 
     const footer = footerElement(config, {
-      x: centreX,
+      x: Math.round(width / 2),
       y: height - pad,
       fontSize: footerFs,
       opacity: 0.75,

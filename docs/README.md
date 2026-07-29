@@ -9,6 +9,7 @@ project. The [README](../README.md) has the install steps and a short example.
 - [Getting started](./getting-started/ "Install, frontmatter, config and the CLI")
 - [Templates](./templates/ "The built-in layouts and how to register your own")
 - [The code template](./code-template/ "Syntax-highlighted code images")
+- [The layout toolkit](./layout/ "The primitives templates are built from")
 - [Rebuilds](./rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./programmatic-use/ "The API behind the CLI")
 - [Upgrading](./upgrading/ "The breaking changes in 2.0 and 3.0")

@@ -1,4 +1,4 @@
-import { textElement } from "../../text/index.js";
+import { box, textElement } from "../../layout/index.js";
 import type { Badge } from "../../types.js";
 
 /**
@@ -15,12 +15,11 @@ export function renderBadge(
   const fontSize = Math.round(height * 0.6);
   const padX = Math.round(height * 0.36);
   const width = Math.round(badge.text.length * fontSize * 0.64 + padX * 2);
-  const radius = Math.round(height * 0.1);
 
-  const rect =
-    `<rect x="${String(pad)}" y="${String(pad)}"` +
-    ` width="${String(width)}" height="${String(height)}"` +
-    ` rx="${String(radius)}" fill="${badge.background ?? "#ffffff"}"/>`;
+  const plate = box(
+    { x: pad, y: pad, width, height },
+    { radius: Math.round(height * 0.1), fill: badge.background ?? "#ffffff" },
+  );
 
   const text = textElement(badge.text, {
     x: pad + padX,
@@ -31,5 +30,5 @@ export function renderBadge(
     fill: badge.color ?? brand,
   });
 
-  return rect + text;
+  return plate + text;
 }

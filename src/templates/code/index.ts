@@ -1,7 +1,7 @@
 import { highlightCode } from "../../highlight/index.js";
 import type { Template } from "../../types.js";
 import { hasFooter } from "../footer.js";
-import { optionalString } from "../props.js";
+import { optionalString } from "../../props.js";
 import { codeFooter, codeHeading } from "./chrome.js";
 import { blockColumns } from "./fit.js";
 import { fitSnippet } from "./layout.js";
