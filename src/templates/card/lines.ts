@@ -14,12 +14,16 @@ export interface CardText {
   readonly contentWidth: number;
   readonly titleFs: number;
   readonly subFs: number;
+  readonly height: number;
 }
 
 /**
- * The card's text block: the wrapped title, then the wrapped subtitle. No
- * gaps between the groups, because the card is the quieter layout and the
- * change of size and weight is enough to separate them.
+ * The card's text block: the wrapped title, then the wrapped subtitle.
+ *
+ * The gap before the subtitle is smaller than the banner's, because the card
+ * has only the two groups and they belong together. It is not nothing, though:
+ * a title that wraps ends on a line the subtitle would otherwise sit straight
+ * underneath, and the change of size and weight alone does not separate them.
  */
 export function cardLines(props: MetaImageProps, text: CardText): TextLine[] {
   const { measure, fontFamily, contentWidth } = text;
@@ -40,6 +44,7 @@ export function cardLines(props: MetaImageProps, text: CardText): TextLine[] {
       floor: subtitleFloor,
       fontWeight: 500,
       opacity: 0.85,
+      gapBefore: Math.round(text.height * 0.025),
     }),
   ];
 }

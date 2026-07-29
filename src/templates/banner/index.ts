@@ -2,7 +2,7 @@ import { drawLines, inset } from "../../layout/index.js";
 import { optionalString } from "../../props.js";
 import type { Template, TemplateContext } from "../../types.js";
 import { attribution } from "../attribution.js";
-import { hasFooter } from "../footer.js";
+import { footerBaseline, hasFooter } from "../footer.js";
 import { logoElement, logoRect } from "../logo.js";
 import { renderBadge } from "./badge.js";
 import { bannerLines } from "./lines.js";
@@ -69,7 +69,7 @@ export const bannerTemplate: Template = {
     const body = drawLines(lines, area, {
       fontFamily,
       fill: config.colors.foreground,
-      lineHeight: 1.15,
+      lineHeight: 1.28,
     });
 
     const badge =
@@ -87,7 +87,7 @@ export const bannerTemplate: Template = {
       config,
       {
         x: pad,
-        y: height - pad,
+        y: footerBaseline(height, pad, footerFs),
         fontSize: footerFs,
         opacity: 0.78,
         left: pad,

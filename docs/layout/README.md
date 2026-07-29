@@ -71,8 +71,21 @@ together, giving the second group a `gapBefore` to separate them. That is all
 the `banner` template does.
 
 For finer control there is `placeLines`, which returns the baselines and leaves
-the drawing to you, and `measureIn`, which binds a measurer to one family and
-weight so you can ask how wide something is:
+the drawing to you, and `baselineFor`, which is the single-line case: give it
+the top of a band one font size tall and it returns the baseline to draw at.
+
+```ts
+const heading = { x: 0, y: 60, width, height: 54 };
+textElement(title, { y: baselineFor(heading.y, 54), fontSize: 54, ...attrs });
+```
+
+Reach for it wherever a template has reserved a strip for one line, since
+picking the baseline by eye is how the clear space around a line stops matching
+the space that was set aside for it. The descender takes what is left of the
+band below the baseline, so the room under a line is not the room above it.
+
+There is also `measureIn`, which binds a measurer to one family and weight so
+you can ask how wide something is:
 
 ```ts
 const widthOf = measureIn(measure, config.fontFamily, 700);

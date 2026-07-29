@@ -8,6 +8,7 @@ import {
 import { describe, it } from "vitest";
 
 import {
+  baselineFor,
   box,
   distribute,
   drawLines,
@@ -240,6 +241,25 @@ describe("scrim", () => {
 
     assertStringNotIncludes(svg, "linearGradient");
     assertStringIncludes(svg, 'fill-opacity="0.4"');
+  });
+});
+
+describe("baselineFor", () => {
+  it("puts the ink of a single line inside its own band", () => {
+    const top = 400;
+    const baseline = baselineFor(top, 100);
+
+    assertIdentical(baseline, 480);
+    // The descender takes what is left of the band, so a band of the font's
+    // own size holds the line rather than the line hanging out of it.
+    assertIdentical(top + 100 - baseline, 20);
+  });
+
+  it("agrees with where placeLines puts a lone line", () => {
+    const placed = placeLines([line(100)], { ...area, height: 100 }, 1);
+
+    assertArrayLength(placed, 1);
+    assertIdentical(placed[0].y, baselineFor(area.y, 100));
   });
 });
 

@@ -5,7 +5,7 @@ import { optionalString } from "../../props.js";
 import { codeFooter, codeHeading } from "./chrome.js";
 import { blockColumns } from "./fit.js";
 import { fitSnippet } from "./layout.js";
-import { layoutPanel } from "./panel.js";
+import { layoutPanel, titleBand } from "./panel.js";
 import { hugPanel, panelSvg } from "./plate.js";
 import { codeBody } from "./spans.js";
 import { warnIfTruncated } from "./warn.js";
@@ -91,7 +91,12 @@ export const codeTemplate: Template = {
     );
 
     return (
-      codeHeading(title, panel, titleFs, width, config) +
+      codeHeading(
+        title,
+        titleBand(panel, dimensions, titleFs),
+        titleFs,
+        config,
+      ) +
       plate +
       body +
       codeFooter(dimensions, footerFs, config)
