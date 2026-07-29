@@ -25,9 +25,11 @@ wrote public/og/my-post-og.png -> /og/my-post-og.png
 | `public-dir`     | Into `dir`, one directory for the lot | Astro, Eleventy, Vite   |
 | `custom`         | Wherever `path` says                  | Anything else           |
 
-One relative path makes both the disk path and the URL, so the two cannot drift
-apart. It is held in URL form, with `/` rather than the platform separator, so a
-Windows build does not serve `posts\my-post\a.png`.
+For `beside-content` and `public-dir`, one relative path makes both the disk
+path and the URL, so the two cannot drift apart. It is held in URL form, with
+`/` rather than the platform separator, so a Windows build does not serve
+`posts\my-post\a.png`. A `custom` placement names its own path and URL
+separately, so it can map them however it needs to.
 
 ## URLs
 

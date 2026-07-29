@@ -31,7 +31,7 @@ see [Frontmatter](../configuration/frontmatter/).
 Naming a template that is not registered fails the build and lists the ones that
 are, because a name typed into frontmatter is easy to get wrong:
 
-```
+```text
 Unknown template "bannner". Available templates: banner, card, code.
 ```
 

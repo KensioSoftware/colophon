@@ -35,6 +35,7 @@ Open Graph names its tags with `property` and Twitter with `name`, so the type
 keeps the two apart and `<meta {...tag} />` is right either way:
 
 ```jsx
+const slug = "blog/my-post";
 {
   metaTags(manifest, slug, site).map((tag) => <meta {...tag} />);
 }

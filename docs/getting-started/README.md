@@ -66,7 +66,7 @@ one URL prefix, see [Placement](../configuration/placement/).
 
 ## Command line options
 
-```
+```text
 colophon [contentDir] [options]
 
   -c, --config <path>   Config module whose default export is a ColophonConfig,

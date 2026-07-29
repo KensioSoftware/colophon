@@ -66,7 +66,7 @@ Nothing in a finished image says the sample continued, so Colophon says it
 instead. A snippet that had to lose lines is reported through
 [`onWarning`](../configuration/warnings/):
 
-```
+```text
 colophon: content/post/index.md: code snippet does not fit the 1200x630 image at
 a legible size: 4 of 13 lines dropped. Shorten the sample, or lower
 code.minFontScale to fit it in smaller.

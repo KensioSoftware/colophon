@@ -40,7 +40,7 @@ yourself.
 | `onWarning`   | `console.warn`                 | Where compromises are reported. See [Warnings](./warnings/).      |
 | `sizes`       | `og` and `square`              | Named output sizes. See [Output sizes](./sizes/).                 |
 | `templates`   | `banner`, `card`, `code`       | Merged over the built-ins. See [Templates](../templates/).        |
-| `content`     | `meta_img_props`, `.md` files  | How props are read. See [Frontmatter](./frontmatter/).            |
+| `content`     | `meta_img_props`, `.md` and `.markdown` files | How props are read. See [Frontmatter](./frontmatter/). |
 | `placement`   | `beside-content`               | Where images go and their URL. See [Placement](./placement/).     |
 | `manifest`    | none                           | Path to write a JSON manifest to. See [Manifest](./manifest/).    |
 | `extra`       | none                           | Images not tied to a post. See [One-off images](./extra-images/). |
@@ -89,7 +89,7 @@ The config is closed. An option Colophon does not recognise stops the build
 rather than being ignored, because a key nobody reads is otherwise a build that
 succeeds and images that are wrong, with nothing in the log to say why.
 
-```
+```text
 Unknown option "dimensions". Did you mean "sizes"?
 ```
 

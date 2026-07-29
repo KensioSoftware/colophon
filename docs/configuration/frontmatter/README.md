@@ -90,7 +90,8 @@ skipped it. Asking for an image outright is the stronger signal.
 A `slug` in frontmatter wins over whatever the slug strategy would have derived
 from the path, which is usually what you want for an SEO-friendly filename.
 
-It has to stay inside the content tree. A slug that is absolute, or that carries
-`.` or `..` segments, is rejected. Only a hand-written one can be, and slugs are
-resolved from the content root, so it takes fewer `..` segments to leave the
-tree than you might expect.
+It has to stay inside the content tree. A derived slug cannot be absolute or
+contain `.` or `..` segments by construction, as it comes from a relative path.
+A hand-written frontmatter slug is validated and rejected if it is absolute or
+contains `.` or `..` segments. Slugs are resolved from the content root, so it
+takes fewer `..` segments to leave the tree than you might expect.

@@ -16,7 +16,7 @@ export default defineConfig({
 `generate` prefixes each message with the content file it came from, so a build
 over a whole tree still names the post to fix:
 
-```
+```text
 colophon: content/post/index.md: code snippet does not fit the 1200x630 image at
 a legible size: 4 of 13 lines dropped. Shorten the sample, or lower
 code.minFontScale to fit it in smaller.
