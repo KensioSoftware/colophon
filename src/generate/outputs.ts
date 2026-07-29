@@ -29,8 +29,8 @@ function describe(job: RenderJob): string {
 /**
  * Reject a manifest written over one of the images it describes.
  *
- * The manifest is written last, so it wins: the image is replaced by JSON, and
- * — its stamp gone with it — rendered again on every build afterwards. It is
+ * The manifest is written last, so it wins: the image is replaced by JSON,
+ * losing its stamp with it, and rendered again on every build afterwards. It is
  * the same collision as two images sharing a path, so it is answered here,
  * where a path is already compared the way the filesystem would.
  */
@@ -62,8 +62,8 @@ export function assertManifestIsNotAnImage(
  * renders both again, for ever.
  *
  * Every job is checked, posts included. That used to be older ground worth
- * leaving alone — two posts collided only if they shared a directory and a
- * slug — but `public-dir` gathers a whole tree into one directory, where every
+ * leaving alone, since two posts collided only if they shared a directory and
+ * a slug. But `public-dir` gathers a whole tree into one directory, where every
  * post sharing a basename with another lands on it. Naming both sides is what
  * makes that worth reporting: the path alone does not say which two posts.
  *

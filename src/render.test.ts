@@ -98,7 +98,7 @@ describe("renderSvgToPng", () => {
     ]);
 
     // Same props, same size: only the font differs, so different pixels mean
-    // the supplied file is what drew the text — the point of configuring one.
+    // the supplied file is what drew the text, which is the point of one.
     assertFalse(sans.equals(serif));
     assertBufferEqual(sans, again);
   }, 5000);

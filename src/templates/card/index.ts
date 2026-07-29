@@ -5,7 +5,7 @@ import { cardLines } from "./lines.js";
 
 /**
  * Minimal "card" template: a centred title with an optional subtitle. No
- * badge or version — a clean, quieter alternative to `banner`.
+ * badge or version, so it is a quieter alternative to `banner`.
  */
 export const cardTemplate: Template = {
   name: "card",

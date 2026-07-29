@@ -7,8 +7,8 @@ import { byName } from "./order.js";
  * of them so far.
  *
  * A page is created from its first job rather than from an empty list, so
- * there is never a page without images to explain away — `widest` has to name
- * one of them.
+ * there is never a page without images to explain away, since `widest` has to
+ * name one of them.
  */
 export interface PageDraft {
   readonly jobs: RenderJob[];
@@ -41,9 +41,9 @@ export function addToPage(page: PageDraft, job: RenderJob): void {
  * Reject two pages sharing a slug.
  *
  * The manifest is keyed by slug, so a site looking a page up would find
- * whichever was written last — an image quietly belonging to the wrong post,
- * which is worse than no manifest at all. Their images may well be distinct on
- * disk, so nothing else in the build has any reason to complain.
+ * whichever was written last. That is an image quietly belonging to the wrong
+ * post, which is worse than no manifest at all. Their images may well be
+ * distinct on disk, so nothing else in the build has any reason to complain.
  */
 function assertOnePage(slug: string, page: PageDraft): void {
   const paths = [...new Set(page.jobs.map((job) => job.contentPath))];

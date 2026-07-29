@@ -11,7 +11,7 @@ function label(index: number): string {
  * Validate one font source and make its path absolute.
  *
  * The rasteriser ignores a font file it cannot read and renders the text in
- * whatever else it has loaded — or, with system fonts off, renders no text at
+ * whatever else it has loaded, or, with system fonts off, renders no text at
  * all. A typo in a path would therefore show up as a blank image rather than
  * an error, so the path is checked here instead.
  */

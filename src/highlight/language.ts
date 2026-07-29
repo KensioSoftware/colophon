@@ -3,7 +3,7 @@ import { bundledLanguages, bundledThemes } from "shiki";
 
 /**
  * Language names that differ between Pygments (which the original Python
- * script used) and Shiki. Everything else is passed through — Shiki already
+ * script used) and Shiki. Everything else is passed through, since Shiki
  * understands `bash`, `python`, `typescript`, `yaml`, `toml`, `sql`, `json`,
  * `js` and `text`.
  */
@@ -37,9 +37,8 @@ export function resolveLanguage(
 }
 
 /**
- * Validate a configured theme name. Unlike languages — which come from post
- * frontmatter and fall back quietly — a bad theme is a config mistake worth
- * failing on.
+ * Validate a configured theme name. Languages come from post frontmatter and
+ * fall back quietly, but a bad theme is a config mistake worth failing on.
  */
 export function resolveTheme(theme: string): BundledTheme {
   if (!Object.hasOwn(bundledThemes, theme)) {

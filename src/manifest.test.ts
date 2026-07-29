@@ -58,7 +58,7 @@ describe("buildManifest", () => {
 
   it("names the most landscape image, not merely the widest one", () => {
     // Both are 1200 across, so a comparison on width alone would tie and pick
-    // whichever came first — and a summary_large_image card wants the og.
+    // whichever came first, and a summary_large_image card wants the og.
     const manifest = buildManifest([
       job("my-post", square),
       job("my-post", og),

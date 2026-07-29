@@ -8,7 +8,7 @@ const backgroundId = "colophon-bg";
  * Build the complete SVG document for one image: the enclosing `<svg>` root,
  * the config-driven background, and the template's foreground content.
  *
- * Asynchronous because a template may need to load resources — the `code`
+ * Asynchronous because a template may need to load resources. The `code`
  * template fetches syntax grammars and themes on demand.
  */
 export async function buildSvg(

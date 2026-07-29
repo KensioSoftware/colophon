@@ -17,8 +17,8 @@ export interface CardLine {
 
 /**
  * The card's text block: the wrapped title, then the wrapped subtitle. No
- * gaps between the groups — the card is the quieter layout, and the change of
- * size and weight is enough to separate them.
+ * gaps between the groups, because the card is the quieter layout and the
+ * change of size and weight is enough to separate them.
  */
 export function cardLines(
   props: MetaImageProps,

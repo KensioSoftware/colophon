@@ -30,11 +30,11 @@ const namedFields = new Set(["template", "title", "subtitle", "version"]);
 /**
  * Extract {@link MetaImageProps} from a parsed frontmatter object, or return
  * `undefined` if this file should be skipped (nothing to build props from, or
- * no usable template). Pure — no filesystem access.
+ * no usable template). Pure, with no filesystem access.
  *
  * Props can come from two places: the post's own props object, and a project's
  * `props` mapper reading the frontmatter it already has. Where both speak the
- * post wins, field by field — the mapper describes the site's usual shape, and
+ * post wins, field by field. The mapper describes the site's usual shape, and
  * a post that says otherwise is saying so on purpose.
  */
 export function extractProps(

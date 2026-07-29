@@ -28,8 +28,8 @@ export async function createStamper(config: ResolvedConfig): Promise<Stamper> {
   // A custom template is config the project controls, so its source counts as
   // part of the input. Built-in templates are covered by the package version.
   // Source text is all there is to go on: a template that reads something its
-  // own code does not name — a closed-over value, a file — can change without
-  // the stamp noticing, and needs `overwrite` to pick it up.
+  // own code does not name, such as a closed-over value or a file it loads,
+  // can change without the stamp noticing, and needs `overwrite` to pick it up.
   const templateDigest = (name: string): string => {
     const cached = templateDigests.get(name);
 

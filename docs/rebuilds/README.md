@@ -1,0 +1,60 @@
+# Rebuilds
+
+Every image Colophon writes carries a stamp: a hash of the props, the config and
+the output size it was rendered from, stored in the PNG itself as a `tEXt`
+chunk.
+
+On the next run, an image whose stamp still matches is left alone. One whose
+title, colours, template or size has moved on is rendered again. Correcting a
+single post's title therefore re-renders that post's images and nothing else.
+
+## No cache to keep in sync
+
+The stamp lives in the file it describes, so there is no cache directory and
+nothing that can fall out of step. Delete an image and its stamp goes with it,
+and the next run renders it fresh.
+
+An image Colophon did not write has no stamp, so it is rendered over. So is one
+written by an older version of the package.
+
+Note that the decision is made from the stamp, not from whether the file exists.
+An image that is present but stale is still re-rendered.
+
+## What the stamp covers
+
+The stamp includes the props, the resolved config as that image saw it, the one
+output size it was rendered at, and the Colophon version.
+
+The version is in there because the built-in templates ship with the package, so
+upgrading re-renders the tree once. Two things are deliberately left out:
+
+- **`onWarning`**, because where a message goes cannot change a pixel.
+- **The full `sizes` and `templates` lists.** Adding a third size, or an
+  unrelated custom template, must not invalidate images that are already
+  correct. The one size and the one template an image actually used go into that
+  image's own stamp instead.
+
+[Per-size overrides](../configuration/per-size-config/) are part of the stamp, so
+changing one re-renders that size and leaves the others alone.
+
+## The gap, and the way out
+
+A custom template is covered by its own source code, hashed from
+`render.toString()`. That cannot see anything the source does not name, so a
+template that reads a closed-over value or loads a file itself can change
+without Colophon noticing.
+
+`--force` re-renders everything, ignoring the stamps:
+
+```bash
+colophon content --config colophon.config.ts --force
+```
+
+`--overwrite` is an alias for the same flag, and `generate` takes an
+`overwrite` option that does the same thing.
+
+## Hashed filenames
+
+If you want a changed image to get a new URL rather than replacing an old one,
+the stamp can also go into the filename. See
+[content hashed filenames](../configuration/placement/#content-hashed-filenames).

@@ -6,9 +6,9 @@ import type { SlugStrategy } from "../types.js";
  * Derive a slug from a content file's path, relative to the root of the walk.
  *
  * `basename` gives the filename without extension, or the parent directory for
- * `index.*` — the page-bundle convention, where an image sits beside its post.
- * `route` keeps the directories, so a site addressed by route gets a slug that
- * matches the address rather than just its last segment.
+ * `index.*`, which is the page-bundle convention where an image sits beside its
+ * post. `route` keeps the directories, so a site addressed by route gets a slug
+ * that matches the address rather than just its last segment.
  *
  * The path must be relative to the content root for `route` to mean anything;
  * `basename` reads the same either way.
@@ -34,7 +34,7 @@ export function slugFromPath(
 
   const route = base === "index" ? directory : path.join(directory, base);
   // `path.dirname` of a root-level file is ".", which as a route is the site
-  // root — and the one place there is no directory name to fall back on.
+  // root, and the one place there is no directory name to fall back on.
   const normalised = route === "." ? "index" : route.split(path.sep).join("/");
   return normalised;
 }
@@ -42,8 +42,8 @@ export function slugFromPath(
 /**
  * Reject a slug that would name a file outside the tree it came from.
  *
- * A slug is a filename, and may carry directories under the `route` strategy —
- * but a declared one is written by hand, and `slug: ../../../tmp/x` would have
+ * A slug is a filename, and may carry directories under the `route` strategy.
+ * But a declared one is written by hand, and `slug: ../../../tmp/x` would have
  * `generate` create directories and write an image there. Nothing derived from
  * a path can look like this, so the check only ever fires on frontmatter.
  */

@@ -21,7 +21,7 @@ export interface PlannedManifest {
  *
  * Built while planning rather than from the results, so that a site with two
  * pages sharing a slug hears about it before rendering the tree rather than
- * after — the same reason the output paths are checked up front.
+ * after. That is the same reason the output paths are checked up front.
  */
 export function planManifest(
   manifestPath: string | undefined,

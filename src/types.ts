@@ -45,7 +45,7 @@ export type Background =
 
 /**
  * Brand colours used to derive the default gradient and text colour. All are
- * configurable per project — nothing here is tied to a specific site.
+ * configurable per project, and nothing here is tied to a specific site.
  */
 export interface BrandColors {
   readonly brand: string;
@@ -96,8 +96,8 @@ export interface CodeStyle {
   /** Upper bound on the auto-fitted font size, as a fraction of image width. */
   readonly maxFontScale?: number;
   /**
-   * Lower bound on the auto-fitted font size, as a fraction of image width —
-   * width, because that is what a feed scales a share image to. Code too long
+   * Lower bound on the auto-fitted font size, as a fraction of image width.
+   * Width, because that is what a feed scales a share image to. Code too long
    * to fit at this size is truncated with an ellipsis rather than shrunk into
    * illegibility, so raising this trades lines of code for readability and
    * lowering it does the reverse.
@@ -111,8 +111,8 @@ export interface CodeStyle {
  * the file itself, so a bold and a regular face are two entries, and the SVG's
  * `font-weight` picks between them.
  *
- * `family` is optional and does not affect matching — the family name in the
- * font file does that. When given on the first font it seeds `fontFamily`,
+ * `family` is optional and does not affect matching, since the family name in
+ * the font file does that. When given on the first font it seeds `fontFamily`,
  * which saves repeating the name for the common single-font case.
  */
 export type FontSource =
@@ -153,7 +153,7 @@ export interface MetaImageProps {
  *
  * Return `undefined` to leave a post without images. That is the filter for
  * drafts, section indexes and anything else in the tree that is not a page
- * worth sharing — without it, mapping frontmatter would mean an image for every
+ * worth sharing. Without it, mapping frontmatter would mean an image for every
  * markdown file there is. It only settles posts that say nothing for
  * themselves, though: one declaring a props block is rendered either way, since
  * asking for an image outright beats a blanket rule.
@@ -167,7 +167,7 @@ export type PropsFromFrontmatter = (
 ) => Record<string, unknown> | undefined;
 
 /**
- * How a post's slug — the base name for its images — is derived from its path
+ * How a post's slug, the base name for its images, is derived from its path
  * when the frontmatter does not declare one.
  *
  * - `basename`: the filename without extension, or the parent directory for
@@ -181,10 +181,10 @@ export type SlugStrategy = "basename" | "route";
 /**
  * How to read image props out of a content tree. Every field is optional.
  *
- * This is the host-project half of the job — finding posts and understanding
- * their frontmatter — and is deliberately absent from {@link ResolvedConfig}:
- * a template is handed the resolved config, and where the props came from is
- * none of its business.
+ * This is the host-project half of the job, finding posts and understanding
+ * their frontmatter. It is deliberately absent from {@link ResolvedConfig},
+ * which is what a template is handed, and where the props came from is none of
+ * a template's business.
  */
 export interface ContentOptions {
   /** Frontmatter key holding the image props object. Default `meta_img_props`. */
@@ -235,14 +235,14 @@ export interface ContentFile {
  *
  * `outputPath` alone says where the bytes go and nothing about how anyone
  * reaches them, so every site ends up rebuilding that mapping in its own
- * templates — from information Colophon had at generate time and threw away.
+ * templates, from information Colophon had at generate time and threw away.
  *
  * - `beside-content`: next to the post, which is the page-bundle convention
  *   and what Colophon has always done. Still the default.
  * - `public-dir`: gathered into one directory, as Astro, Eleventy and Vite
  *   expect. A slug carrying directories keeps them underneath it.
- * - `custom`: for a site whose mapping is its own — images under a dated
- *   directory, say.
+ * - `custom`: for a site whose mapping is its own, such as images under a
+ *   dated directory.
  *
  * `urlBase` is what makes a URL: it is prefixed to the image's path under the
  * root that placed it, and without one there is no URL, because no directory
@@ -286,7 +286,7 @@ export type Placement =
  * otherwise, and a size they later change leaves the tags behind.
  */
 export interface ManifestImage {
-  /** Absent where the placement knows no URL — see {@link Placement}. */
+  /** Absent where the placement knows no URL. See {@link Placement}. */
   readonly url?: string;
   readonly width: number;
   readonly height: number;
@@ -309,7 +309,7 @@ export interface ManifestPage {
  * What a build generated, for the site to read back: a JSON file listing every
  * page's images, their URLs and the dimensions they were rendered at.
  *
- * Without it a site reconstructs all of that in template code — globbing for
+ * Without it a site reconstructs all of that in template code, globbing for
  * `*-og.png` to find the landscape variant, or writing image paths back into
  * each post's frontmatter. All of it is known while generating.
  *
@@ -327,7 +327,7 @@ export interface Manifest {
  *
  * Open Graph names its tags with `property` and Twitter with `name`, which is
  * a distinction sites get wrong routinely. Keeping them apart in the type
- * means a component can spread a tag — `<meta {...tag} />` — and be right
+ * means a component can spread a tag with `<meta {...tag} />` and be right
  * either way.
  */
 export type MetaTag =
@@ -339,8 +339,8 @@ export interface MetaTagOptions {
   /**
    * Absolute base for a site-relative image URL, e.g. `https://example.com`.
    *
-   * Open Graph wants an absolute URL — a crawler has no page to resolve a
-   * relative one against — and a manifest records whatever the placement's
+   * Open Graph wants an absolute URL, since a crawler has no page to resolve a
+   * relative one against. A manifest records whatever the placement's
    * `urlBase` said, which is usually site-relative. A URL that is already
    * absolute is left alone, so a CDN base needs nothing here.
    */
@@ -348,10 +348,10 @@ export interface MetaTagOptions {
 }
 
 /**
- * Reports something a template had to compromise on — code truncated to stay
- * legible, so far. Rendering carries on regardless: a share image is worth
- * having even when the input did not quite fit, but the author should hear
- * about it rather than discover it in someone else's timeline.
+ * Reports something a template had to compromise on, so far only code
+ * truncated to stay legible. Rendering carries on regardless, since a share
+ * image is worth having even when the input did not quite fit, but the author
+ * should hear about it rather than discover it in someone else's timeline.
  */
 export type WarningHandler = (message: string) => void;
 
@@ -369,9 +369,9 @@ export interface TemplateContext {
  * badges, etc.) for the given dimensions; the background and the enclosing
  * `<svg>` root are added by the renderer.
  *
- * Rendering may be asynchronous — the `code` template loads syntax grammars on
- * demand — so `render` can return a promise. Simple templates can stay
- * synchronous and just return a string.
+ * Rendering may be asynchronous, since the `code` template loads syntax
+ * grammars on demand, so `render` can return a promise. Simple templates can
+ * stay synchronous and just return a string.
  */
 export interface Template {
   readonly name: string;
@@ -397,7 +397,7 @@ export interface ColophonConfig {
    * Whether to also load the machine's installed fonts. Defaults to `true`
    * when no `fonts` are configured (nothing else would render) and `false`
    * when they are. Turn it on alongside `fonts` to fall back to system fonts
-   * for families you have not supplied — at the cost of determinism.
+   * for families you have not supplied, at the cost of determinism.
    */
   readonly systemFonts?: boolean;
   /**
@@ -442,17 +442,17 @@ export interface ColophonConfig {
    */
   readonly manifest?: string;
   /**
-   * One-off images that belong to the project rather than to any post — a
-   * package card, a repository social preview. Rendered by the same build, and
-   * skipped or re-rendered on the same stamps.
+   * One-off images that belong to the project rather than to any post, such as
+   * a package card or a repository social preview. Rendered by the same build,
+   * and skipped or re-rendered on the same stamps.
    */
   readonly extra?: readonly ExtraImage[];
 }
 
 /**
  * A function a config module may export instead of a config object, so that a
- * config which has to compute something — brand colours read out of the site's
- * own stylesheet, say — can still be a config module rather than a script.
+ * config which has to compute something, such as brand colours read out of the
+ * site's own stylesheet, can still be a config module rather than a script.
  *
  * It takes no arguments. Anything it might be handed is either already on the
  * command line or a decision the config itself is making.
@@ -474,16 +474,16 @@ export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
  *
  * Only what a template reads while drawing is overridable. `fonts`,
  * `systemFonts` and `templates` are shared build inputs rather than part of the
- * picture; `onWarning` is where messages go, not what they say; and `sizes`
- * inside a size would be nonsense.
+ * picture. `onWarning` is where messages go rather than what they say, and
+ * `sizes` inside a size would be nonsense.
  */
 export interface SizeOverrides {
   /**
    * Merged over the config's `colors`, so a size can change one shade on its
-   * own — `brand` is optional here precisely because the rest are kept.
+   * own. `brand` is optional here precisely because the rest are kept.
    */
   readonly colors?: Partial<BrandColors>;
-  /** Replaces the config's background outright — see the note on merging. */
+  /** Replaces the config's background outright. See the note on merging. */
   readonly background?: Background;
   readonly fontFamily?: string;
   readonly footer?: string;
@@ -497,7 +497,7 @@ export interface SizeOverrides {
  * it, and the size to draw it at.
  *
  * The alternative is a script that calls `renderMetaImages` and writes the
- * bytes itself, which is a lot of machinery for one card — and one that keeps
+ * bytes itself, which is a lot of machinery for one card, and which keeps
  * neither the rebuild stamps nor the build log a content image gets.
  */
 export interface ExtraImage {
@@ -509,7 +509,7 @@ export interface ExtraImage {
    */
   readonly output: string;
   /**
-   * The size to render at, {@link SizeOverrides} and all — an inline size is
+   * The size to render at, {@link SizeOverrides} and all. An inline size is
    * how a one-off image gets its own footer or palette without a whole entry
    * in `sizes`. Defaults to the first configured size, since a one-off card
    * usually wants to match the site's primary share format.

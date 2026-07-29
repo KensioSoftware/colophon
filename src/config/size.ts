@@ -14,7 +14,7 @@ import { resolveConfig } from "./index.js";
  * palette when the config sets no colours of its own. Starting from nothing
  * instead would hand `resolveColors` a lone `foreground`, and its rule that a
  * bare `brand` colours the whole gradient would then flatten the default
- * gradient — a size asking only for darker text would silently lose it.
+ * gradient, so a size asking only for darker text would silently lose it.
  */
 function mergeColors(
   base: BrandColors | undefined,
@@ -29,7 +29,7 @@ function mergeColors(
  *
  * The overrides are folded into the user config and the whole thing resolved
  * again, rather than patched onto an already-resolved config, so that anything
- * derived stays consistent — a size that overrides `colors.brand` gets the
+ * derived stays consistent. A size that overrides `colors.brand` gets the
  * default gradient rebuilt around its brand, exactly as a config setting the
  * same colour at the top level would.
  *

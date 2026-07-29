@@ -32,8 +32,8 @@ export function describeUnknownValue(
  * A misspelt `type` is worth reporting on its own: `backgroundSvg` treats
  * anything that is not `solid` as a gradient, so `gradiant` silently becomes
  * one and then falls over on the stops it does not have. A background with no
- * `type` at all is left alone — the type is what says which keys apply, and
- * guessing would report the keys rather than the omission.
+ * `type` at all is left alone, since the type is what says which keys apply,
+ * and guessing would report the keys rather than the omission.
  */
 export function checkBackground(
   background: unknown,

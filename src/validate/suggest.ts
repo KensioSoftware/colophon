@@ -1,8 +1,8 @@
 /**
  * Options that have been renamed, keyed by where the old name turns up.
- * Edit distance cannot connect a rename that changed the word — `dimensions`
- * became `sizes` — and a config carried over from an older version is exactly
- * where a bare "unknown option" helps least.
+ * Edit distance cannot connect a rename that changed the word, such as
+ * `dimensions` becoming `sizes`, and a config carried over from an older
+ * version is exactly where a bare "unknown option" helps least.
  */
 const renamedOptions = new Map<string, string>([["dimensions", "sizes"]]);
 
