@@ -51,10 +51,15 @@ export function jpegExtent(bytes: Uint8Array): Extent | undefined {
     }
 
     if (isFrameHeader(marker)) {
-      return {
-        width: view.getUint16(offset + 7),
-        height: view.getUint16(offset + 5),
-      };
+      // The dimensions run to offset + 8, further than the loop guarantees, so
+      // a file truncated inside its own frame header is unmeasurable rather
+      // than a read past the end of the buffer.
+      return offset + 8 < bytes.length
+        ? {
+            width: view.getUint16(offset + 7),
+            height: view.getUint16(offset + 5),
+          }
+        : undefined;
     }
 
     offset += 2 + view.getUint16(offset + 2);

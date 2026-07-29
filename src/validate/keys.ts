@@ -192,6 +192,18 @@ export const imageBackgroundKeys = knownKeys<ImageBackground>({
   scrim: true,
 });
 
+/**
+ * The fits an image background accepts, as values rather than keys. `image`
+ * draws anything that is not `cover` as `contain`, so a mistyped `crop` would
+ * quietly change how every image in the build is cropped.
+ */
+export const backgroundFits = knownKeys<
+  Record<NonNullable<ImageBackground["fit"]>, unknown>
+>({
+  cover: true,
+  contain: true,
+});
+
 /** Keys of the wash over a background image. */
 export const scrimKeys = knownKeys<Scrim>({
   color: true,

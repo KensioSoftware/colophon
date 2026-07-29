@@ -3,6 +3,7 @@ import {
   backgroundTypes,
   gradientBackgroundKeys,
   gradientPointKeys,
+  backgroundFits,
   gradientStopKeys,
   imageBackgroundKeys,
   imageSourceKeys,
@@ -63,6 +64,7 @@ export function checkBackground(
       problems,
     );
     checkKeys(background["scrim"], `${path}.scrim`, scrimKeys, problems);
+    checkFit(background["fit"], problems);
     return;
   }
 
@@ -79,6 +81,17 @@ export function checkBackground(
       describeUnknownValue("background type", "types", type, backgroundTypes),
     );
   }
+}
+
+/** Check a background image's fit names one of the two there are. */
+function checkFit(fit: unknown, problems: string[]): void {
+  if (typeof fit !== "string" || backgroundFits.includes(fit)) {
+    return;
+  }
+
+  problems.push(
+    describeUnknownValue("background fit", "fits", fit, backgroundFits),
+  );
 }
 
 /**

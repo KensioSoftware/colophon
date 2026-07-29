@@ -87,6 +87,18 @@ describe("aspectOf", () => {
     );
   });
 
+  it("falls through to the viewBox for an SVG sized in percentages", () => {
+    // The commonest export shape: scales to its container, and its proportions
+    // are only in the viewBox.
+    assertIdentical(
+      aspectOf(
+        svgBytes('width="100%" height="100%" viewBox="0 0 120 40"'),
+        "image/svg+xml",
+      ),
+      3,
+    );
+  });
+
   it("says nothing for an SVG that states no size at all", () => {
     assertUndefined(aspectOf(svgBytes('fill="red"'), "image/svg+xml"));
   });
@@ -222,6 +234,14 @@ describe("extents that cannot be read", () => {
     ]);
 
     assertUndefined(aspectOf(headerless, "image/jpeg"));
+  });
+
+  it("says nothing for a JPEG cut off inside its frame header", () => {
+    const truncated = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xc0, 0x00, 0x11, 0x08, 0x00,
+    ]);
+
+    assertUndefined(aspectOf(truncated, "image/jpeg"));
   });
 
   it("walks past padding and standalone markers to the frame header", () => {

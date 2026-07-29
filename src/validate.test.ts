@@ -130,6 +130,15 @@ describe("validateConfig", () => {
     );
   });
 
+  it("rejects a background fit that is neither of the two", () => {
+    assertIdentical(
+      messageFor({
+        background: { type: "image", source: { path: "a.png" }, fit: "crop" },
+      }),
+      'Unknown background fit "crop". Valid fits: cover, contain.',
+    );
+  });
+
   it("checks the logo", () => {
     assertIdentical(
       messageFor({ logo: { pat: "logo.png" } }),

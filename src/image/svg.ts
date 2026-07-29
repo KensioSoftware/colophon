@@ -19,8 +19,18 @@ function attribute(
   return attributes[name].exec(head)?.[1];
 }
 
-/** A length such as `120`, `120px` or `7.5em`, as far as its number goes. */
+/**
+ * A length such as `120`, `120px` or `7.5em`, as far as its number goes.
+ *
+ * A percentage is not one of them. `width="100%"` is the commonest way an
+ * export states that it scales to its container, and reading it as 100 units
+ * would make every such file square whatever its `viewBox` says.
+ */
 function length(value: string | undefined): number | undefined {
+  if (value?.trim().endsWith("%") === true) {
+    return undefined;
+  }
+
   // Deliberately parseFloat rather than Number: a length may carry a unit,
   // and `6em` is six of something rather than not a number.
   // eslint-disable-next-line unicorn/prefer-number-coercion
