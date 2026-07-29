@@ -135,6 +135,83 @@ describe("bannerTemplate", () => {
     // No subtitle → larger, single title line and nothing else textual.
     assertArrayLength(svg.match(/<text/g), 1);
   });
+
+  it("draws the badge a post declares over the configured one", async () => {
+    const svg = await render(
+      bannerTemplate,
+      { template: "banner", title: "t", badge: { text: "video" } },
+      { badge: { text: "npm" } },
+    );
+
+    assertStringIncludes(svg, ">video</text>");
+    assertStringNotIncludes(svg, ">npm</text>");
+  });
+
+  it("takes the badge colours from the post as well", async () => {
+    const svg = await render(bannerTemplate, {
+      template: "banner",
+      title: "t",
+      badge: { text: "video", color: "#f9fafb", background: "#111827" },
+    });
+
+    assertStringIncludes(svg, 'fill="#111827"');
+    assertStringIncludes(svg, 'fill="#f9fafb"');
+  });
+
+  it("draws no badge for a post declaring false", async () => {
+    const props: MetaImageProps = {
+      template: "banner",
+      title: "a title long enough to be laid out",
+    };
+    const svg = await render(
+      bannerTemplate,
+      { ...props, badge: false },
+      { badge: { text: "npm" } },
+    );
+
+    // The same image as a site with no badge at all: the plate is gone, and
+    // the text has the room back that was reserved above it.
+    assertIdentical(svg, await render(bannerTemplate, props));
+  });
+
+  it("keeps the configured badge and warns for a badge it cannot read", async () => {
+    const warnings: string[] = [];
+    // What a post holds is whatever its frontmatter said, which the props type
+    // describes but cannot enforce.
+    const props = {
+      template: "banner",
+      title: "t",
+      badge: "video",
+    } as unknown as MetaImageProps;
+    const svg = await render(bannerTemplate, props, {
+      badge: { text: "npm" },
+      onWarning: (message) => {
+        warnings.push(message);
+      },
+    });
+
+    assertStringIncludes(svg, ">npm</text>");
+    assertArrayLength(warnings, 1);
+    assertStringIncludes(warnings[0], "props.badge");
+  });
+
+  it("warns for a badge object carrying no text to draw", async () => {
+    const warnings: string[] = [];
+    const props = {
+      template: "banner",
+      title: "t",
+      badge: { txt: "video" },
+    } as unknown as MetaImageProps;
+    const svg = await render(bannerTemplate, props, {
+      badge: { text: "npm" },
+      onWarning: (message) => {
+        warnings.push(message);
+      },
+    });
+
+    assertStringIncludes(svg, ">npm</text>");
+    assertArrayLength(warnings, 1);
+  });
 });
 
 describe("cardTemplate", () => {
