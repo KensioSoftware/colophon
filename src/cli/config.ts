@@ -8,12 +8,16 @@ import type { ColophonConfig, ColophonConfigInput } from "../types.js";
  * happens to be empty: the run named the file on the command line, so falling
  * back to the defaults would render a whole tree with none of what it asked
  * for and say nothing about it.
+ *
+ * An array is rejected for that reason and not for its own: `validateConfig`
+ * reads the keys of what it is given, and an empty one has none, so it is the
+ * one non-config that would otherwise pass as an empty config.
  */
 function assertConfig(
   value: unknown,
   source: string,
 ): asserts value is ColophonConfig {
-  if (typeof value !== "object" || value === null) {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(
       `${source} is not a config object.` +
         ` Export a ColophonConfig, or a function returning one.`,

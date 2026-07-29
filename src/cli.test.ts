@@ -108,6 +108,13 @@ describe("loadConfig", () => {
     assertStringIncludes(error.message, "is not a config object");
   });
 
+  it("rejects an array, which would otherwise pass as an empty config", async () => {
+    const file = await configModule("array.mjs", `export default [];`);
+    const error = await assertThrowsErrorAsync(async () => loadConfig(file));
+
+    assertStringIncludes(error.message, "is not a config object");
+  });
+
   it("rejects a function that returns nothing", async () => {
     const file = await configModule(
       "forgot-to-return.mjs",
