@@ -4,6 +4,8 @@ export type {
   BrandColors,
   CodeStyle,
   ColophonConfig,
+  ColophonConfigFactory,
+  ColophonConfigInput,
   ContentFile,
   ContentOptions,
   Dimensions,

@@ -73,7 +73,8 @@ output size next to it, named `<slug>-<size>.png`
 ```
 colophon [contentDir] [options]
 
-  -c, --config <path>   Config module whose default export is a ColophonConfig
+  -c, --config <path>   Config module whose default export is a ColophonConfig,
+                        or a function returning one
   -f, --force           Re-render every image, ignoring the stamps
   -o, --overwrite       Alias for --force
   --concurrency <n>     How many images to render at once
@@ -279,6 +280,39 @@ All fields are optional; sensible defaults apply.
 | `placement`   | `beside-content`               | Where images go and what URL they get (see below).  |
 | `manifest`    | none                           | Path to write a JSON manifest to (see below).       |
 | `extra`       | none                           | One-off images not tied to a post (see below).      |
+
+### A config that computes something
+
+The default export can also be a function returning the config, async or not.
+Some configs cannot be written as a literal — brand colours read out of the
+site's own stylesheet, a version pulled from `package.json`, a footer that
+names the current build — and without this such a project has to give up the
+CLI and drive `generate` from a script of its own.
+
+```ts
+// colophon.config.ts
+import { readFile } from "node:fs/promises";
+
+import { defineConfig } from "@kensio/colophon";
+
+export default defineConfig(async () => {
+  const theme = JSON.parse(await readFile("src/theme.json", "utf8"));
+
+  return {
+    colors: { brand: theme.primary, brandDark: theme.primaryDark },
+    footer: "example.com",
+  };
+});
+```
+
+The function takes no arguments: everything it might be handed is either
+already on the command line or a decision the config itself is making. It is
+called once per run, before anything is walked or rendered, and what it returns
+is the config — validated and stamped exactly as a literal one would be.
+
+A module that exports neither is an error rather than a run with the defaults:
+the command line asked for that file, so quietly rendering the whole tree
+without it would be the worst of both.
 
 ### Unknown options
 

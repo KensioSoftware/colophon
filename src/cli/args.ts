@@ -18,7 +18,9 @@ Images carry a stamp of the props, config and size they came from, so a rebuild
 renders only the ones that have actually changed.
 
 Options:
-  -c, --config <path>   Load a config module (default export = ColophonConfig)
+  -c, --config <path>   Load a config module. Its default export is either a
+                        ColophonConfig or a function (async or not) returning
+                        one, for a config that has to compute something.
   -f, --force           Re-render every image, ignoring the stamps
   -o, --overwrite       Alias for --force
   --concurrency <n>     How many images to render at once
