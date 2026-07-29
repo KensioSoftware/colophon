@@ -9,10 +9,12 @@ import type {
   FontSource,
   GradientStop,
   ImageSource,
+  MeshBlob,
   OutputSize,
   Placement,
   Scrim,
   SlugStrategy,
+  Texture,
 } from "../types.js";
 
 /**
@@ -39,6 +41,10 @@ type CustomPlacement = Extract<Placement, { readonly strategy: "custom" }>;
 type SolidBackground = Extract<Background, { readonly type: "solid" }>;
 type ImageBackground = Extract<Background, { readonly type: "image" }>;
 type GradientBackground = Extract<Background, { readonly type: "gradient" }>;
+type MeshBackground = Extract<Background, { readonly type: "mesh" }>;
+type GrainTexture = Extract<Texture, { readonly type: "grain" }>;
+type DotsTexture = Extract<Texture, { readonly type: "dots" }>;
+type RulesTexture = Extract<Texture, { readonly type: "rules" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
 type ImageByPath = Extract<ImageSource, { readonly path: string }>;
 type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
@@ -47,8 +53,10 @@ type FontByData = Extract<FontSource, { readonly data: Uint8Array }>;
 
 /** Top-level config options. */
 export const configKeys = knownKeys<ColophonConfig>({
+  theme: true,
   colors: true,
   background: true,
+  texture: true,
   fonts: true,
   systemFonts: true,
   fontFamily: true,
@@ -156,8 +164,10 @@ export const sizeKeys = knownKeys<OutputSize>({
   name: true,
   width: true,
   height: true,
+  theme: true,
   colors: true,
   background: true,
+  texture: true,
   fontFamily: true,
   footer: true,
   badge: true,
@@ -240,6 +250,22 @@ export const gradientStopKeys = knownKeys<GradientStop>({
 /** Keys of a gradient's `from` and `to` points. */
 export const gradientPointKeys = knownKeys<GradientPoint>({ x: true, y: true });
 
+/** Keys of a mesh background. */
+export const meshBackgroundKeys = knownKeys<MeshBackground>({
+  type: true,
+  color: true,
+  blobs: true,
+});
+
+/** Keys of one blob of a mesh. */
+export const meshBlobKeys = knownKeys<MeshBlob>({
+  color: true,
+  x: true,
+  y: true,
+  radius: true,
+  opacity: true,
+});
+
 /**
  * The background variants, as values to check a declared `type` against. Typed
  * against the union for the same reason the key lists are: a variant added to
@@ -249,7 +275,45 @@ export const gradientPointKeys = knownKeys<GradientPoint>({ x: true, y: true });
 export const backgroundTypes = knownKeys<Record<Background["type"], unknown>>({
   solid: true,
   gradient: true,
+  mesh: true,
   image: true,
+});
+
+/** Keys of film grain. */
+export const grainTextureKeys = knownKeys<GrainTexture>({
+  type: true,
+  opacity: true,
+  scale: true,
+});
+
+/** Keys of a dot grid. */
+export const dotsTextureKeys = knownKeys<DotsTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  size: true,
+  gap: true,
+});
+
+/** Keys of ruled lines. */
+export const rulesTextureKeys = knownKeys<RulesTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  gap: true,
+  angle: true,
+});
+
+/**
+ * The texture variants, as values, for the reason {@link backgroundTypes} are:
+ * the three have different keys, so a mistyped `type` has to be reported as
+ * itself rather than as a list of keys that do not apply.
+ */
+export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
+  grain: true,
+  dots: true,
+  rules: true,
 });
 
 /**

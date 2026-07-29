@@ -1,16 +1,6 @@
-import { checkEach, checkKeys, isRecord } from "./check.js";
-import {
-  backgroundTypes,
-  gradientBackgroundKeys,
-  gradientPointKeys,
-  backgroundFits,
-  gradientStopKeys,
-  imageBackgroundKeys,
-  imageSourceKeys,
-  scrimKeys,
-  slugStrategies,
-  solidBackgroundKeys,
-} from "./keys.js";
+import { themeNames } from "../theme/index.js";
+import { isRecord } from "./check.js";
+import { slugStrategies } from "./keys.js";
 import { nearestName } from "./suggest.js";
 
 /**
@@ -28,70 +18,6 @@ export function describeUnknownValue(
   return suggestion === undefined
     ? `Unknown ${noun} "${value}". Valid ${plural}: ${known.join(", ")}.`
     : `Unknown ${noun} "${value}". Did you mean "${suggestion}"?`;
-}
-
-/**
- * Check a background against the keys of whichever variant it declares.
- *
- * A misspelt `type` is worth reporting on its own: `backgroundSvg` treats
- * anything that is not `solid` as a gradient, so `gradiant` silently becomes
- * one and then falls over on the stops it does not have. A background with no
- * `type` at all is left alone, since the type is what says which keys apply,
- * and guessing would report the keys rather than the omission.
- */
-export function checkBackground(
-  background: unknown,
-  path: string,
-  problems: string[],
-): void {
-  if (!isRecord(background)) {
-    return;
-  }
-
-  const { type, stops, from, to } = background;
-
-  if (type === "solid") {
-    checkKeys(background, path, solidBackgroundKeys, problems);
-    return;
-  }
-
-  if (type === "image") {
-    checkKeys(background, path, imageBackgroundKeys, problems);
-    checkKeys(
-      background["source"],
-      `${path}.source`,
-      imageSourceKeys,
-      problems,
-    );
-    checkKeys(background["scrim"], `${path}.scrim`, scrimKeys, problems);
-    checkFit(background["fit"], problems);
-    return;
-  }
-
-  if (type === "gradient") {
-    checkKeys(background, path, gradientBackgroundKeys, problems);
-    checkEach(stops, `${path}.stops`, gradientStopKeys, problems);
-    checkKeys(from, `${path}.from`, gradientPointKeys, problems);
-    checkKeys(to, `${path}.to`, gradientPointKeys, problems);
-    return;
-  }
-
-  if (typeof type === "string") {
-    problems.push(
-      describeUnknownValue("background type", "types", type, backgroundTypes),
-    );
-  }
-}
-
-/** Check a background image's fit names one of the two there are. */
-function checkFit(fit: unknown, problems: string[]): void {
-  if (typeof fit !== "string" || backgroundFits.includes(fit)) {
-    return;
-  }
-
-  problems.push(
-    describeUnknownValue("background fit", "fits", fit, backgroundFits),
-  );
 }
 
 /**
@@ -117,4 +43,25 @@ export function checkSlugStrategy(content: unknown, problems: string[]): void {
       slugStrategies,
     ),
   );
+}
+
+/**
+ * Check a theme names one of the curated set.
+ *
+ * A theme that does not exist is nothing at all: the config resolves as though
+ * it had never been named and the images come out in the neutral default
+ * palette. Every unknown value here is worth reporting, but this one more than
+ * most, because a theme is the one field whose whole purpose is to be the
+ * look.
+ */
+export function checkTheme(theme: unknown, problems: string[]): void {
+  // Widened on the way in: the names are typed as the union everywhere else,
+  // and what is being checked here is a string that may well not be one.
+  const known: readonly string[] = themeNames;
+
+  if (typeof theme !== "string" || known.includes(theme)) {
+    return;
+  }
+
+  problems.push(describeUnknownValue("theme", "themes", theme, known));
 }

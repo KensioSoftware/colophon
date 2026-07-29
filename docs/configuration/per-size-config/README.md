@@ -25,8 +25,8 @@ re-walks and re-parses everything for every size.
 
 ## What can be overridden
 
-Overridable: `colors`, `background`, `fontFamily`, `footer`, `badge` and `code`.
-These are what a template reads while drawing.
+Overridable: `theme`, `colors`, `background`, `texture`, `fontFamily`, `footer`,
+`badge` and `code`. These are what a template reads while drawing.
 
 Not overridable:
 
@@ -56,10 +56,19 @@ sizes: [
 
 That keeps the brand palette and changes only the text colour.
 
+That keeps a [theme's](../themes/) palette too, where the config names one and
+no colours of its own, so a size asking for whiter text does not drop the rest
+of the theme back to the neutral default.
+
 The other options replace rather than merge. A `background` is a union whose
 variants have different keys, so merging half of one onto half of another would
 produce a background that is neither. A `badge` carries a required `text` that a
 partial override could not supply.
+
+A size's `theme` replaces the config's and then applies as defaults, exactly as
+it would at the top level. So a config naming its own `background` keeps it
+whatever theme a size asks for, and a size wanting the whole look of one has the
+same answer a config does: stop naming the fields the theme should fill in.
 
 ## Overrides and rebuilds
 

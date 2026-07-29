@@ -24,6 +24,8 @@ work.
   frontmatter with real VS Code theme colours.
 - **Configurable branding.** Colours, gradient, fonts, footer and badge come from
   config, not from any one site's stylesheet.
+- **Themes.** Eight named looks, or your own colours with a mesh, grain, a dot
+  grid or ruled lines over them.
 - **Multiple sizes from one input.** A 1:1 square and a 1.91:1 landscape by
   default, or whatever set you configure.
 - **Manifest and meta tags.** A JSON record of what was generated, and the Open
@@ -92,6 +94,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Templates](./docs/templates/ "The built-in layouts and how to register your own")
 - [The code template](./docs/code-template/ "Syntax-highlighted code images")
 - [The layout toolkit](./docs/layout/ "The primitives templates are built from")
+- [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, grain, dots and rules")
 - [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")
 - [Configuration](./docs/configuration/ "Every option, and what happens to an unknown one")
 - [Rebuilds](./docs/rebuilds/ "How Colophon decides what to render again")
@@ -133,6 +136,51 @@ updated PNGs so this gallery stays in sync.
     <td>
       <img src="docs/samples/code-wide.png" alt="code template, landscape" width="100%" /><br />
       <sub><code>code</code> · 1200×630 · TypeScript, <code>night-owl</code></sub>
+    </td>
+  </tr>
+</table>
+
+### Themes
+
+One line of config each: `theme: "midnight"`. See
+[Themes and background treatments](./docs/configuration/themes/) for what a
+theme sets and how to override part of one.
+
+<table>
+  <tr>
+    <td width="25%">
+      <img src="docs/samples/theme-midnight.png" alt="midnight theme" width="100%" /><br />
+      <sub><code>midnight</code></sub>
+    </td>
+    <td width="25%">
+      <img src="docs/samples/theme-aurora.png" alt="aurora theme" width="100%" /><br />
+      <sub><code>aurora</code></sub>
+    </td>
+    <td width="25%">
+      <img src="docs/samples/theme-ember.png" alt="ember theme" width="100%" /><br />
+      <sub><code>ember</code></sub>
+    </td>
+    <td width="25%">
+      <img src="docs/samples/theme-forest.png" alt="forest theme" width="100%" /><br />
+      <sub><code>forest</code></sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/theme-bloom.png" alt="bloom theme" width="100%" /><br />
+      <sub><code>bloom</code></sub>
+    </td>
+    <td>
+      <img src="docs/samples/theme-slate.png" alt="slate theme" width="100%" /><br />
+      <sub><code>slate</code></sub>
+    </td>
+    <td>
+      <img src="docs/samples/theme-paper.png" alt="paper theme" width="100%" /><br />
+      <sub><code>paper</code></sub>
+    </td>
+    <td>
+      <img src="docs/samples/theme-sandstone.png" alt="sandstone theme" width="100%" /><br />
+      <sub><code>sandstone</code></sub>
     </td>
   </tr>
 </table>

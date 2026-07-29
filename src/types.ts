@@ -63,7 +63,28 @@ export interface Scrim {
 }
 
 /**
- * Background fill for an image: a flat colour, a linear gradient, or a photo.
+ * One soft blob of colour in a mesh background.
+ *
+ * The position is in fractions of the image, so the same mesh describes the
+ * same picture at every output size. The radius is a fraction of the longer
+ * side, which keeps a blob covering as much of a landscape image as it does of
+ * a square one.
+ */
+export interface MeshBlob {
+  readonly color: string;
+  /** Centre, across. Defaults to the middle. */
+  readonly x?: number;
+  /** Centre, down. Defaults to the middle. */
+  readonly y?: number;
+  /** Defaults to `0.7`. */
+  readonly radius?: number;
+  /** Opacity at the centre, fading to nothing at the edge. Defaults to `1`. */
+  readonly opacity?: number;
+}
+
+/**
+ * Background fill for an image: a flat colour, a linear gradient, a mesh of
+ * soft colour, or a photo.
  *
  * Gradient coordinates use SVG object-bounding-box units (0–1); the default
  * runs diagonally from the top-left `(0, 0)` to the bottom-right `(1, 1)`.
@@ -75,6 +96,18 @@ export type Background =
       readonly stops: readonly GradientStop[];
       readonly from?: { readonly x: number; readonly y: number };
       readonly to?: { readonly x: number; readonly y: number };
+    }
+  | {
+      /**
+       * Overlapping blobs of colour over a flat base, which is the look a
+       * linear gradient cannot give: colour that moves in more than one
+       * direction. Each blob is a radial fade, so nothing here is expensive to
+       * draw.
+       */
+      readonly type: "mesh";
+      /** The flat colour the blobs are laid over. */
+      readonly color: string;
+      readonly blobs: readonly MeshBlob[];
     }
   | {
       readonly type: "image";
@@ -95,6 +128,74 @@ export type Background =
        */
       readonly scrim?: Scrim;
     };
+
+/**
+ * A treatment laid over the background, under everything a template draws.
+ *
+ * A flat fill or a gradient is clean but a little bare, and these are the
+ * cheap ways to give one some surface: film grain, a dot grid, or ruled
+ * lines. All three are a few elements of SVG rather than an image to load,
+ * and all three are meant to be felt rather than seen, so the defaults are
+ * faint.
+ *
+ * Lengths are in pixels at the size being rendered, so a texture is a little
+ * finer on a large image than on a small one, which is what keeps a dot grid
+ * looking like the same grid across a set of sizes.
+ */
+export type Texture =
+  | {
+      /**
+       * Film grain, from one turbulence filter. It lightens what is under it
+       * slightly, since the noise it lays down is grey.
+       */
+      readonly type: "grain";
+      /** Defaults to `0.1`. */
+      readonly opacity?: number;
+      /** Roughly the size of a speck, in pixels. Defaults to `1.4`. */
+      readonly scale?: number;
+    }
+  | {
+      readonly type: "dots";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.08`. */
+      readonly opacity?: number;
+      /** Dot diameter. Defaults to `5`. */
+      readonly size?: number;
+      /** Centre-to-centre spacing. Defaults to `44`. */
+      readonly gap?: number;
+    }
+  | {
+      readonly type: "rules";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.06`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `2`. */
+      readonly width?: number;
+      /** Spacing between lines. Defaults to `28`. */
+      readonly gap?: number;
+      /** Degrees clockwise from vertical. Defaults to `45`. */
+      readonly angle?: number;
+    };
+
+/**
+ * A named preset: a palette, a background and, for some of them, a texture.
+ *
+ * Choosing colours from nothing is the step that stops someone trying a
+ * package, and a theme is the answer to it. Everything a theme sets is an
+ * ordinary config default, so naming `colors` or `background` alongside one
+ * keeps that field and takes the rest of the look.
+ */
+export type ThemeName =
+  | "midnight"
+  | "aurora"
+  | "ember"
+  | "forest"
+  | "bloom"
+  | "slate"
+  | "paper"
+  | "sandstone";
 
 /**
  * An image that has been loaded and is ready to draw: the `data:` URI a
@@ -498,9 +599,20 @@ export interface Template {
  * by `resolveConfig`.
  */
 export interface ColophonConfig {
+  /**
+   * A named look to start from: see {@link ThemeName}. A theme supplies
+   * `colors`, `background` and sometimes `texture`, and any of those the
+   * config sets for itself wins.
+   */
+  readonly theme?: ThemeName;
   readonly colors?: BrandColors;
   /** Explicit background, overriding the gradient derived from `colors`. */
   readonly background?: Background;
+  /**
+   * A treatment over the background: grain, a dot grid or ruled lines. Omit
+   * (the default) for none, unless a theme brings one.
+   */
+  readonly texture?: Texture;
   /**
    * Fonts to load into the rasteriser, so the output does not depend on what
    * the build machine happens to have installed. Supplying any font turns
@@ -600,12 +712,21 @@ export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
  */
 export interface SizeOverrides {
   /**
-   * Merged over the config's `colors`, so a size can change one shade on its
-   * own. `brand` is optional here precisely because the rest are kept.
+   * Replaces the config's theme, for a size that wants a different look.
+   * Whatever the config names for itself still wins over it, exactly as it
+   * does over the config's own theme.
+   */
+  readonly theme?: ThemeName;
+  /**
+   * Merged over the config's `colors`, or over the theme's where the config
+   * names none, so a size can change one shade on its own. `brand` is optional
+   * here precisely because the rest are kept.
    */
   readonly colors?: Partial<BrandColors>;
   /** Replaces the config's background outright. See the note on merging. */
   readonly background?: Background;
+  /** Replaces the config's texture. */
+  readonly texture?: Texture;
   readonly fontFamily?: string;
   readonly footer?: string;
   readonly badge?: Badge;
@@ -646,6 +767,12 @@ export interface ExtraImage {
 export interface ResolvedConfig {
   readonly colors: Required<BrandColors>;
   readonly background: Background;
+  /**
+   * The texture over the background, with any colour it left open filled in
+   * from the palette. There is no theme here: a theme is a set of defaults for
+   * these fields, and by this point they have been applied.
+   */
+  readonly texture: Texture | undefined;
   /** Configured fonts, with every `path` made absolute. */
   readonly fonts: readonly FontSource[];
   readonly systemFonts: boolean;
