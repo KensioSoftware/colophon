@@ -4,6 +4,9 @@ import {
   gradientBackgroundKeys,
   gradientPointKeys,
   gradientStopKeys,
+  imageBackgroundKeys,
+  imageSourceKeys,
+  scrimKeys,
   slugStrategies,
   solidBackgroundKeys,
 } from "./keys.js";
@@ -48,6 +51,18 @@ export function checkBackground(
 
   if (type === "solid") {
     checkKeys(background, path, solidBackgroundKeys, problems);
+    return;
+  }
+
+  if (type === "image") {
+    checkKeys(background, path, imageBackgroundKeys, problems);
+    checkKeys(
+      background["source"],
+      `${path}.source`,
+      imageSourceKeys,
+      problems,
+    );
+    checkKeys(background["scrim"], `${path}.scrim`, scrimKeys, problems);
     return;
   }
 

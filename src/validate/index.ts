@@ -7,6 +7,7 @@ import {
   configKeys,
   contentKeys,
   fontKeys,
+  imageSourceKeys,
 } from "./keys.js";
 import { checkExtras, checkSizes } from "./overrides.js";
 import { checkPlacement } from "./placement.js";
@@ -31,6 +32,7 @@ export function validateConfig(config: ColophonConfig): void {
     readonly content?: unknown;
     readonly background?: unknown;
     readonly badge?: unknown;
+    readonly logo?: unknown;
     readonly code?: unknown;
     readonly sizes?: unknown;
     readonly fonts?: unknown;
@@ -42,6 +44,7 @@ export function validateConfig(config: ColophonConfig): void {
   checkKeys(config, "", configKeys, problems);
   checkKeys(raw.colors, "colors", colorKeys, problems);
   checkKeys(raw.badge, "badge", badgeKeys, problems);
+  checkKeys(raw.logo, "logo", imageSourceKeys, problems);
   checkKeys(raw.code, "code", codeKeys, problems);
   checkKeys(raw.content, "content", contentKeys, problems);
   checkSlugStrategy(raw.content, problems);

@@ -42,7 +42,8 @@ you supply is merged over the built-ins, so a key of `banner` replaces the
 built-in `banner`.
 
 A template's `render` receives the props, the resolved config, the pixel
-dimensions of the image being drawn, and a `measure` for its text. It returns
+dimensions of the image being drawn, a `measure` for its text, and the `logo`
+and `avatar` for the image, already loaded. It returns
 the SVG _foreground_ content. The background and the enclosing `<svg>` root are
 added by the renderer, so a template does not draw them.
 
@@ -103,6 +104,10 @@ Some notes on writing one:
   produces an invalid document otherwise.
 - **`props` is open.** Colophon does not check what a template reads, so you can
   put whatever fields your layout needs into the props block.
+- **Images arrive loaded.** `logo` and `avatar` are `undefined` or an asset with
+  a `href` to hand to `image` and the `aspect` to size it by. Reading files is
+  the renderer's job, which is what keeps `render` a function over values. See
+  [Logos and photographs](../configuration/images/).
 - **`render` may return a promise** if it has to load something. Keep it
   synchronous when it does not need to. The built-in `code` template is async
   because it loads syntax grammars on demand.

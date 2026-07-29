@@ -1,6 +1,11 @@
 import { readFile } from "node:fs/promises";
 
-import type { FontSource, ResolvedConfig } from "../types.js";
+import type {
+  Background,
+  FontSource,
+  ImageSource,
+  ResolvedConfig,
+} from "../types.js";
 import { sha256, stableStringify } from "./digest.js";
 
 /**
@@ -27,6 +32,25 @@ async function fontDigest(font: FontSource): Promise<string> {
 }
 
 /**
+ * Digest an image by its contents, for the reason a font is digested that way:
+ * a logo replaced at the same path is a different logo, and every image drawn
+ * with it wants rendering again.
+ */
+async function imageDigest(source: ImageSource): Promise<string> {
+  return sha256("data" in source ? source.data : await readFile(source.path));
+}
+
+/**
+ * A background, with any image it draws replaced by a digest of that image's
+ * bytes. Everything else about a background is already a value.
+ */
+async function backgroundDigest(background: Background): Promise<unknown> {
+  return background.type === "image"
+    ? { ...background, source: await imageDigest(background.source) }
+    : background;
+}
+
+/**
  * Digest the config fields that affect what an image looks like.
  *
  * `onWarning` is left out because it cannot change a pixel. So are `sizes` and
@@ -38,13 +62,16 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
   const fonts = await Promise.all(
     config.fonts.map(async (font) => fontDigest(font)),
   );
+  const logo =
+    config.logo === undefined ? undefined : await imageDigest(config.logo);
 
   return sha256(
     stableStringify({
       version: await packageVersion(),
       colors: config.colors,
-      background: config.background,
+      background: await backgroundDigest(config.background),
       fonts,
+      logo,
       systemFonts: config.systemFonts,
       fontFamily: config.fontFamily,
       footer: config.footer,

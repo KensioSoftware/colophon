@@ -105,6 +105,38 @@ describe("validateConfig", () => {
     assertStringNotIncludes(message, "Did you mean");
   });
 
+  it("checks an image background, its source and its scrim", () => {
+    assertIdentical(
+      messageFor({
+        background: { type: "image", source: { path: "a.png" }, fitt: "cover" },
+      }),
+      'Unknown option "background.fitt". Did you mean "fit"?',
+    );
+    assertIdentical(
+      messageFor({
+        background: { type: "image", source: { pathh: "a.png" } },
+      }),
+      'Unknown option "background.source.pathh". Did you mean "path"?',
+    );
+    assertIdentical(
+      messageFor({
+        background: {
+          type: "image",
+          source: { path: "a.png" },
+          scrim: { form: 1 },
+        },
+      }),
+      'Unknown option "background.scrim.form". Did you mean "from"?',
+    );
+  });
+
+  it("checks the logo", () => {
+    assertIdentical(
+      messageFor({ logo: { pat: "logo.png" } }),
+      'Unknown option "logo.pat". Did you mean "path"?',
+    );
+  });
+
   it("lists the valid options when nothing is close", () => {
     const message = messageFor({ wibble: true });
 
@@ -196,7 +228,7 @@ describe("validateConfig", () => {
   it("lists the background types when nothing is close", () => {
     assertIdentical(
       messageFor({ background: { type: "mesh" } }),
-      'Unknown background type "mesh". Valid types: solid, gradient.',
+      'Unknown background type "mesh". Valid types: solid, gradient, image.',
     );
   });
 

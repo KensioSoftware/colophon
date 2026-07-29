@@ -5,6 +5,7 @@ import type {
   FontSource,
   OutputSize,
 } from "../types.js";
+import { resolveImageSource } from "../image/index.js";
 import {
   DEFAULT_CODE_STYLE,
   DEFAULT_COLORS,
@@ -29,6 +30,25 @@ export function resolveColors(
     brandDark: colors.brandDark ?? colors.brand,
     brandWarm: colors.brandWarm ?? colors.brand,
     foreground: colors.foreground ?? DEFAULT_COLORS.foreground,
+  };
+}
+
+/**
+ * Check a background's image up front, the way `fonts` and `logo` are checked.
+ * A background that cannot be read is every image in the build rendered as a
+ * flat colour, which is a failure worth hearing about before the build runs
+ * rather than after looking at the output.
+ */
+export function resolveBackground(
+  background: Background | undefined,
+): Background | undefined {
+  if (background?.type !== "image") {
+    return background;
+  }
+
+  return {
+    ...background,
+    source: resolveImageSource(background.source, "background.source"),
   };
 }
 

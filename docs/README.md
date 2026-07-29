@@ -19,6 +19,7 @@ project. The [README](../README.md) has the install steps and a short example.
 - [Configuration overview](./configuration/ "Every option, and what happens to an unknown one")
 - [Frontmatter](./configuration/frontmatter/ "Which fields are read, and mapping the ones you have")
 - [Fonts](./configuration/fonts/ "Rendering with font files instead of installed fonts")
+- [Logos and photographs](./configuration/images/ "Branding an image with a logo, avatar or background photo")
 - [Output sizes and filenames](./configuration/sizes/ "Named sizes, slugs and filenames")
 - [Per-size config](./configuration/per-size-config/ "Overriding settings for one size")
 - [Placement](./configuration/placement/ "Where images are written and what URL they get")

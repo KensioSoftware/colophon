@@ -1,7 +1,9 @@
 import { drawLines, inset } from "../../layout/index.js";
 import { optionalString } from "../../props.js";
 import type { Template, TemplateContext } from "../../types.js";
-import { footerElement, hasFooter } from "../footer.js";
+import { attribution } from "../attribution.js";
+import { hasFooter } from "../footer.js";
+import { logoElement, logoRect } from "../logo.js";
 import { renderBadge } from "./badge.js";
 import { bannerLines } from "./lines.js";
 
@@ -10,32 +12,47 @@ import { bannerLines } from "./lines.js";
  * version and wrapped subtitle, an optional corner badge, and an optional
  * footer. This is the configurable descendant of the original `npm_package`
  * layout.
+ *
+ * A logo goes in the opposite corner to the badge, which is the corner the
+ * left-aligned text leaves free, and the avatar sits with the footer.
  */
 export const bannerTemplate: Template = {
   name: "banner",
-  render({ props, config, dimensions, measure }: TemplateContext): string {
+  render({
+    props,
+    config,
+    dimensions,
+    measure,
+    logo,
+    avatar,
+  }: TemplateContext): string {
     const { width, height } = dimensions;
     const { fontFamily } = config;
     const pad = Math.round(width * 0.075);
     const footerFs = Math.round(height * 0.034);
     const badgeHeight = Math.round(height * 0.072);
+    const mark = logoRect(logo, dimensions, pad, "start");
 
     const subtitle = optionalString(props.subtitle);
     const hasSubtitle = subtitle !== undefined && subtitle !== "";
 
-    // The text sits between whatever the badge and the footer leave behind.
+    // The text sits between whatever the marks along the top and the footer
+    // along the bottom leave behind.
+    const topMark = Math.max(
+      config.badge === undefined ? 0 : badgeHeight,
+      mark?.height ?? 0,
+    );
     const area = inset(
       { x: 0, y: 0, width, height },
       {
-        top:
-          pad +
-          (config.badge === undefined
-            ? 0
-            : badgeHeight + Math.round(height * 0.03)),
+        top: pad + (topMark === 0 ? 0 : topMark + Math.round(height * 0.03)),
         right: pad,
         left: pad,
         bottom:
-          pad + (hasFooter(config) ? footerFs + Math.round(height * 0.02) : 0),
+          pad +
+          (hasFooter(config) || avatar !== undefined
+            ? footerFs + Math.round(height * 0.02)
+            : 0),
       },
     );
 
@@ -66,13 +83,20 @@ export const bannerTemplate: Template = {
             badgeHeight,
           );
 
-    const footer = footerElement(config, {
-      x: pad,
-      y: height - pad,
-      fontSize: footerFs,
-      opacity: 0.78,
-    });
+    const footer = attribution(
+      config,
+      {
+        x: pad,
+        y: height - pad,
+        fontSize: footerFs,
+        opacity: 0.78,
+        left: pad,
+        width: width - pad * 2,
+      },
+      avatar,
+      measure,
+    );
 
-    return badge + body + footer;
+    return badge + logoElement(logo, mark) + body + footer;
   },
 };
