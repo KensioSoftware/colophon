@@ -27,23 +27,23 @@ yourself.
 
 ## Options
 
-| Option        | Default                        | Notes                                                             |
-| ------------- | ------------------------------ | ----------------------------------------------------------------- |
-| `colors`      | neutral indigo/pink            | `brand`, `brandDark`, `brandWarm`, `foreground`.                  |
-| `background`  | gradient derived from `colors` | Or a `{ type: "solid" }` or custom gradient.                      |
-| `fonts`       | none                           | Font files to render with. See [Fonts](./fonts/).                 |
-| `systemFonts` | `true` until `fonts` is set    | Whether installed fonts are loaded too.                           |
-| `fontFamily`  | first font, else `Arial, ...`  | Font stack for template text.                                     |
-| `footer`      | none                           | Footer text. Omit the field for none.                             |
-| `badge`       | none                           | Corner badge for `banner`. Omit the field for none.               |
-| `code`        | `github-dark`, monospace stack | Styling for [the code template](../code-template/).               |
-| `onWarning`   | `console.warn`                 | Where compromises are reported. See [Warnings](./warnings/).      |
-| `sizes`       | `og` and `square`              | Named output sizes. See [Output sizes](./sizes/).                 |
-| `templates`   | `banner`, `card`, `code`       | Merged over the built-ins. See [Templates](../templates/).        |
-| `content`     | `meta_img_props`, `.md` and `.markdown` files | How props are read. See [Frontmatter](./frontmatter/). |
-| `placement`   | `beside-content`               | Where images go and their URL. See [Placement](./placement/).     |
-| `manifest`    | none                           | Path to write a JSON manifest to. See [Manifest](./manifest/).    |
-| `extra`       | none                           | Images not tied to a post. See [One-off images](./extra-images/). |
+| Option        | Default                                       | Notes                                                             |
+| ------------- | --------------------------------------------- | ----------------------------------------------------------------- |
+| `colors`      | neutral indigo/pink                           | `brand`, `brandDark`, `brandWarm`, `foreground`.                  |
+| `background`  | gradient derived from `colors`                | Or a `{ type: "solid" }` or custom gradient.                      |
+| `fonts`       | none                                          | Font files to render with. See [Fonts](./fonts/).                 |
+| `systemFonts` | `true` until `fonts` is set                   | Whether installed fonts are loaded too.                           |
+| `fontFamily`  | first font, else `Arial, ...`                 | Font stack for template text.                                     |
+| `footer`      | none                                          | Footer text. Omit the field for none.                             |
+| `badge`       | none                                          | Corner badge for `banner`. Omit the field for none.               |
+| `code`        | `github-dark`, monospace stack                | Styling for [the code template](../code-template/).               |
+| `onWarning`   | `console.warn`                                | Where compromises are reported. See [Warnings](./warnings/).      |
+| `sizes`       | `og` and `square`                             | Named output sizes. See [Output sizes](./sizes/).                 |
+| `templates`   | `banner`, `card`, `code`                      | Merged over the built-ins. See [Templates](../templates/).        |
+| `content`     | `meta_img_props`, `.md` and `.markdown` files | How props are read. See [Frontmatter](./frontmatter/).            |
+| `placement`   | `beside-content`                              | Where images go and their URL. See [Placement](./placement/).     |
+| `manifest`    | none                                          | Path to write a JSON manifest to. See [Manifest](./manifest/).    |
+| `extra`       | none                                          | Images not tied to a post. See [One-off images](./extra-images/). |
 
 ## Computing config at build time
 
