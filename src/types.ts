@@ -124,7 +124,8 @@ export type Background =
        * Defaults to a gentle shade towards the bottom. A photograph is light
        * and dark wherever it likes, and white text over a bright sky cannot be
        * read, so this is what makes the difference between a designed image and
-       * text sitting on a picture. Set `to: 0` for none.
+       * text sitting on a picture. Set `{ from: 0, to: 0 }` for none: `from`
+       * has a default of its own, so naming only `to` leaves the top shaded.
        */
       readonly scrim?: Scrim;
     };

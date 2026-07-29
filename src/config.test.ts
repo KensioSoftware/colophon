@@ -174,7 +174,9 @@ describe("resolveConfig", () => {
     const resolved = resolveConfig({
       theme: "midnight",
       colors: { brand: "#0d9488" },
-      texture: { type: "dots" },
+      // Not `dots`, which is what midnight brings: a texture the theme would
+      // have supplied anyway proves nothing about which of the two won.
+      texture: { type: "rules" },
     });
 
     // The palette is the config's, resolved by the usual rules, and the
@@ -184,7 +186,7 @@ describe("resolveConfig", () => {
     assertIdentical(resolved.colors.brand, "#0d9488");
     assertIdentical(resolved.colors.brandWarm, "#0d9488");
     assertIdentical(resolved.background.type, "mesh");
-    assertIdentical(resolved.texture?.type, "dots");
+    assertIdentical(resolved.texture?.type, "rules");
   });
 
   it("colours a theme's texture from the palette in force", () => {
