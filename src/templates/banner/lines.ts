@@ -1,6 +1,6 @@
 import type { MeasureText, MetaImageProps } from "../../types.js";
-import type { TextLine } from "../text.js";
-import { blockLines } from "../text.js";
+import type { TextLine } from "../../layout/index.js";
+import { blockLines } from "../../layout/index.js";
 import { versionLines } from "./version.js";
 
 const maxTitleLines = 3;

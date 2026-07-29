@@ -1,4 +1,4 @@
-import { textElement } from "../../text/index.js";
+import { textElement } from "../../layout/index.js";
 import type { Dimensions, ResolvedConfig } from "../../types.js";
 import { footerElement } from "../footer.js";
 import type { Panel } from "./panel.js";

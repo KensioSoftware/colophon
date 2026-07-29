@@ -1,6 +1,6 @@
 import type { MetaImageProps } from "../../types.js";
-import { optionalString } from "../props.js";
-import type { TextLine } from "../text.js";
+import { optionalString } from "../../props.js";
+import type { TextLine } from "../../layout/index.js";
 import type { BannerSizes } from "./lines.js";
 
 /**

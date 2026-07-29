@@ -12,14 +12,9 @@ import {
   breakWord,
   escapeXml,
   fitText,
-  layoutStack,
   textElement,
   wrapText,
 } from "./text/index.js";
-
-function baselineGap(placed: { y: number }[]): number {
-  return (placed[1]?.y ?? 0) - (placed[0]?.y ?? 0);
-}
 
 /** A measurer for a face where every character is ten units wide. */
 function byCharacter(text: string): number {
@@ -114,56 +109,6 @@ describe("fitText", () => {
 
   it("returns no lines for empty text", () => {
     assertArrayEquals(fitText("", byCharacterAt, options).lines, []);
-  });
-});
-
-describe("layoutStack", () => {
-  it("centres the block and returns increasing baselines", () => {
-    const placed = layoutStack([{ fontSize: 100 }, { fontSize: 100 }], 0, 1000);
-
-    // Two 120px advances (240 total) centred in 1000 → block starts at 380,
-    // and each baseline sits 80px (0.8em) into its line.
-    assertArrayLength(placed, 2);
-    assertIdentical(placed[0].y, 460);
-    assertIdentical(placed[1].y, 580);
-  });
-
-  it("starts at the top when the block overflows the area", () => {
-    const placed = layoutStack([{ fontSize: 100 }], 100, 150);
-
-    assertArrayLength(placed, 1);
-    assertIdentical(placed[0].y, 180);
-  });
-
-  it("inserts extra space before a line with gapBefore", () => {
-    const withoutGap = layoutStack(
-      [{ fontSize: 100 }, { fontSize: 100 }],
-      0,
-      1000,
-    );
-    const withGap = layoutStack(
-      [{ fontSize: 100 }, { fontSize: 100, gapBefore: 40 }],
-      0,
-      1000,
-    );
-
-    // The gap pushes the second line 40px further from the first.
-    assertIdentical(baselineGap(withGap), baselineGap(withoutGap) + 40);
-  });
-
-  it("honours an explicit line height", () => {
-    const placed = layoutStack(
-      [
-        { fontSize: 100, lineHeight: 2 },
-        { fontSize: 100, lineHeight: 2 },
-      ],
-      0,
-      1000,
-    );
-
-    // Advance is fontSize * lineHeight = 200 between baselines.
-    assertArrayLength(placed, 2);
-    assertIdentical(placed[1].y - placed[0].y, 200);
   });
 });
 

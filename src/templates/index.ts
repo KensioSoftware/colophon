@@ -16,4 +16,4 @@ export const builtinTemplates: Readonly<Record<string, Template>> = {
 export { bannerTemplate } from "./banner/index.js";
 export { cardTemplate } from "./card/index.js";
 export { codeTemplate } from "./code/index.js";
-export { optionalString } from "./props.js";
+export { optionalString } from "../props.js";

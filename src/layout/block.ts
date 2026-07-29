@@ -1,8 +1,8 @@
 import type { FittedText } from "../text/index.js";
 import { fitText } from "../text/index.js";
+import { optionalString } from "../props.js";
 import type { MeasureText } from "../types.js";
 import { measureIn } from "./measure.js";
-import { optionalString } from "./props.js";
 
 /** One group of a template's text: the space it has and how it is drawn. */
 export interface TextBlock {
