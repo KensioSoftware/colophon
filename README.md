@@ -1,7 +1,16 @@
-# @kensio/colophon
+# <img src="https://colophonjs.dev/favicon.png" alt="Colophon logo" width="28" height="28">&nbsp;&nbsp;@kensio/colophon
+
+[![npm version](https://img.shields.io/npm/v/%40kensio%2Fcolophon)](https://www.npmjs.com/package/@kensio/colophon)
+![CI](https://img.shields.io/github/actions/workflow/status/KensioSoftware/colophon/pr.yml?label=CI)
+![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/hughgrigg/f2d667bbcc14dab9efa679f2113b1e00 /raw/coverage.json)
+![Node](https://img.shields.io/node/v/%40kensio%2Fcolophon)
+![TypeScript](https://img.shields.io/badge/TS-TypeScript-3178C6)
+![License](https://img.shields.io/npm/l/%40kensio%2Fcolophon)
 
 Generate social meta images (Open Graph and share-card images) for the posts of
 a static website, driven by each post's frontmatter.
+
+[https://colophonjs.dev/](https://colophonjs.dev/ "Colophon documentation website")
 
 You describe an image in frontmatter with a title, a subtitle, a version and a
 template name, and Colophon renders branded PNGs at the sizes you need. The name
