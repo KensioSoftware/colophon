@@ -57,6 +57,23 @@ for.
 An unknown family falls back to a configured font rather than rendering nothing,
 so a mismatched name shows up as the wrong typeface rather than a blank image.
 
+## Measuring, not guessing
+
+A configured font is also the font Colophon measures against when it decides
+where a line of text breaks and how large it can be drawn. Glyph advances come
+out of the file itself, so a title wraps where it really runs out of room, and a
+long one is shrunk to fit rather than cut short.
+
+Without a font file there is nothing to measure, because the text will be drawn
+in whatever the machine has. Colophon estimates instead: a fixed fraction of the
+font size per character, with full-width characters counted as a whole em. That
+is close enough for Latin text and rough for everything else, which is another
+reason to supply the file.
+
+Weights follow the same rule as drawing does. A title asks for weight `800`, and
+whichever of your faces is nearest that weight is both what gets drawn and what
+gets measured, so the two agree.
+
 ## Fonts are not per-size
 
 `fonts` and `systemFonts` are shared build inputs, so they cannot be overridden

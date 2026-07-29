@@ -81,12 +81,6 @@ export interface CodeStyle {
    * installed one when `systemFonts` is on.
    */
   readonly fontFamily?: string;
-  /**
-   * Glyph advance width as a fraction of the font size. `0.6` matches most
-   * monospace faces (Source Code Pro, Menlo, DejaVu Sans Mono); narrower faces
-   * such as Consolas want ~`0.55`.
-   */
-  readonly charWidthRatio?: number;
   /** Line advance as a multiple of the font size. Default `1.55`. */
   readonly lineHeight?: number;
   /** Spaces a tab expands to before layout. Default `2`. */
@@ -356,12 +350,48 @@ export interface MetaTagOptions {
 export type WarningHandler = (message: string) => void;
 
 /**
+ * How a run of text is drawn, as far as its width is concerned. Style that
+ * cannot move a glyph's advance, such as colour, is not here.
+ */
+export interface TextStyle {
+  /** CSS-style stack, matched against the configured fonts in order. */
+  readonly fontFamily: string;
+  readonly fontSize: number;
+  /** Defaults to `400`. The nearest weight in the family is measured. */
+  readonly fontWeight?: number;
+  /**
+   * Advance width to assume, as a fraction of the font size, when no
+   * configured font matches the stack and the width has to be guessed.
+   *
+   * The default suits proportional text. A caller drawing monospace passes its
+   * own, because the same guess would be far too narrow for a face whose every
+   * glyph is as wide as an `M`.
+   */
+  readonly fallbackRatio?: number;
+}
+
+/**
+ * The width, in pixels, that `text` occupies when drawn in `style`.
+ *
+ * Exact where the style resolves to a font the build loaded, since then the
+ * glyph advances are read from the file the rasteriser is drawing with.
+ * Estimated otherwise, which is the best there is when the text will be drawn
+ * in whichever font the machine happens to have.
+ */
+export type MeasureText = (text: string, style: TextStyle) => number;
+
+/**
  * Everything a template needs to produce its SVG foreground content.
  */
 export interface TemplateContext {
   readonly props: MetaImageProps;
   readonly config: ResolvedConfig;
   readonly dimensions: Dimensions;
+  /**
+   * Measures text in the fonts this build is rendering with, so a template can
+   * wrap and fit its text to the space it has rather than guessing.
+   */
+  readonly measure: MeasureText;
 }
 
 /**

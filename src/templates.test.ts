@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import {
   assertArrayLength,
   assertIdentical,
@@ -10,6 +12,7 @@ import {
 import { describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
+import { createMeasurer } from "./measure/index.js";
 import {
   bannerTemplate,
   builtinTemplates,
@@ -26,13 +29,26 @@ import type {
 const square: Dimensions = { width: 1200, height: 1200 };
 const wide: Dimensions = { width: 1200, height: 630 };
 
+// A real font file, for the tests that need text measured rather than guessed.
+const sansFont = path.join(
+  process.cwd(),
+  "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
+);
+
 async function render(
   template: Template,
   props: MetaImageProps,
   config: ColophonConfig = {},
   dimensions: Dimensions = square,
 ): Promise<string> {
-  return template.render({ props, config: resolveConfig(config), dimensions });
+  const resolved = resolveConfig(config);
+
+  return template.render({
+    props,
+    config: resolved,
+    dimensions,
+    measure: await createMeasurer(resolved),
+  });
 }
 
 /** Geometry of the code panel: the stroked surface rect, not its shadow. */
@@ -41,6 +57,11 @@ function panelRect(svg: string): { x: number; width: number } {
   assertNonNullable(match);
 
   return { x: Number(match[1]), width: Number(match[2]) };
+}
+
+/** The size the first line of text is drawn at. */
+function titleSize(svg: string): number {
+  return Number(/font-size="(\d+)"/.exec(svg)?.[1] ?? 0);
 }
 
 /** Every x a token is drawn at, in image coordinates. */
@@ -140,6 +161,31 @@ describe("cardTemplate", () => {
     const svg = await render(cardTemplate, { template: "card", title: "solo" });
     assertArrayLength(svg.match(/<text/g), 1);
   });
+
+  it("shrinks a long title instead of losing the end of it", async () => {
+    const svg = await render(cardTemplate, {
+      template: "card",
+      title: "Generating share images from a post's own frontmatter",
+    });
+
+    // Four lines at the full 120px, three at 86px, so it shrinks and keeps
+    // every word rather than stopping after "own".
+    assertStringIncludes(svg, ">Generating share<");
+    assertStringIncludes(svg, ">own frontmatter<");
+    assertNumberBetween(titleSize(svg), 1, 119);
+  });
+
+  it("wraps a title written without spaces", async () => {
+    // Japanese has no spaces to break at, and its characters are a whole em
+    // wide rather than half of one, so the old estimate ran it off the image.
+    const svg = await render(cardTemplate, {
+      template: "card",
+      title: "同じ入力から複数の寸法の画像を生成します",
+    });
+
+    assertArrayLength(svg.match(/<text/g), 3);
+    assertStringIncludes(svg, ">を生成します<");
+  });
 });
 
 describe("codeTemplate", () => {
@@ -174,6 +220,24 @@ describe("codeTemplate", () => {
 
     assertStringNotIncludes(light, 'rx="30" fill="#24292e"');
     assertStringIncludes(dark, 'rx="30" fill="#24292e"');
+  }, 5000);
+
+  it("lays the grid out on the font's own advance", async () => {
+    const props = {
+      template: "code",
+      code: "if x:\n    return 1",
+      language: "python",
+    };
+    const assumed = await render(codeTemplate, props);
+    const measured = await render(codeTemplate, props, {
+      // A proportional face, so its digit advance of 0.636 em is far enough
+      // from the 0.6 assumed for monospace to show in the geometry.
+      fonts: [{ family: "DejaVu Sans", path: sansFont }],
+      code: { fontFamily: "DejaVu Sans" },
+    });
+
+    // Wider characters mean a wider block, and the panel hugs the block.
+    assertTrue(panelRect(measured).width > panelRect(assumed).width);
   }, 5000);
 
   it("preserves indentation as absolute token columns", async () => {

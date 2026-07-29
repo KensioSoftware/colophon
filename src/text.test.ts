@@ -2,14 +2,16 @@ import {
   assertArrayEquals,
   assertArrayLength,
   assertIdentical,
+  assertNumberBetween,
   assertStringIncludes,
   assertStringNotIncludes,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
 import {
+  breakWord,
   escapeXml,
-  estimateCharsPerLine,
+  fitText,
   layoutStack,
   textElement,
   wrapText,
@@ -17,6 +19,16 @@ import {
 
 function baselineGap(placed: { y: number }[]): number {
   return (placed[1]?.y ?? 0) - (placed[0]?.y ?? 0);
+}
+
+/** A measurer for a face where every character is ten units wide. */
+function byCharacter(text: string): number {
+  return text.length * 10;
+}
+
+/** The same, but at whatever size it is asked for: one unit per character. */
+function byCharacterAt(text: string, fontSize: number): number {
+  return text.length * fontSize;
 }
 
 describe("escapeXml", () => {
@@ -30,36 +42,78 @@ describe("escapeXml", () => {
 });
 
 describe("wrapText", () => {
-  it("wraps on word boundaries within the character limit", () => {
-    assertArrayEquals(wrapText("the quick brown fox", 10), [
+  it("wraps on word boundaries within the measured width", () => {
+    assertArrayEquals(wrapText("the quick brown fox", 100, byCharacter), [
       "the quick",
       "brown fox",
     ]);
   });
 
-  it("keeps a word longer than the limit on its own line", () => {
-    assertArrayEquals(wrapText("supercalifragilistic word", 10), [
-      "supercalifragilistic",
+  it("breaks a word too wide for a line of its own", () => {
+    assertArrayEquals(wrapText("supercalifragilistic word", 100, byCharacter), [
+      "supercalif",
+      "ragilistic",
       "word",
     ]);
   });
 
+  it("wraps text with no spaces in it, as Japanese is written", () => {
+    assertArrayEquals(wrapText("一二三四五六七", 30, byCharacter), [
+      "一二三",
+      "四五六",
+      "七",
+    ]);
+  });
+
   it("collapses runs of whitespace and ignores empties", () => {
-    assertArrayEquals(wrapText("  a   b  ", 10), ["a b"]);
+    assertArrayEquals(wrapText("  a   b  ", 100, byCharacter), ["a b"]);
   });
 
   it("returns an empty array for blank input", () => {
-    assertArrayEquals(wrapText(" ".repeat(3), 10), []);
+    assertArrayEquals(wrapText(" ".repeat(3), 100, byCharacter), []);
   });
 });
 
-describe("estimateCharsPerLine", () => {
-  it("scales inversely with font size", () => {
-    assertIdentical(estimateCharsPerLine(1000, 100, 0.5), 20);
+describe("breakWord", () => {
+  it("keeps a whole grapheme cluster together", () => {
+    // The flag is one grapheme of two code points, so a break inside it would
+    // leave two letters behind rather than half a flag.
+    assertArrayEquals(breakWord("🇯🇵🇯🇵", 10, byCharacter), ["🇯🇵", "🇯🇵"]);
   });
 
-  it("never returns less than one", () => {
-    assertIdentical(estimateCharsPerLine(1, 100), 1);
+  it("returns one piece for a character wider than the line", () => {
+    assertArrayEquals(breakWord("m", 1, byCharacter), ["m"]);
+  });
+});
+
+describe("fitText", () => {
+  const options = { maxWidth: 100, maxLines: 2, fontSize: 10, minFontSize: 5 };
+
+  it("leaves text that already fits at its full size", () => {
+    const fitted = fitText("abc def", byCharacterAt, options);
+
+    assertIdentical(fitted.fontSize, 10);
+    assertArrayEquals(fitted.lines, ["abc def"]);
+  });
+
+  it("shrinks text until it fits the line budget", () => {
+    // Three lines of ten characters at size 10; at size 8 the same words fit
+    // on two lines of twelve.
+    const fitted = fitText("aaaa bbbb cccc dddd eeee", byCharacterAt, options);
+
+    assertNumberBetween(fitted.fontSize, 5, 9);
+    assertArrayLength(fitted.lines, 2);
+  });
+
+  it("cuts to the line budget once it has shrunk as far as it may", () => {
+    const fitted = fitText("aaaa ".repeat(20), byCharacterAt, options);
+
+    assertIdentical(fitted.fontSize, 5);
+    assertArrayLength(fitted.lines, 2);
+  });
+
+  it("returns no lines for empty text", () => {
+    assertArrayEquals(fitText("", byCharacterAt, options).lines, []);
   });
 });
 

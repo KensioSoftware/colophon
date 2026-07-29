@@ -83,7 +83,6 @@ export default defineConfig({
   code: {
     theme: "night-owl", // any bundled Shiki theme
     fontFamily: '"JetBrains Mono", monospace',
-    charWidthRatio: 0.6, // glyph advance / font size, for your monospace face
     lineHeight: 1.55,
     tabSize: 2,
     cornerScale: 0.025,
@@ -93,17 +92,20 @@ export default defineConfig({
 });
 ```
 
-## Matching charWidthRatio to your font
+## Supply the monospace face
 
-The template positions every token absolutely from its character column, so
-`charWidthRatio` is how the layout knows where each one sits. It has to match
-the font actually being used, or the columns drift across the line.
+The template positions every token absolutely from its character column, so how
+wide one character is decides where each one sits. That width is measured from
+the font, which means the face has to be one Colophon loaded: supply it as a
+file under [`fonts`](../configuration/fonts/) and name it in `code.fontFamily`.
 
-`0.6` suits most monospace faces, including Source Code Pro, Menlo and DejaVu
-Sans Mono. Consolas wants about `0.55`.
+Without a file there is nothing to measure, and the layout falls back to
+assuming `0.6` of the font size per character. That suits most monospace faces,
+including Source Code Pro, Menlo and DejaVu Sans Mono, but Consolas is nearer
+`0.55`, and a mismatch shows up as columns drifting across the line.
 
-The reliable way to get the ratio you set is to supply the monospace face as a
-file under [`fonts`](../configuration/fonts/), so the renderer is not left
-picking whatever the machine has. The default stack ends in the generic
-`monospace` family, which resolves to something everywhere but not to the same
-thing everywhere.
+The default stack ends in the generic `monospace` family, which resolves to
+something everywhere but not to the same thing everywhere.
+
+This used to be a `code.charWidthRatio` setting. It has gone: see
+[Upgrading](../upgrading/).

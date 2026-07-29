@@ -1,18 +1,19 @@
-import { estimateCharsPerLine, wrapText } from "../../text/index.js";
-import type { MetaImageProps } from "../../types.js";
-import { optionalString } from "../props.js";
+import type { MeasureText, MetaImageProps } from "../../types.js";
+import type { TextLine } from "../text.js";
+import { blockLines } from "../text.js";
 
 const maxTitleLines = 3;
 const maxSubtitleLines = 3;
+const titleFloor = 0.62;
+const subtitleFloor = 0.8;
 
-/**
- * One line of the card's centred text block.
- */
-export interface CardLine {
-  readonly text: string;
-  readonly fontSize: number;
-  readonly fontWeight: number;
-  readonly opacity: number;
+/** The space the card's text has, and how to measure text into it. */
+export interface CardText {
+  readonly measure: MeasureText;
+  readonly fontFamily: string;
+  readonly contentWidth: number;
+  readonly titleFs: number;
+  readonly subFs: number;
 }
 
 /**
@@ -20,40 +21,25 @@ export interface CardLine {
  * gaps between the groups, because the card is the quieter layout and the
  * change of size and weight is enough to separate them.
  */
-export function cardLines(
-  props: MetaImageProps,
-  contentWidth: number,
-  titleFs: number,
-  subFs: number,
-): CardLine[] {
-  const title = optionalString(props.title) ?? "";
-  const subtitle = optionalString(props.subtitle);
-
-  const titleLines = wrapText(
-    title,
-    estimateCharsPerLine(contentWidth, titleFs, 0.58),
-  ).slice(0, maxTitleLines);
-
-  const subtitleLines =
-    subtitle === undefined || subtitle === ""
-      ? []
-      : wrapText(
-          subtitle,
-          estimateCharsPerLine(contentWidth, subFs, 0.52),
-        ).slice(0, maxSubtitleLines);
+export function cardLines(props: MetaImageProps, text: CardText): TextLine[] {
+  const { measure, fontFamily, contentWidth } = text;
 
   return [
-    ...titleLines.map((text) => ({
-      text,
-      fontSize: titleFs,
+    ...blockLines(props.title, measure, fontFamily, {
+      maxWidth: contentWidth,
+      maxLines: maxTitleLines,
+      fontSize: text.titleFs,
+      floor: titleFloor,
       fontWeight: 800,
       opacity: 1,
-    })),
-    ...subtitleLines.map((text) => ({
-      text,
-      fontSize: subFs,
+    }),
+    ...blockLines(props.subtitle, measure, fontFamily, {
+      maxWidth: contentWidth,
+      maxLines: maxSubtitleLines,
+      fontSize: text.subFs,
+      floor: subtitleFloor,
       fontWeight: 500,
       opacity: 0.85,
-    })),
+    }),
   ];
 }

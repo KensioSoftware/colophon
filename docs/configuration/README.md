@@ -97,6 +97,15 @@ Where there is an obvious near miss it is named, including options that have
 been renamed between versions. Where there is not, the message lists what is
 valid at that point in the config.
 
+An option that has been removed says so, and says what happened instead, since
+there is no name to point at:
+
+```text
+Option "code.charWidthRatio" has been removed: character width is measured from
+the font now. Supply the monospace face under `fonts` to have it measured
+exactly.
+```
+
 Nested objects are checked too, and named by their path: `code.tabsize`,
 `sizes[1].heigth`, `background.stops[0].ofset`. Everything wrong with a config
 is reported in one go rather than one run at a time.

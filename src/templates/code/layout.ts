@@ -26,6 +26,7 @@ export function fitSnippet(
   available: Panel,
   imageWidth: number,
   config: ResolvedConfig,
+  charWidthRatio: number,
 ): FittedCode {
   const inner = Math.round(Math.min(available.width, available.height) * 0.07);
   const codeWidth = Math.max(1, available.width - inner * 2);
@@ -33,12 +34,12 @@ export function fitSnippet(
 
   const fontSize = fitFontSize(
     highlighted,
-    codeWidth,
-    codeHeight,
+    { width: codeWidth, height: codeHeight },
     imageWidth,
     config,
+    charWidthRatio,
   );
-  const charWidth = fontSize * config.code.charWidthRatio;
+  const charWidth = fontSize * charWidthRatio;
   const step = fontSize * config.code.lineHeight;
 
   const { lines, clipped } = clipLines(

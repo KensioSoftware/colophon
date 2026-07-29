@@ -1,29 +1,25 @@
-import { estimateCharsPerLine, wrapText } from "../../text/index.js";
-import type { MetaImageProps } from "../../types.js";
-import { optionalString } from "../props.js";
+import type { MeasureText, MetaImageProps } from "../../types.js";
+import type { TextLine } from "../text.js";
+import { blockLines } from "../text.js";
+import { versionLines } from "./version.js";
 
 const maxTitleLines = 3;
 const maxSubtitleLines = 4;
+const titleFloor = 0.62;
+const subtitleFloor = 0.8;
 
 /**
- * One line of the banner's text block, with the weight and opacity that say
- * which of the title, version and subtitle groups it belongs to.
+ * The font sizes the banner's text is drawn at, all keyed to image height,
+ * along with the space it has and how to measure text into it.
  */
-export interface BannerLine {
-  readonly text: string;
-  readonly fontSize: number;
-  readonly fontWeight: number;
-  readonly opacity: number;
-  readonly gapBefore?: number;
-}
-
-/** The font sizes the banner's text is drawn at, all keyed to image height. */
 export interface BannerSizes {
   readonly height: number;
   readonly contentWidth: number;
   readonly titleFs: number;
   readonly versionFs: number;
   readonly subFs: number;
+  readonly measure: MeasureText;
+  readonly fontFamily: string;
 }
 
 /**
@@ -34,51 +30,27 @@ export interface BannerSizes {
 export function bannerLines(
   props: MetaImageProps,
   sizes: BannerSizes,
-): BannerLine[] {
-  const { height, contentWidth, titleFs, versionFs, subFs } = sizes;
-  const title = optionalString(props.title) ?? "";
-  const subtitle = optionalString(props.subtitle);
-  const version = optionalString(props.version);
+): TextLine[] {
+  const { height, contentWidth, measure, fontFamily } = sizes;
 
-  const lines: BannerLine[] = wrapText(
-    title,
-    estimateCharsPerLine(contentWidth, titleFs, 0.6),
-  )
-    .slice(0, maxTitleLines)
-    .map((text) => ({
-      text,
-      fontSize: titleFs,
+  return [
+    ...blockLines(props.title, measure, fontFamily, {
+      maxWidth: contentWidth,
+      maxLines: maxTitleLines,
+      fontSize: sizes.titleFs,
+      floor: titleFloor,
       fontWeight: 800,
       opacity: 0.98,
-    }));
-
-  if (version !== undefined && version !== "") {
-    lines.push({
-      text: `v${version}`,
-      fontSize: versionFs,
-      fontWeight: 700,
-      opacity: 0.85,
-      gapBefore: Math.round(height * 0.03),
-    });
-  }
-
-  const subtitleLines =
-    subtitle === undefined || subtitle === ""
-      ? []
-      : wrapText(
-          subtitle,
-          estimateCharsPerLine(contentWidth, subFs, 0.55),
-        ).slice(0, maxSubtitleLines);
-
-  for (const [index, text] of subtitleLines.entries()) {
-    lines.push({
-      text,
-      fontSize: subFs,
+    }),
+    ...versionLines(props, sizes),
+    ...blockLines(props.subtitle, measure, fontFamily, {
+      maxWidth: contentWidth,
+      maxLines: maxSubtitleLines,
+      fontSize: sizes.subFs,
+      floor: subtitleFloor,
       fontWeight: 500,
       opacity: 0.86,
-      ...(index === 0 && { gapBefore: Math.round(height * 0.045) }),
-    });
-  }
-
-  return lines;
+      gapBefore: Math.round(height * 0.045),
+    }),
+  ];
 }

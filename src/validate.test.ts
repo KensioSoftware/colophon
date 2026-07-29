@@ -53,7 +53,6 @@ describe("validateConfig", () => {
       code: {
         theme: "github-dark",
         fontFamily: "Menlo",
-        charWidthRatio: 0.6,
         lineHeight: 1.55,
         tabSize: 2,
         cornerScale: 0.025,
@@ -93,6 +92,17 @@ describe("validateConfig", () => {
       messageFor({ dimensions: [{ width: 1200, height: 1200 }] }),
       'Unknown option "dimensions". Did you mean "sizes"?',
     );
+  });
+
+  it("says why a removed option is gone rather than guessing at it", () => {
+    const message = messageFor({ code: { charWidthRatio: 0.6 } });
+
+    assertStringIncludes(
+      message,
+      'Option "code.charWidthRatio" has been removed:',
+    );
+    assertStringIncludes(message, "measured from the font");
+    assertStringNotIncludes(message, "Did you mean");
   });
 
   it("lists the valid options when nothing is close", () => {

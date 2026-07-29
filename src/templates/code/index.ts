@@ -9,6 +9,7 @@ import { layoutPanel } from "./panel.js";
 import { hugPanel, panelSvg } from "./plate.js";
 import { codeBody } from "./spans.js";
 import { warnIfTruncated } from "./warn.js";
+import { charWidthRatio } from "./width.js";
 
 /**
  * Syntax-highlighted code snippet on a rounded panel over the configured
@@ -21,7 +22,7 @@ import { warnIfTruncated } from "./warn.js";
  */
 export const codeTemplate: Template = {
   name: "code",
-  async render({ props, config, dimensions }): Promise<string> {
+  async render({ props, config, dimensions, measure }): Promise<string> {
     const { width, height } = dimensions;
     const title = optionalString(props.title);
     const titleFs = Math.round(height * 0.045);
@@ -44,7 +45,13 @@ export const codeTemplate: Template = {
       title !== undefined && title !== "",
       hasFooter(config),
     );
-    const fitted = fitSnippet(highlighted, available, width, config);
+    const fitted = fitSnippet(
+      highlighted,
+      available,
+      width,
+      config,
+      charWidthRatio(measure, config.code.fontFamily),
+    );
 
     warnIfTruncated(
       config,

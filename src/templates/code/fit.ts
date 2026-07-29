@@ -1,5 +1,5 @@
 import type { CodeToken, HighlightedCode } from "../../highlight/index.js";
-import type { ResolvedConfig } from "../../types.js";
+import type { Dimensions, ResolvedConfig } from "../../types.js";
 import { ellipsis } from "./ellipsis.js";
 
 /**
@@ -14,18 +14,17 @@ import { ellipsis } from "./ellipsis.js";
  */
 export function fitFontSize(
   highlighted: HighlightedCode,
-  codeWidth: number,
-  codeHeight: number,
+  area: Dimensions,
   imageWidth: number,
   config: ResolvedConfig,
+  charWidthRatio: number,
 ): number {
-  const { charWidthRatio, lineHeight, maxFontScale, minFontScale } =
-    config.code;
+  const { lineHeight, maxFontScale, minFontScale } = config.code;
 
   const byWidth =
-    codeWidth / (Math.max(1, highlighted.longestLine) * charWidthRatio);
+    area.width / (Math.max(1, highlighted.longestLine) * charWidthRatio);
   const byHeight =
-    codeHeight / (Math.max(1, highlighted.lines.length) * lineHeight);
+    area.height / (Math.max(1, highlighted.lines.length) * lineHeight);
 
   const fitted = Math.min(byWidth, byHeight, imageWidth * maxFontScale);
   return Math.max(1, Math.floor(Math.max(fitted, imageWidth * minFontScale)));

@@ -7,6 +7,21 @@
 const renamedOptions = new Map<string, string>([["dimensions", "sizes"]]);
 
 /**
+ * Options that have gone, and what to say instead of suggesting a name.
+ *
+ * A removal has no replacement to point at, so edit distance answers it with
+ * whichever surviving option happens to look similar, which is worse than
+ * saying plainly that the option is gone and why.
+ */
+const removedOptions = new Map<string, string>([
+  [
+    "code.charWidthRatio",
+    "character width is measured from the font now. Supply the monospace face" +
+      " under `fonts` to have it measured exactly.",
+  ],
+]);
+
+/**
  * Levenshtein distance between two strings, used to work out which option a
  * typo was aiming at. Both strings are option names and the lists are a
  * handful of entries long, so the plain two-row dynamic program is ample.
@@ -72,6 +87,12 @@ export function describeUnknownOption(
   key: string,
   known: readonly string[],
 ): string {
+  const removed = removedOptions.get(path);
+
+  if (removed !== undefined) {
+    return `Option "${path}" has been removed: ${removed}`;
+  }
+
   const suggestion = renamedOptions.get(path) ?? nearestName(key, known);
 
   if (suggestion !== undefined) {

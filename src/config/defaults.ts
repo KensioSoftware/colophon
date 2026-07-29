@@ -50,9 +50,10 @@ export const DEFAULT_CODE_FONT_FAMILY =
   '"JetBrains Mono", "Source Code Pro", "DejaVu Sans Mono", Menlo, Consolas, monospace';
 
 /**
- * Default `code` template styling. `charWidthRatio` and `lineHeight` drive the
- * monospace grid the snippet is laid out on; the font-size bounds are
- * fractions of the image width so they hold at every output size.
+ * Default `code` template styling. `lineHeight` sets the monospace grid the
+ * snippet is laid out on, along with the character width, which is measured
+ * from the font rather than configured. The font-size bounds are fractions of
+ * the image width so they hold at every output size.
  *
  * `minFontScale` of `0.025` is roughly 30px on a 1200px-wide image, which
  * still reads when a feed shows that image at half size. A snippet too long to
@@ -62,7 +63,6 @@ export const DEFAULT_CODE_FONT_FAMILY =
 export const DEFAULT_CODE_STYLE: Required<CodeStyle> = {
   theme: "github-dark",
   fontFamily: DEFAULT_CODE_FONT_FAMILY,
-  charWidthRatio: 0.6,
   lineHeight: 1.55,
   tabSize: 2,
   cornerScale: 0.025,

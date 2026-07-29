@@ -11,7 +11,7 @@ project. The [README](../README.md) has the install steps and a short example.
 - [The code template](./code-template/ "Syntax-highlighted code images")
 - [Rebuilds](./rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./programmatic-use/ "The API behind the CLI")
-- [Upgrading from 1.x](./upgrading/ "The two breaking changes in 2.0")
+- [Upgrading](./upgrading/ "The breaking changes in 2.0 and 3.0")
 
 ## Configuration
 

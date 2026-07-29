@@ -41,10 +41,10 @@ Pass `templates` in config. The keys are the names frontmatter uses, and what
 you supply is merged over the built-ins, so a key of `banner` replaces the
 built-in `banner`.
 
-A template's `render` receives the props, the resolved config and the pixel
-dimensions of the image being drawn. It returns the SVG _foreground_ content.
-The background and the enclosing `<svg>` root are added by the renderer, so a
-template does not draw them.
+A template's `render` receives the props, the resolved config, the pixel
+dimensions of the image being drawn, and a `measure` for its text. It returns
+the SVG _foreground_ content. The background and the enclosing `<svg>` root are
+added by the renderer, so a template does not draw them.
 
 ```ts
 import { defineConfig, escapeXml, type Template } from "@kensio/colophon";
@@ -83,6 +83,27 @@ Some notes on writing one:
 - **`render` may return a promise** if it has to load something. Keep it
   synchronous when it does not need to. The built-in `code` template is async
   because it loads syntax grammars on demand.
+- **Measure text rather than guessing at it.** `measure(text, style)` gives the
+  width in pixels that a run of text will occupy, read from the font the build
+  is rendering with. `wrapText` and `fitText` are exported for the usual jobs of
+  breaking a title across lines and shrinking one that does not fit:
+
+  ```ts
+  const { lines, fontSize } = fitText(
+    props.title ?? "",
+    (line, size) =>
+      measure(line, {
+        fontFamily: config.fontFamily,
+        fontSize: size,
+        fontWeight: 800,
+      }),
+    { maxWidth: width - 160, maxLines: 3, fontSize: 120, minFontSize: 74 },
+  );
+  ```
+
+  Widths are exact where the family resolves to a font supplied under
+  [`fonts`](../configuration/fonts/) and estimated otherwise, so a template
+  never has to handle the two cases itself.
 
 `config` here is the resolved config, with defaults applied and per-size
 overrides folded in, so `config.colors.brandWarm` is always a colour and
