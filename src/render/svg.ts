@@ -1,10 +1,12 @@
-import { backgroundSvg } from "../background.js";
+import { backgroundSvg } from "../background/index.js";
 import { loadImages } from "../image/index.js";
 import { createMeasurer } from "../measure/index.js";
+import { textureSvg } from "../texture/index.js";
 import type { Dimensions, MetaImageProps, ResolvedConfig } from "../types.js";
 import { selectTemplate } from "./template.js";
 
 const backgroundId = "colophon-bg";
+const textureId = "colophon-texture";
 
 /**
  * Build the complete SVG document for one image: the enclosing `<svg>` root,
@@ -32,6 +34,12 @@ export async function buildSvg(
     backgroundId,
     images.background,
   );
+  // Over the background and under the template, so that a treatment gives the
+  // background some surface without ever coming between text and reader.
+  const texture =
+    config.texture === undefined
+      ? ""
+      : textureSvg(config.texture, dimensions, textureId);
   const body = await template.render({
     props,
     config,
@@ -45,6 +53,6 @@ export async function buildSvg(
   return (
     `<svg width="${String(width)}" height="${String(height)}"` +
     ` viewBox="0 0 ${String(width)} ${String(height)}"` +
-    ` xmlns="http://www.w3.org/2000/svg">${background}${body}</svg>`
+    ` xmlns="http://www.w3.org/2000/svg">${background}${texture}${body}</svg>`
   );
 }

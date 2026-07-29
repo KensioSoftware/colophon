@@ -5,7 +5,7 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { backgroundSvg } from "./background.js";
+import { backgroundSvg } from "./background/index.js";
 
 const dimensions = { width: 800, height: 400 };
 
@@ -53,6 +53,38 @@ describe("backgroundSvg", () => {
     );
 
     assertStringIncludes(svg, 'x1="0" y1="0" x2="1" y2="0"');
+  });
+
+  it("draws a mesh as a base colour under one rect per blob", () => {
+    const svg = backgroundSvg(
+      {
+        type: "mesh",
+        color: "#0b1020",
+        blobs: [
+          { color: "#4338ca", x: 0.25, y: 0.5, radius: 0.5, opacity: 0.8 },
+          { color: "#7c3aed" },
+        ],
+      },
+      dimensions,
+      "bg",
+    );
+
+    assertStringIncludes(svg, 'fill="#0b1020"');
+    // In user space, and off the longer side, so the fade stays circular
+    // whatever the image's proportions are: 0.5 of 800 is 400.
+    assertStringIncludes(
+      svg,
+      '<radialGradient id="bg-blob-0" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="400">',
+    );
+    assertStringIncludes(svg, 'stop-color="#4338ca" stop-opacity="0.8"');
+    assertStringIncludes(svg, 'stop-color="#4338ca" stop-opacity="0"');
+    assertStringIncludes(svg, 'fill="url(#bg-blob-0)"');
+    // A blob that says nothing sits in the middle at full strength.
+    assertStringIncludes(
+      svg,
+      '<radialGradient id="bg-blob-1" gradientUnits="userSpaceOnUse" cx="400" cy="200" r="560">',
+    );
+    assertStringIncludes(svg, 'stop-color="#7c3aed" stop-opacity="1"');
   });
 
   it("draws a photo behind a backdrop, under a scrim", () => {

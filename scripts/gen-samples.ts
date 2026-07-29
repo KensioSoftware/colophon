@@ -14,6 +14,7 @@ import {
   type ColophonConfig,
   type Dimensions,
   type MetaImageProps,
+  type ThemeName,
 } from "../dist/index.js";
 
 interface Sample {
@@ -25,6 +26,38 @@ interface Sample {
 
 const square: Dimensions = { width: 1200, height: 1200 };
 const wide: Dimensions = { width: 1200, height: 630 };
+
+/**
+ * The theme gallery is rendered small, since eight of them go in one table and
+ * a reader is comparing looks rather than reading the type.
+ */
+const swatch: Dimensions = { width: 640, height: 336 };
+
+const themeNames: readonly ThemeName[] = [
+  "midnight",
+  "aurora",
+  "ember",
+  "forest",
+  "bloom",
+  "slate",
+  "paper",
+  "sandstone",
+];
+
+/**
+ * One image per theme, everything but the theme held constant, so the gallery
+ * compares the themes rather than the templates.
+ */
+const themeSamples: readonly Sample[] = themeNames.map((theme) => ({
+  name: `theme-${theme}`,
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: theme[0]?.toUpperCase() + theme.slice(1),
+    subtitle: `theme: "${theme}"`,
+  },
+  config: { theme, footer: "example.com" },
+}));
 
 const brand: ColophonConfig = {
   colors: { brand: "#4f46e5", brandDark: "#3730a3", brandWarm: "#db2777" },
@@ -38,6 +71,7 @@ const teal: ColophonConfig = {
 };
 
 const samples: readonly Sample[] = [
+  ...themeSamples,
   {
     name: "banner-square",
     dimensions: square,

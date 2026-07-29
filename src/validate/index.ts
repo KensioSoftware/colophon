@@ -1,17 +1,5 @@
 import type { ColophonConfig } from "../types.js";
-import { checkEach, checkKeys } from "./check.js";
-import {
-  badgeKeys,
-  codeKeys,
-  colorKeys,
-  configKeys,
-  contentKeys,
-  fontKeys,
-  imageSourceKeys,
-} from "./keys.js";
-import { checkExtras, checkSizes } from "./overrides.js";
-import { checkPlacement } from "./placement.js";
-import { checkBackground, checkSlugStrategy } from "./values.js";
+import { collectProblems } from "./collect.js";
 
 /**
  * Reject a config carrying options Colophon does not know.
@@ -26,34 +14,7 @@ import { checkBackground, checkSlugStrategy } from "./values.js";
  * reads whatever fields it understands.
  */
 export function validateConfig(config: ColophonConfig): void {
-  // The types say what should be here; validation exists for when it is not.
-  const raw = config as {
-    readonly colors?: unknown;
-    readonly content?: unknown;
-    readonly background?: unknown;
-    readonly badge?: unknown;
-    readonly logo?: unknown;
-    readonly code?: unknown;
-    readonly sizes?: unknown;
-    readonly fonts?: unknown;
-    readonly extra?: unknown;
-    readonly placement?: unknown;
-  };
-  const problems: string[] = [];
-
-  checkKeys(config, "", configKeys, problems);
-  checkKeys(raw.colors, "colors", colorKeys, problems);
-  checkKeys(raw.badge, "badge", badgeKeys, problems);
-  checkKeys(raw.logo, "logo", imageSourceKeys, problems);
-  checkKeys(raw.code, "code", codeKeys, problems);
-  checkKeys(raw.content, "content", contentKeys, problems);
-  checkSlugStrategy(raw.content, problems);
-  checkSizes(raw.sizes, problems);
-  checkExtras(raw.extra, problems);
-  checkEach(raw.fonts, "fonts", fontKeys, problems);
-  checkBackground(raw.background, "background", problems);
-  checkPlacement(raw.placement, problems);
-
+  const problems = collectProblems(config);
   const [first, ...rest] = problems;
 
   if (first === undefined) {

@@ -5,6 +5,7 @@ import {
   assertBufferEqual,
   assertFalse,
   assertIdentical,
+  assertNumberBetween,
   assertObjectEquals,
   assertStringEndsWith,
   assertStringIncludes,
@@ -62,6 +63,22 @@ describe("buildSvg", () => {
     assertStringIncludes(svg, '<linearGradient id="colophon-bg"');
     assertStringIncludes(svg, ">hi</text>");
     assertStringEndsWith(svg, "</svg>");
+  });
+
+  it("lays a texture over the background and under the template", async () => {
+    const svg = await buildSvg(
+      { template: "banner", title: "hi" },
+      resolveConfig({ theme: "midnight" }),
+      { width: 640, height: 480 },
+    );
+
+    // A treatment gives the background some surface; it must never come
+    // between a headline and the reader.
+    assertNumberBetween(
+      svg.indexOf('<pattern id="colophon-texture"'),
+      svg.indexOf("colophon-bg-blob-0"),
+      svg.indexOf(">hi</text>"),
+    );
   });
 
   it("throws a helpful error for an unknown template", async () => {

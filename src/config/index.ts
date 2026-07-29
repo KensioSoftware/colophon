@@ -1,6 +1,8 @@
 import { resolveFonts } from "../fonts/index.js";
 import { resolveOptionalImage } from "../image/index.js";
 import { builtinTemplates } from "../templates/index.js";
+import { applyTheme } from "../theme/index.js";
+import { resolveTexture } from "../texture/index.js";
 import type {
   ColophonConfig,
   ColophonConfigFactory,
@@ -68,9 +70,13 @@ export function defineConfig(config: ColophonConfigInput): ColophonConfigInput {
  * written against a different version of the package is a build error rather
  * than a set of images quietly rendered with the defaults.
  */
-export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
-  validateConfig(config);
+export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
+  validateConfig(input);
 
+  // The theme is folded in before anything is resolved, so the rest of this
+  // sees a config that happens to name a background and a palette, and nothing
+  // downstream has to know a theme was involved.
+  const config = applyTheme(input);
   const colors = resolveColors(config.colors);
   const fonts = resolveFonts(config.fonts);
 
@@ -78,6 +84,7 @@ export function resolveConfig(config: ColophonConfig = {}): ResolvedConfig {
     colors,
     background:
       resolveBackground(config.background) ?? defaultBackground(colors),
+    texture: resolveTexture(config.texture, colors),
     fonts,
     systemFonts: shouldLoadSystemFonts(config.systemFonts, fonts),
     // A project that supplies one font should not have to name it twice.

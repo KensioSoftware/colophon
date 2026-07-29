@@ -60,6 +60,8 @@ describe("validateConfig", () => {
         minFontScale: 0.025,
       },
       onWarning: () => undefined,
+      theme: "midnight",
+      texture: { type: "grain", opacity: 0.1, scale: 1.4 },
       sizes: [{ name: "square", width: 1200, height: 1200 }],
       templates: {},
       content: { slugStrategy: "route" },
@@ -236,8 +238,68 @@ describe("validateConfig", () => {
 
   it("lists the background types when nothing is close", () => {
     assertIdentical(
-      messageFor({ background: { type: "mesh" } }),
-      'Unknown background type "mesh". Valid types: solid, gradient, image.',
+      messageFor({ background: { type: "plaid" } }),
+      'Unknown background type "plaid". Valid types: solid, gradient, mesh, image.',
+    );
+  });
+
+  it("checks a mesh background and each of its blobs", () => {
+    assertIdentical(
+      messageFor({
+        background: {
+          type: "mesh",
+          color: "#000",
+          blobs: [{ colour: "#fff" }],
+        },
+      }),
+      'Unknown option "background.blobs[0].colour". Did you mean "color"?',
+    );
+  });
+
+  it("checks a texture against the keys of the treatment it names", () => {
+    assertIdentical(
+      messageFor({ texture: { type: "dots", gapp: 40 } }),
+      'Unknown option "texture.gapp". Did you mean "gap"?',
+    );
+    // `angle` belongs to ruled lines rather than to a dot grid, so it is an
+    // unknown option here rather than one that quietly does nothing.
+    assertStringIncludes(
+      messageFor({ texture: { type: "dots", angle: 45 } }),
+      'Unknown option "texture.angle"',
+    );
+  });
+
+  it("checks ruled lines against their own keys", () => {
+    assertIdentical(
+      messageFor({ texture: { type: "rules", anlge: 30 } }),
+      'Unknown option "texture.anlge". Did you mean "angle"?',
+    );
+  });
+
+  it("rejects a texture type it would otherwise draw as ruled lines", () => {
+    assertIdentical(
+      messageFor({ texture: { type: "noise" } }),
+      'Unknown texture type "noise". Valid types: grain, dots, rules.',
+    );
+  });
+
+  it("rejects a theme that does not exist", () => {
+    assertIdentical(
+      messageFor({ theme: "midnigt" }),
+      'Unknown theme "midnigt". Did you mean "midnight"?',
+    );
+    assertStringIncludes(
+      messageFor({ theme: "chartreuse" }),
+      "Valid themes: midnight, aurora,",
+    );
+  });
+
+  it("rejects an unknown theme on one output size too", () => {
+    assertIdentical(
+      messageFor({
+        sizes: [{ name: "og", width: 1200, height: 630, theme: "papper" }],
+      }),
+      'Unknown theme "papper". Did you mean "paper"?',
     );
   });
 

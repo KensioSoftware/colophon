@@ -1,6 +1,8 @@
+import { checkBackground } from "./background.js";
 import { checkKeys, isList, isRecord } from "./check.js";
 import { badgeKeys, codeKeys, colorKeys, extraKeys, sizeKeys } from "./keys.js";
-import { checkBackground } from "./values.js";
+import { checkTexture } from "./texture.js";
+import { checkTheme } from "./values.js";
 
 /**
  * Check one output size, and the overrides it carries.
@@ -19,7 +21,9 @@ function checkSize(size: unknown, path: string, problems: string[]): void {
   checkKeys(size["colors"], `${path}.colors`, colorKeys, problems);
   checkKeys(size["badge"], `${path}.badge`, badgeKeys, problems);
   checkKeys(size["code"], `${path}.code`, codeKeys, problems);
+  checkTheme(size["theme"], problems);
   checkBackground(size["background"], `${path}.background`, problems);
+  checkTexture(size["texture"], `${path}.texture`, problems);
 }
 
 /** Check each output size, and the overrides it carries. */

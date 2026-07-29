@@ -24,6 +24,7 @@ import {
   SIZE_PRESETS,
 } from "./config/index.js";
 import { resolveConfigForSize } from "./config/size.js";
+import { themeNames } from "./theme/index.js";
 import type { ColophonConfig } from "./types.js";
 
 // A real font file: resolution checks that the path is there, so a fictional
@@ -145,6 +146,72 @@ describe("resolveConfig", () => {
   it("prefers an explicit background over the derived gradient", () => {
     const background = { type: "solid", color: "#f00" } as const;
     assertIdentical(resolveConfig({ background }).background, background);
+  });
+
+  it("has no texture unless one is asked for", () => {
+    assertUndefined(resolveConfig().texture);
+  });
+
+  it("takes a theme's palette, background and texture", () => {
+    const resolved = resolveConfig({ theme: "midnight" });
+
+    assertIdentical(resolved.colors.foreground, "#e6e9f5");
+    assertIdentical(resolved.background.type, "mesh");
+    assertIdentical(resolved.texture?.type, "dots");
+  });
+
+  it("turns grain on for no theme, whatever it costs a project in bytes", () => {
+    // Per-pixel noise takes a 1200x1200 PNG past 2MB, which is not something to
+    // hand someone who picked a theme by its name.
+    const grainy = themeNames.filter(
+      (theme) => resolveConfig({ theme }).texture?.type === "grain",
+    );
+
+    assertArrayLength(grainy, 0);
+  });
+
+  it("lets the config win over the theme, field by field", () => {
+    const resolved = resolveConfig({
+      theme: "midnight",
+      colors: { brand: "#0d9488" },
+      // Not `dots`, which is what midnight brings: a texture the theme would
+      // have supplied anyway proves nothing about which of the two won.
+      texture: { type: "rules" },
+    });
+
+    // The palette is the config's, resolved by the usual rules, and the
+    // background is still the theme's: a theme is a set of defaults, and the
+    // background it draws is part of the look rather than something derived
+    // from the colours.
+    assertIdentical(resolved.colors.brand, "#0d9488");
+    assertIdentical(resolved.colors.brandWarm, "#0d9488");
+    assertIdentical(resolved.background.type, "mesh");
+    assertIdentical(resolved.texture?.type, "rules");
+  });
+
+  it("colours a theme's texture from the palette in force", () => {
+    // `paper` rules its background in the foreground colour, so a config that
+    // changes the text colour changes the lines with it.
+    const themed = resolveConfig({ theme: "paper" });
+    const overridden = resolveConfig({
+      theme: "paper",
+      colors: { brand: "#b45309", foreground: "#334155" },
+    });
+
+    assertObjectEquals(themed.texture, {
+      type: "rules",
+      opacity: 0.05,
+      color: "#1c1917",
+    });
+    assertObjectEquals(overridden.texture, {
+      type: "rules",
+      opacity: 0.05,
+      color: "#334155",
+    });
+  });
+
+  it("leaves a theme that brings no texture without one", () => {
+    assertUndefined(resolveConfig({ theme: "bloom" }).texture);
   });
 
   it("falls back to default sizes when given an empty list", () => {
@@ -318,6 +385,52 @@ describe("resolveConfigForSize", () => {
       foreground: "#111827",
     });
     assertObjectEquals(resolved.background, resolveConfig().background);
+  });
+
+  it("keeps a theme's palette when a size overrides one shade of it", () => {
+    const resolved = resolveConfigForSize(
+      { theme: "midnight" },
+      {
+        ...square,
+        colors: { foreground: "#ffffff" },
+      },
+    );
+
+    // Without the theme as the merge base this would fall back to the neutral
+    // default palette, so a size asking for whiter text would quietly lose the
+    // other three shades.
+    assertIdentical(resolved.colors.foreground, "#ffffff");
+    assertIdentical(resolved.colors.brand, "#6366f1");
+    assertIdentical(resolved.background.type, "mesh");
+  });
+
+  it("lets a size choose a different theme", () => {
+    const resolved = resolveConfigForSize(
+      { theme: "midnight" },
+      {
+        ...square,
+        theme: "paper",
+      },
+    );
+
+    assertIdentical(resolved.colors.foreground, "#1c1917");
+    assertObjectEquals(resolved.background, {
+      type: "solid",
+      color: "#faf7f0",
+    });
+  });
+
+  it("replaces the config's texture for one size", () => {
+    const resolved = resolveConfigForSize(
+      { texture: { type: "grain" } },
+      { ...square, texture: { type: "dots", gap: 60 } },
+    );
+
+    assertObjectEquals(resolved.texture, {
+      type: "dots",
+      gap: 60,
+      color: DEFAULT_COLORS.foreground,
+    });
   });
 
   it("rebuilds the derived gradient around an overridden brand", () => {

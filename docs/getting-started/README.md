@@ -49,6 +49,15 @@ export default defineConfig({
 });
 ```
 
+Or pick a [theme](../configuration/themes/) and let it choose the colours:
+
+```ts
+export default defineConfig({
+  theme: "midnight",
+  footer: "example.com",
+});
+```
+
 Every option is listed in [Configuration](../configuration/).
 
 ## Run it over a content tree

@@ -70,6 +70,7 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
       version: await packageVersion(),
       colors: config.colors,
       background: await backgroundDigest(config.background),
+      texture: config.texture,
       fonts,
       logo,
       systemFonts: config.systemFonts,

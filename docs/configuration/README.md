@@ -29,8 +29,10 @@ yourself.
 
 | Option        | Default                                       | Notes                                                             |
 | ------------- | --------------------------------------------- | ----------------------------------------------------------------- |
+| `theme`       | none                                          | A named look. See [Themes](./themes/).                            |
 | `colors`      | neutral indigo/pink                           | `brand`, `brandDark`, `brandWarm`, `foreground`.                  |
-| `background`  | gradient derived from `colors`                | Or a `{ type: "solid" }` or custom gradient.                      |
+| `background`  | gradient derived from `colors`                | Or a solid colour, a mesh, a gradient or a photo.                 |
+| `texture`     | none                                          | Grain, dots or ruled lines. See [Themes](./themes/).              |
 | `fonts`       | none                                          | Font files to render with. See [Fonts](./fonts/).                 |
 | `systemFonts` | `true` until `fonts` is set                   | Whether installed fonts are loaded too.                           |
 | `fontFamily`  | first font, else `Arial, ...`                 | Font stack for template text.                                     |

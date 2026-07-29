@@ -15,6 +15,7 @@ export type {
   Manifest,
   ManifestImage,
   ManifestPage,
+  MeshBlob,
   MetaImageProps,
   MeasureText,
   MetaTag,
@@ -28,7 +29,9 @@ export type {
   ResolvedConfig,
   Template,
   TemplateContext,
+  Texture,
   TextStyle,
+  ThemeName,
   WarningHandler,
 } from "./types.js";
 
@@ -44,7 +47,8 @@ export {
 } from "./config/index.js";
 export { resolveConfigForSize } from "./config/size.js";
 
-export { backgroundSvg } from "./background.js";
+export { backgroundSvg } from "./background/index.js";
+export { textureSvg } from "./texture/index.js";
 export { buildSvg, renderMetaImages, renderSvgToPng } from "./render/index.js";
 export {
   bannerTemplate,
