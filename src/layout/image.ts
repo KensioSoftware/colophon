@@ -2,7 +2,7 @@ import { escapeXml } from "../text/index.js";
 import type { Rect } from "./types.js";
 
 /** How an image fills the rectangle it was given. */
-export interface ImageOptions {
+interface ImageFit {
   /**
    * `cover` fills the rectangle and crops whatever does not fit, which is what
    * a background photo wants. `contain` fits the whole image inside it, which
@@ -10,14 +10,23 @@ export interface ImageOptions {
    */
   readonly fit?: "cover" | "contain";
   readonly opacity?: number;
-  /**
-   * Rounded corners, for an avatar or a screenshot. Needs an `id` to hang the
-   * clip path on, because SVG has no other way to say it.
-   */
-  readonly radius?: number;
-  /** Unique within the image. Only read when `radius` is set. */
-  readonly id?: string;
 }
+
+/**
+ * Rounded corners, for an avatar or a screenshot, which need a clip path and
+ * so an id to hang it on: SVG has no other way to say it.
+ *
+ * The two travel together in the type, so a radius without an id does not
+ * compile. It is the sort of option that would otherwise be dropped in silence,
+ * and a template author asking for a round avatar and getting a square one has
+ * nothing to go on.
+ */
+type ImageCorners =
+  | { readonly radius?: undefined; readonly id?: string }
+  | { readonly radius: number; readonly id: string };
+
+/** Options for {@link image}. */
+export type ImageOptions = ImageFit & ImageCorners;
 
 /**
  * Draw an image within a rectangle.
@@ -47,16 +56,19 @@ export function image(
     ` preserveAspectRatio="${aspect}"${opacity}` +
     ` href="${escapeXml(href)}"/>`;
 
-  if (options.radius === undefined || options.id === undefined) {
+  if (options.radius === undefined) {
     return element;
   }
 
+  // The type pairs the two, so an id is here whenever a radius is.
+  const id = escapeXml(options.id);
+
   return (
-    `<defs><clipPath id="${options.id}">` +
+    `<defs><clipPath id="${id}">` +
     `<rect x="${String(rect.x)}" y="${String(rect.y)}"` +
     ` width="${String(rect.width)}" height="${String(rect.height)}"` +
     ` rx="${String(options.radius)}"/>` +
     `</clipPath></defs>` +
-    `<g clip-path="url(#${options.id})">${element}</g>`
+    `<g clip-path="url(#${id})">${element}</g>`
   );
 }

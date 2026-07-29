@@ -1,3 +1,4 @@
+import { escapeXml } from "../text/index.js";
 import { box } from "./box.js";
 import type { Rect } from "./types.js";
 
@@ -29,17 +30,25 @@ export function scrim(
   id: string,
   options: ScrimOptions = {},
 ): string {
-  const color = options.color ?? defaultColor;
   const from = options.from ?? 0;
   const to = options.to ?? 0.55;
 
   if (from === to) {
-    return box(rect, { fill: color, fillOpacity: from });
+    return box(rect, {
+      fill: options.color ?? defaultColor,
+      fillOpacity: from,
+    });
   }
+
+  // Escaped here for the reason `box` escapes what it is given: both of these
+  // may have come from a post's frontmatter by way of a template. The fill
+  // below takes the id raw, since `box` does its own escaping and the two
+  // attributes have to agree once parsed rather than as written.
+  const color = escapeXml(options.color ?? defaultColor);
 
   const gradient =
     `<defs>` +
-    `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">` +
+    `<linearGradient id="${escapeXml(id)}" x1="0" y1="0" x2="0" y2="1">` +
     `<stop offset="0%" stop-color="${color}" stop-opacity="${String(from)}"/>` +
     `<stop offset="100%" stop-color="${color}" stop-opacity="${String(to)}"/>` +
     `</linearGradient>` +

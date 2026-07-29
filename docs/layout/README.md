@@ -5,8 +5,9 @@ and a rectangle, and it stops being fine at about the point you want a photo
 behind the text with a gradient over it and a row of chips along the top.
 
 The toolkit is the set of small functions the built-in templates are made from.
-Nothing in it holds state, everything returns a string or a rectangle, and a
-template that would rather write its own SVG by hand still can.
+Nothing in it holds state: each function takes values and returns them, whether
+that is a rectangle, a list of lines or a string of SVG. A template that would
+rather write its own SVG by hand still can.
 
 ```ts
 import { box, drawLines, inset } from "@kensio/colophon/layout";
@@ -104,6 +105,8 @@ read at build time and inlined renders the same wherever the build runs, with
 nothing to fetch.
 
 ```ts
+import { readFile } from "node:fs/promises";
+
 const bytes = await readFile("hero.jpg");
 image(full, `data:image/jpeg;base64,${bytes.toString("base64")}`);
 ```

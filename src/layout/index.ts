@@ -5,7 +5,7 @@
  * returning a string of SVG, and this is the set of small functions that build
  * one: rectangles, panels, images, and the arithmetic of putting things in
  * rows and stacks. It is deliberately boring. Nothing here holds state, every
- * function returns a string or a rectangle, and a template that would rather
+ * function takes values and returns them, and a template that would rather
  * write its own SVG by hand still can.
  *
  * The subpath loads no rasteriser, no syntax highlighter and nothing from

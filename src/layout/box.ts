@@ -1,8 +1,17 @@
+import { escapeXml } from "../text/index.js";
 import type { BoxStyle, Rect } from "./types.js";
 
-/** One SVG attribute, or nothing where the value was not given. */
+/**
+ * One SVG attribute, or nothing where the value was not given.
+ *
+ * The value is escaped even though most of them are colours out of a config,
+ * where nothing needs escaping. A template's props come from frontmatter, and a
+ * template is free to pass one straight through as a fill, so a site whose
+ * posts are not all written by the same person would otherwise be one `"` away
+ * from a document that does not parse.
+ */
 function attribute(name: string, value: string | number | undefined): string {
-  return value === undefined ? "" : ` ${name}="${String(value)}"`;
+  return value === undefined ? "" : ` ${name}="${escapeXml(String(value))}"`;
 }
 
 /**
@@ -50,8 +59,10 @@ export function inset(
   const left = edges.left ?? all;
 
   return {
-    x: rect.x + left,
-    y: rect.y + top,
+    // Clamped so that a rectangle which collapses does so at the far edge of
+    // the one it came from, rather than landing outside it with no width.
+    x: rect.x + Math.min(left, rect.width),
+    y: rect.y + Math.min(top, rect.height),
     width: Math.max(0, rect.width - left - right),
     height: Math.max(0, rect.height - top - bottom),
   };

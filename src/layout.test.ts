@@ -114,6 +114,13 @@ describe("box", () => {
     );
   });
 
+  it("escapes a value that came from a post", () => {
+    const svg = box(area, { fill: '#fff" onload="alert(1)' });
+
+    assertStringNotIncludes(svg, 'onload="');
+    assertStringIncludes(svg, "&quot;");
+  });
+
   it("writes the corners, stroke and opacities when given", () => {
     const svg = box(area, {
       radius: 8,
@@ -147,6 +154,13 @@ describe("inset", () => {
 
   it("collapses rather than turning inside out", () => {
     assertIdentical(inset(area, 800).width, 0);
+  });
+
+  it("collapses at the far edge rather than outside the rectangle", () => {
+    const collapsed = inset(area, 1200);
+
+    assertIdentical(collapsed.width, 0);
+    assertIdentical(collapsed.x, 1000);
   });
 });
 
@@ -191,13 +205,14 @@ describe("image", () => {
 
     assertStringIncludes(rounded, '<clipPath id="avatar"');
     assertStringIncludes(rounded, 'clip-path="url(#avatar)"');
-    // A radius with nowhere to hang the clip path is left square rather than
-    // emitting a reference to an id that is not there.
-    assertStringNotIncludes(image(area, "a.png", { radius: 20 }), "clipPath");
   });
 
-  it("escapes the href", () => {
+  it("escapes the href and the id", () => {
     assertStringIncludes(image(area, "a.png?a=1&b=2"), "a=1&amp;b=2");
+    assertStringIncludes(
+      image(area, "a.png", { radius: 4, id: 'a"b' }),
+      'id="a&quot;b"',
+    );
   });
 });
 
@@ -209,6 +224,15 @@ describe("scrim", () => {
     assertStringIncludes(svg, 'stop-opacity="0"');
     assertStringIncludes(svg, 'stop-opacity="0.6"');
     assertStringIncludes(svg, 'fill="url(#shade)"');
+  });
+
+  it("escapes the colour and the id, and keeps the two references in step", () => {
+    const svg = scrim(area, 'a"b', { color: '#000" x="', to: 0.5 });
+
+    assertStringIncludes(svg, 'id="a&quot;b"');
+    assertStringIncludes(svg, 'fill="url(#a&quot;b)"');
+    // The injected attribute stays inside the colour rather than becoming one.
+    assertStringIncludes(svg, 'stop-color="#000&quot; x=&quot;"');
   });
 
   it("is a flat wash when both ends match, and needs no gradient", () => {
