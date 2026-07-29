@@ -7,7 +7,7 @@ import type { Placement } from "../types.js";
  * JavaScript with nothing checking it, and none of these omissions fails
  * anywhere near the config: a missing `dir` surfaces as a complaint about an
  * argument to `path`, and the rest as something not being a function. Key
- * validation is no help either — it is the option that is not there.
+ * validation is no help either, since it is the option that is not there.
  *
  * This sits here rather than in `validate/`, which checks keys and the names
  * of closed sets, for the reason `fonts/resolve.ts` does: what a value has to

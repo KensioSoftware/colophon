@@ -17,9 +17,9 @@ const hashLength = 8;
  * carries the post's keywords, and the size name keeps every image of a post
  * distinct (`my-post-og.png`, `my-post-square.png`).
  *
- * A slug carrying directories of its own — what the `route` strategy produces,
- * and what a frontmatter `slug` of `docs/intro` means — puts them in the name,
- * so the image's path mirrors the route wherever it is placed.
+ * A slug carrying directories of its own puts them in the name, so the image's
+ * path mirrors the route wherever it is placed. That is what the `route`
+ * strategy produces, and what a frontmatter `slug` of `docs/intro` means.
  *
  * The digest is the image's rebuild stamp: the props, the config and the size
  * it is drawn from. Hashing the rendered bytes would be a truer name, but they

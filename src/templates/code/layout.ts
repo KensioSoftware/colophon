@@ -46,9 +46,9 @@ export function fitSnippet(
     Math.max(1, Math.floor(codeWidth / charWidth)),
   );
 
-  // Padding reads best proportional to the text, not the panel — a snippet
-  // fitted down to a small size wants tighter margins. Only ever shrink, so
-  // the code area the font was fitted against stays valid.
+  // Padding reads best proportional to the text rather than the panel, since a
+  // snippet fitted down to a small size wants tighter margins. Only ever
+  // shrink, so the code area the font was fitted against stays valid.
   const padding = Math.max(
     Math.min(inner, Math.round(fontSize * 1.6)),
     Math.round(inner * 0.35),

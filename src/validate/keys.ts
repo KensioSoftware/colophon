@@ -87,8 +87,9 @@ export const customPlacementKeys = knownKeys<CustomPlacement>({
  * variant it was guessed to be.
  *
  * Two of the names are hyphenated because they are values a user writes in a
- * config, not identifiers — the casing rule is about the latter. Keeping them
- * as keys is what keeps the list exhaustive, which is the whole point of it.
+ * config rather than identifiers, and the casing rule is about identifiers.
+ * Keeping them as keys is what keeps the list exhaustive, which is the whole
+ * point of it.
  */
 export const placementStrategies = knownKeys<
   Record<Placement["strategy"], unknown>

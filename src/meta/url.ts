@@ -17,10 +17,10 @@ function schemeOf(url: string): string | undefined {
  * the placement's `urlBase` said, which is usually site-relative, so this is
  * where the two halves meet.
  *
- * A URL that names its own scheme is returned untouched — a placement pointing
- * at a CDN has said everything there is to say. A scheme-relative one (`//cdn`)
- * has not: it is relative to the page's scheme, which is exactly what a crawler
- * reading the tag elsewhere does not have, so it borrows the base's.
+ * A URL that names its own scheme is returned untouched, since a placement
+ * pointing at a CDN has said everything there is to say. A scheme-relative one
+ * (`//cdn`) has not: it is relative to the page's scheme, which is exactly what
+ * a crawler reading the tag elsewhere does not have, so it borrows the base's.
  */
 export function absoluteUrl(url: string, baseUrl: string | undefined): string {
   if (baseUrl === undefined || schemed.test(url)) {

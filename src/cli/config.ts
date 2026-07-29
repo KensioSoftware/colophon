@@ -31,7 +31,7 @@ function assertConfig(
  * The default export may be the config itself or a function returning one,
  * possibly async. A config that has to compute something cannot be written as
  * a literal, and without the function form such a project has to abandon the
- * CLI and call `generate` from a script of its own — reimplementing the
+ * CLI and call `generate` from a script of its own, reimplementing the
  * reporting the CLI already does along the way.
  */
 export async function loadConfig(

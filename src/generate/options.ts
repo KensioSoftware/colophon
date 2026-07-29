@@ -10,7 +10,7 @@ export interface GeneratedImage {
   /**
    * The content file this image came from, relative to the content root.
    * `undefined` for a config `extra` image: there is no post behind it, and
-   * naming one — the output path, say — would quietly break anything grouping
+   * naming one after its output path would quietly break anything grouping
    * results by the post they belong to.
    */
   readonly contentPath: string | undefined;

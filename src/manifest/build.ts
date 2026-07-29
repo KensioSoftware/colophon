@@ -35,7 +35,7 @@ function drafts(jobs: readonly RenderJob[]): Map<string, PageDraft> {
  * Build the manifest for a planned build.
  *
  * It is built from the jobs rather than from what was written, so a rebuild
- * that skips every image still describes the whole site — the manifest says
+ * that skips every image still describes the whole site. The manifest says
  * what exists, not what happened this time.
  *
  * Pages are sorted by slug, and each page's images by size name, so a manifest

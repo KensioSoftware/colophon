@@ -9,7 +9,7 @@ export interface CliArgs {
 }
 
 /** Help text for `--help`, and for a run that asks for nothing else. */
-export const usage = `colophon — generate social meta images from frontmatter
+export const usage = `colophon: generate social meta images from frontmatter
 
 Usage:
   colophon [contentDir] [options]

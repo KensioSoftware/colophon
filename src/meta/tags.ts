@@ -52,14 +52,14 @@ function imageUrl(
  * The social meta tags for one page of a {@link Manifest}.
  *
  * Generating the image is half the job: a site still has to write the tags,
- * and every site ends up with slightly different results — a missing width, a
- * relative URL a crawler cannot resolve, a large card promising an image that
- * is square.
+ * and every site ends up with slightly different results: a missing width, a
+ * relative URL a crawler cannot resolve, or a large card promising an image
+ * that is square.
  *
  * A page the manifest does not have gets no tags rather than an error. Not
- * every page has a share image — a props mapper returning `undefined` is how a
- * site says so — and a template asking about one should not have to know in
- * advance.
+ * every page has a share image, and a props mapper returning `undefined` is
+ * how a site says so, so a template asking about one should not have to know
+ * in advance.
  *
  * Alt text is emitted for both platforms when the page has any. Twitter reads
  * its own `twitter:image:alt` rather than falling back to the Open Graph one,

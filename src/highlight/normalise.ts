@@ -8,8 +8,8 @@ export function expandTabs(text: string, tabSize: number): string {
 
 /**
  * Strip the indentation common to every non-blank line. A snippet lifted out
- * of a nested block would otherwise spend its width — the scarce dimension on
- * the landscape sizes — on indentation that carries no meaning once the
+ * of a nested block would otherwise spend its width, the scarce dimension on
+ * the landscape sizes, on indentation that carries no meaning once the
  * surrounding code is gone.
  */
 export function dedent(text: string): string {

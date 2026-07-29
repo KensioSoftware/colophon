@@ -27,7 +27,7 @@ export {
 
 /**
  * Default warning handler. Colophon runs at build time, so a compromise the
- * renderer had to make belongs in the build log by default — silence is opt-in
+ * renderer had to make belongs in the build log by default. Silence is opt-in
  * via `config.onWarning`.
  */
 function warnToConsole(message: string): void {

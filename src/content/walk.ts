@@ -51,7 +51,7 @@ async function collectContentFiles(
 /**
  * Walk a content tree, read each file's frontmatter with `gray-matter`, and
  * return the files that image props can be built for. This is the host-project
- * concern — finding content and reading frontmatter — kept separate from
+ * concern of finding content and reading frontmatter, kept separate from
  * rendering.
  */
 export async function walkContent(

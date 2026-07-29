@@ -12,7 +12,7 @@ import type { RenderJob } from "./job.js";
  * JavaScript with nothing checking it, and neither omission fails anywhere
  * near the config: a missing `output` surfaces as a complaint about an
  * argument to `path`, and missing props as a property read on `undefined`.
- * Key validation is no help either — it is the option that is not there.
+ * Key validation is no help either, since it is the option that is not there.
  */
 function checkImage(image: ExtraImage, index: number): void {
   // The types say what should be here; this exists for when it is not.
@@ -64,9 +64,9 @@ export function extraJobs(
       // relative path against the working directory anyway, and the build log
       // reads better saying what the config said.
       outputPath: image.output,
-      // An extra names its own path, so the placement — which maps posts to
-      // paths — has nothing to say about where this one is served, nor about
-      // hashing a filename it did not choose.
+      // An extra names its own path, and the placement maps posts to paths, so
+      // it has nothing to say about where this one is served, nor about hashing
+      // a filename it did not choose.
       url: undefined,
       stamp: stamper.stamp(image.props, size),
       config: resolveConfigForSize(config, size),

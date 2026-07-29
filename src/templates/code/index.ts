@@ -57,7 +57,7 @@ export const codeTemplate: Template = {
     );
 
     // Shrink the panel down onto the snippet so it isn't left floating in dead
-    // space — on a landscape image especially, a wide panel holding a narrow
+    // space. On a landscape image especially, a wide panel holding a narrow
     // block leaves the code marooned off to one side.
     const panel = hugPanel(available, {
       width: blockColumns(fitted.lines) * fitted.charWidth + fitted.padding * 2,

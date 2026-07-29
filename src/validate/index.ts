@@ -21,7 +21,7 @@ import { checkBackground, checkSlugStrategy } from "./values.js";
  * correctly is describing images nobody is rendering.
  *
  * Only the closed parts of the config are checked. The names in `templates`
- * are the project's own, and a post's props are open by design — a template
+ * are the project's own, and a post's props are open by design, so a template
  * reads whatever fields it understands.
  */
 export function validateConfig(config: ColophonConfig): void {

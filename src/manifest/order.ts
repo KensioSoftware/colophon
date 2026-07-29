@@ -4,7 +4,7 @@
  *
  * The manifest is written into a site's repository and committed, so the order
  * has to be the same on a laptop and on CI. `localeCompare` reads the default
- * locale, and locales disagree about case and accented letters — a slug of
+ * locale, and locales disagree about case and accented letters, so a slug of
  * `Über` or `MyPost` could sort one way in development and another in the
  * build, leaving a diff that says nothing happened.
  */

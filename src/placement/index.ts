@@ -31,7 +31,7 @@ export type Placer = (
 /**
  * Prefix a `urlBase` onto an image's path under the root that placed it.
  *
- * No base, no URL: a directory on disk does not say how — or whether — it is
+ * No base, no URL: a directory on disk does not say how, or whether, it is
  * served, and a URL Colophon invented would be worse than the gap it fills,
  * since the whole point of writing one down is that a site can trust it.
  */

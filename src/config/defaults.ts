@@ -4,11 +4,11 @@ import type { BrandColors, CodeStyle, OutputSize } from "../types.js";
  * Named output-size presets covering the common social-image standards. Each
  * `name` becomes the filename suffix (e.g. `my-post-og.png`).
  *
- * - `og` — 1.91:1, the Open Graph standard (`og:image`): Facebook, LinkedIn,
+ * - `og`: 1.91:1, the Open Graph standard (`og:image`). Facebook, LinkedIn,
  *   Slack, Discord, WhatsApp, Mastodon, and the usual `twitter:image` reuse.
- * - `square` — 1:1, X/Twitter `summary` card and a universal fallback.
- * - `twitter` — 2:1, X/Twitter `summary_large_image` card.
- * - `pinterest` — 2:3 tall pin.
+ * - `square`: 1:1, X/Twitter `summary` card and a universal fallback.
+ * - `twitter`: 2:1, X/Twitter `summary_large_image` card.
+ * - `pinterest`: 2:3 tall pin.
  */
 export const SIZE_PRESETS = {
   og: { name: "og", width: 1200, height: 630 },

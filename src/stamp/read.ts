@@ -5,15 +5,15 @@ import { pngSignature, stampKeyword } from "./chunk.js";
 
 /**
  * How much of a PNG to read when looking for a stamp. The stamp goes in
- * immediately after `IHDR`, so this only has to cover the header — reading
+ * immediately after `IHDR`, so this only has to cover the header. Reading
  * whole images just to compare a hash would defeat the point of skipping them.
  */
 const headBytes = 4096;
 
 /**
  * Find the stamp in the leading bytes of a PNG, or `undefined` if there is
- * none — the image was written by something else, or by a Colophon that did
- * not stamp yet.
+ * none, meaning the image was written by something else, or by a Colophon
+ * that did not stamp yet.
  */
 function findStamp(head: Buffer): string | undefined {
   if (!head.subarray(0, pngSignature.length).equals(pngSignature)) {
@@ -53,7 +53,7 @@ function findStamp(head: Buffer): string | undefined {
 
 /**
  * Read the stamp out of a PNG file. Returns `undefined` when the file is
- * missing, unreadable, not a PNG, or carries no stamp — all of which mean the
+ * missing, unreadable, not a PNG, or carries no stamp, all of which mean the
  * image cannot be shown to be up to date, so it should be rendered again.
  */
 export async function readPngStamp(file: string): Promise<string | undefined> {
