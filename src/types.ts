@@ -313,6 +313,12 @@ export interface MetaImageProps {
    * a template can draw it, which it cannot do for a prop it does not know.
    */
   readonly avatar?: string;
+  /**
+   * Corner badge for the `banner` template, overriding whatever the config or
+   * the size sets. `false` draws none, which is how one post opts out of a
+   * site-wide badge that does not describe it.
+   */
+  readonly badge?: Badge | false;
   readonly [key: string]: unknown;
 }
 

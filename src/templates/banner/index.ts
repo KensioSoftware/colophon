@@ -4,6 +4,7 @@ import type { Template, TemplateContext } from "../../types.js";
 import { attribution } from "../attribution.js";
 import { footerBaseline, hasFooter } from "../footer.js";
 import { logoElement, logoRect } from "../logo.js";
+import { badgeFor } from "./badge-props.js";
 import { renderBadge } from "./badge.js";
 import { bannerLines } from "./lines.js";
 
@@ -32,6 +33,7 @@ export const bannerTemplate: Template = {
     const footerFs = Math.round(height * 0.034);
     const badgeHeight = Math.round(height * 0.072);
     const mark = logoRect(logo, dimensions, pad, "start");
+    const badge = badgeFor(props, config);
 
     const subtitle = optionalString(props.subtitle);
     const hasSubtitle = subtitle !== undefined && subtitle !== "";
@@ -39,7 +41,7 @@ export const bannerTemplate: Template = {
     // The text sits between whatever the marks along the top and the footer
     // along the bottom leave behind.
     const topMark = Math.max(
-      config.badge === undefined ? 0 : badgeHeight,
+      badge === undefined ? 0 : badgeHeight,
       mark?.height ?? 0,
     );
     const area = inset(
@@ -72,16 +74,10 @@ export const bannerTemplate: Template = {
       lineHeight: 1.28,
     });
 
-    const badge =
-      config.badge === undefined
+    const badgeMark =
+      badge === undefined
         ? ""
-        : renderBadge(
-            config.badge,
-            fontFamily,
-            config.colors.brand,
-            pad,
-            badgeHeight,
-          );
+        : renderBadge(badge, fontFamily, config.colors.brand, pad, badgeHeight);
 
     const footer = attribution(
       config,
@@ -97,6 +93,6 @@ export const bannerTemplate: Template = {
       measure,
     );
 
-    return badge + logoElement(logo, mark) + body + footer;
+    return badgeMark + logoElement(logo, mark) + body + footer;
   },
 };

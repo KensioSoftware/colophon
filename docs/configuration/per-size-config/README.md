@@ -65,6 +65,9 @@ variants have different keys, so merging half of one onto half of another would
 produce a background that is neither. A `badge` carries a required `text` that a
 partial override could not supply.
 
+A post declaring [its own badge](../../templates/) wins over a size's, since
+that one describes the post rather than the shape of the image.
+
 A size's `theme` replaces the config's and then applies as defaults, exactly as
 it would at the top level. So a config naming its own `background` keeps it
 whatever theme a size asks for, and a size wanting the whole look of one has the

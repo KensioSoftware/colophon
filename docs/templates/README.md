@@ -35,6 +35,46 @@ are, because a name typed into frontmatter is easy to get wrong:
 Unknown template "bannner". Available templates: banner, card, code.
 ```
 
+## The badge on a banner
+
+A `badge` in config is the same corner badge on every `banner` image a site
+renders, which suits a site whose posts are all of a kind. A post can say
+otherwise:
+
+```yaml
+---
+meta_img_props:
+  template: banner
+  title: Keep test state inside each test case
+  badge: false
+---
+```
+
+`false` draws no badge on that image, and the title takes back the room that was
+being reserved above it. An object replaces the configured badge instead, so a
+post can carry one the config knows nothing about:
+
+```yaml
+---
+meta_img_props:
+  template: banner
+  title: Simulating S3 in a test suite
+  badge:
+    text: video
+    background: "#111827"
+    color: "#f9fafb"
+---
+```
+
+Only `text` is required, and the colours default to white on the brand colour as
+they do in config. A post's badge wins over a
+[per-size](../configuration/per-size-config/) one as well, since it describes
+the post rather than the shape of the image.
+
+A `badge` that is neither an object with text nor `false` is
+[reported](../configuration/warnings/) and the configured badge is drawn, which
+leaves the post with the image it would have had if it had said nothing.
+
 ## Writing your own
 
 Pass `templates` in config. The keys are the names frontmatter uses, and what
