@@ -94,7 +94,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Configuration](./docs/configuration/ "Every option, and what happens to an unknown one")
 - [Rebuilds](./docs/rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./docs/programmatic-use/ "The API behind the CLI")
-- [Upgrading from 1.x](./docs/upgrading/ "The two breaking changes in 2.0")
+- [Upgrading](./docs/upgrading/ "The breaking changes in 2.0 and 3.0")
 
 ## Sample output
 

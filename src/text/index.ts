@@ -1,6 +1,10 @@
 export { escapeXml } from "./escape.js";
 export { textElement } from "./element.js";
 export type { TextAttributes } from "./element.js";
+export { breakWord } from "./break.js";
+export { fitText } from "./fit.js";
+export type { FitOptions, FittedText, MeasureAt } from "./fit.js";
 export { layoutStack } from "./stack.js";
 export type { PlacedLine, StackLine } from "./stack.js";
-export { estimateCharsPerLine, wrapText } from "./wrap.js";
+export { wrapText } from "./wrap.js";
+export type { MeasureLine } from "./wrap.js";

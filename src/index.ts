@@ -16,6 +16,7 @@ export type {
   ManifestImage,
   ManifestPage,
   MetaImageProps,
+  MeasureText,
   MetaTag,
   MetaTagOptions,
   OutputSize,
@@ -27,6 +28,7 @@ export type {
   ResolvedConfig,
   Template,
   TemplateContext,
+  TextStyle,
   WarningHandler,
 } from "./types.js";
 
@@ -69,7 +71,15 @@ export type { GeneratedImage, GenerateOptions } from "./generate/index.js";
 export { createStamper, readPngStamp, stampPng } from "./stamp/index.js";
 export type { Stamper } from "./stamp/index.js";
 
-export { escapeXml, wrapText } from "./text/index.js";
+export { createMeasurer } from "./measure/index.js";
+
+export { escapeXml, fitText, wrapText } from "./text/index.js";
+export type {
+  FitOptions,
+  FittedText,
+  MeasureAt,
+  MeasureLine,
+} from "./text/index.js";
 
 export { extractProps, slugFromPath, walkContent } from "./content/index.js";
 export type { WalkOptions } from "./content/index.js";

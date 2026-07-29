@@ -113,10 +113,7 @@ describe("resolveConfig", () => {
 
     assertIdentical(resolved.code.theme, "monokai");
     assertIdentical(resolved.code.tabSize, 4);
-    assertIdentical(
-      resolved.code.charWidthRatio,
-      DEFAULT_CODE_STYLE.charWidthRatio,
-    );
+    assertIdentical(resolved.code.lineHeight, DEFAULT_CODE_STYLE.lineHeight);
   });
 
   it("uses the brand colour for the whole gradient when only brand is given", () => {

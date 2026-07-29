@@ -9,7 +9,7 @@ import { cardLines } from "./lines.js";
  */
 export const cardTemplate: Template = {
   name: "card",
-  render({ props, config, dimensions }: TemplateContext): string {
+  render({ props, config, dimensions, measure }: TemplateContext): string {
     const { width, height } = dimensions;
     const pad = Math.round(width * 0.09);
     const centreX = Math.round(width / 2);
@@ -17,12 +17,13 @@ export const cardTemplate: Template = {
     const titleFs = Math.round(height * 0.1);
     const footerFs = Math.round(height * 0.032);
 
-    const lines = cardLines(
-      props,
-      width - pad * 2,
+    const lines = cardLines(props, {
+      measure,
+      fontFamily: config.fontFamily,
+      contentWidth: width - pad * 2,
       titleFs,
-      Math.round(height * 0.045),
-    );
+      subFs: Math.round(height * 0.045),
+    });
 
     const bottom =
       height -

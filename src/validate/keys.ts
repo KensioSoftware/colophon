@@ -138,7 +138,6 @@ export const badgeKeys = knownKeys<Badge>({
 export const codeKeys = knownKeys<CodeStyle>({
   theme: true,
   fontFamily: true,
-  charWidthRatio: true,
   lineHeight: true,
   tabSize: true,
   cornerScale: true,

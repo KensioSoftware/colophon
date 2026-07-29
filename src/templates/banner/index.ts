@@ -13,7 +13,7 @@ import { bannerLines } from "./lines.js";
  */
 export const bannerTemplate: Template = {
   name: "banner",
-  render({ props, config, dimensions }: TemplateContext): string {
+  render({ props, config, dimensions, measure }: TemplateContext): string {
     const { width, height } = dimensions;
     const { fontFamily } = config;
     const pad = Math.round(width * 0.075);
@@ -32,6 +32,8 @@ export const bannerTemplate: Template = {
       titleFs,
       versionFs: Math.round(height * 0.04),
       subFs: Math.round(height * 0.05),
+      measure,
+      fontFamily,
     });
 
     const top =
