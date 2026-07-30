@@ -148,6 +148,53 @@ gallery stays in sync.
       <sub><code>code</code> · 1200×630 · TypeScript, <code>night-owl</code></sub>
     </td>
   </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/article-wide.png" alt="article template, landscape" width="100%" /><br />
+      <sub><code>article</code> · 1200×630 · tags, headline, byline and avatar</sub>
+    </td>
+    <td>
+      <img src="docs/samples/terminal-wide.png" alt="terminal template, landscape" width="100%" /><br />
+      <sub><code>terminal</code> · 1200×630 · a command and its output</sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/quote-square.png" alt="quote template, square" width="100%" /><br />
+      <sub><code>quote</code> · 1200×1200 · pull quote with attribution</sub>
+    </td>
+    <td>
+      <img src="docs/samples/release-square.png" alt="release template, square" width="100%" /><br />
+      <sub><code>release</code> · 1200×1200 · version and headline changes</sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/stat-square.png" alt="stat template, square" width="100%" /><br />
+      <sub><code>stat</code> · 1200×1200 · one figure and a caption</sub>
+    </td>
+    <td>
+      <img src="docs/samples/event-square.png" alt="event template, square" width="100%" /><br />
+      <sub><code>event</code> · 1200×1200 · date, title and location</sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/photo-wide.png" alt="photo template, landscape" width="100%" /><br />
+      <sub><code>photo</code> · 1200×630 · the post's own photograph, scrimmed</sub>
+    </td>
+    <td>
+      <img src="docs/samples/wordmark-wide.png" alt="wordmark template, landscape" width="100%" /><br />
+      <sub><code>wordmark</code> · 1200×630 · logo, name and tagline</sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/docs-wide.png" alt="docs template, landscape" width="100%" /><br />
+      <sub><code>docs</code> · 1200×630 · breadcrumb, title and summary</sub>
+    </td>
+    <td></td>
+  </tr>
 </table>
 
 ### Themes

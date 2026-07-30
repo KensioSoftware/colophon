@@ -314,6 +314,16 @@ export interface MetaImageProps {
    */
   readonly avatar?: string;
   /**
+   * A photograph for the post, as a path to an image file or its `data:` URI,
+   * loaded the same way {@link MetaImageProps.avatar} is and handed to the
+   * template as `picture`.
+   *
+   * This is what the `photo` template draws. A background image can be
+   * configured, but config is the same for every post, and a photograph is the
+   * one image that is not: it belongs to the post the way the title does.
+   */
+  readonly image?: string;
+  /**
    * Corner badge for the `banner` template, overriding whatever the config or
    * the size sets. `false` draws none, which is how one post opts out of a
    * site-wide badge that does not describe it.
@@ -585,6 +595,15 @@ export interface TemplateContext {
   readonly logo: ImageAsset | undefined;
   /** The same for a post's `avatar` prop. */
   readonly avatar: ImageAsset | undefined;
+  /**
+   * The same for a post's `image` prop, which is the photograph the `photo`
+   * template draws.
+   *
+   * It is `picture` here and `image` in the props because `image` is also the
+   * name of the layout primitive that draws one, and a template destructuring
+   * its context would shadow the function it needs to call.
+   */
+  readonly picture: ImageAsset | undefined;
 }
 
 /**

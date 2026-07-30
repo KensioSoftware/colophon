@@ -47,6 +47,7 @@ export async function buildSvg(
     measure,
     logo: images.logo,
     avatar: images.avatar,
+    picture: images.picture,
   });
   const { width, height } = dimensions;
 

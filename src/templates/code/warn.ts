@@ -14,6 +14,7 @@ export function warnIfTruncated(
   dimensions: Dimensions,
   counts: { readonly dropped: number; readonly clipped: number },
   total: number,
+  subject = "code snippet",
 ): void {
   const parts: string[] = [];
 
@@ -30,7 +31,7 @@ export function warnIfTruncated(
   }
 
   config.onWarning(
-    `code snippet does not fit the ${String(dimensions.width)}x${String(dimensions.height)}` +
+    `${subject} does not fit the ${String(dimensions.width)}x${String(dimensions.height)}` +
       ` image at a legible size: ${parts.join(", ")}.` +
       ` Shorten the sample, or lower code.minFontScale to fit it in smaller.`,
   );

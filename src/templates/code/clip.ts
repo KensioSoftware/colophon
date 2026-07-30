@@ -1,5 +1,5 @@
 import type { CodeToken } from "../../highlight/index.js";
-import { ellipsis } from "./ellipsis.js";
+import { ellipsis } from "../../text/ellipsis.js";
 
 /**
  * Clip a line to the columns that fit, ending it with an ellipsis. The font

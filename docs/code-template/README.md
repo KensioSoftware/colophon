@@ -4,6 +4,9 @@ The `code` template renders a syntax-highlighted snippet on a rounded panel over
 the background. The colours come from a real VS Code theme, by way of
 [Shiki](https://shiki.style).
 
+The [`terminal` template](../templates/) is this one with window chrome around
+it, so everything on this page applies to it too.
+
 Put the snippet in frontmatter and name its language:
 
 ```yaml

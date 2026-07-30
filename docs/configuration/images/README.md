@@ -1,7 +1,8 @@
 # Logos, avatars and photographs
 
-Three places an image can go into a generated one: a logo in the corner, an
-author's photo beside the footer, and a photograph behind everything.
+Four places an image can go into a generated one: a logo in the corner, an
+author's photo beside the footer, the post's own photograph, and a picture
+behind everything.
 
 ```ts
 export default defineConfig({
@@ -14,16 +15,23 @@ export default defineConfig({
 });
 ```
 
-A post supplies its own author photo through the `avatar` prop:
+A post supplies its own pictures through the `avatar` and `image` props, both
+of which take a path or a `data:` URI:
 
 ```yaml
 ---
 meta_img_props:
-  template: card
+  template: photo
   title: Measuring text properly
   avatar: content/authors/hugh.jpg
+  image: content/posts/measuring/hero.jpg
 ---
 ```
+
+The difference between `image` and a background image is where it comes from
+rather than what it looks like. A background is config, so it is the same
+picture on every post; `image` belongs to the post, which is what the
+[`photo` template](../../templates/) exists for.
 
 ## Where they come from
 
@@ -64,17 +72,29 @@ its slot, so supply a wide logo as PNG or SVG.
 
 That is the template's business, and the built-ins put them here:
 
-| Template | Logo                          | Avatar            |
-| -------- | ----------------------------- | ----------------- |
-| `banner` | Top right, opposite the badge | Before the footer |
-| `card`   | Top centre, above the title   | Before the footer |
-| `code`   | Not drawn                     | Not drawn         |
+| Template   | Logo                           | Avatar             |
+| ---------- | ------------------------------ | ------------------ |
+| `banner`   | Top right, opposite the badge  | Before the footer  |
+| `card`     | Top centre, above the title    | Before the footer  |
+| `code`     | Not drawn                      | Not drawn          |
+| `article`  | Top right, beside the tags     | Before the byline  |
+| `quote`    | Not drawn                      | Before the speaker |
+| `terminal` | Not drawn                      | Not drawn          |
+| `release`  | Top right                      | Before the footer  |
+| `stat`     | Top centre                     | Before the footer  |
+| `photo`    | Top right, over the photograph | Before the footer  |
+| `wordmark` | Centred, above the name        | Before the footer  |
+| `docs`     | Top right, beside the trail    | Before the footer  |
+| `event`    | Top centre                     | Before the footer  |
 
 The text moves down to make room for a logo, so a title never runs into it.
 
-A [template of your own](../../templates/) is handed both on its context, as
-`logo` and `avatar`, already loaded, along with the `image` primitive from
-[the layout toolkit](../../layout/) to draw them with.
+A [template of your own](../../templates/) is handed all three on its context,
+as `logo`, `avatar` and `picture`, already loaded, along with the `image`
+primitive from [the layout toolkit](../../layout/) to draw them with. The
+post's `image` prop arrives as `picture` because `image` is also the name of
+that primitive, and a template destructuring its context would shadow the
+function it needs to call.
 
 ## Photographs behind the text
 
