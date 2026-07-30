@@ -75,6 +75,47 @@ const teal: ColophonConfig = {
   footer: "kensiosoftware.co.uk",
 };
 
+/**
+ * The pictures the gallery needs, drawn rather than committed as files: an
+ * author's photograph, a project's mark, and a landscape for the `photo`
+ * template to set its title over. Shapes in an SVG keep the sample list
+ * self-contained, and the templates only ever see a `data:` URI or bytes.
+ */
+function svgText(body: string, size = 64): string {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${String(size)}"` +
+    ` height="${String(size)}" viewBox="0 0 64 64">${body}</svg>`
+  );
+}
+
+/** As the `data:` URI an image prop takes. */
+function svgUri(body: string, size = 64): string {
+  return `data:image/svg+xml,${encodeURIComponent(svgText(body, size))}`;
+}
+
+/** As the bytes a configured image source takes. */
+function svgBytes(body: string): Uint8Array {
+  return new TextEncoder().encode(svgText(body));
+}
+
+const avatar = svgUri(
+  '<rect width="64" height="64" fill="#fbbf24" />' +
+    '<circle cx="32" cy="26" r="11" fill="#78350f" />' +
+    '<path d="M8 64a24 24 0 0 1 48 0z" fill="#78350f" />',
+);
+
+const mark = svgBytes(
+  '<circle cx="32" cy="32" r="26" fill="none" stroke="#ffffff"' +
+    ' stroke-width="7" /><circle cx="32" cy="32" r="8" fill="#ffffff" />',
+);
+
+const scene = svgUri(
+  '<rect width="64" height="64" fill="#1e3a8a" />' +
+    '<circle cx="46" cy="14" r="9" fill="#fef9c3" />' +
+    '<path d="M0 44l18-16 14 12 12-9 20 17v16H0z" fill="#065f46" />',
+  512,
+);
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
@@ -161,6 +202,129 @@ fi`,
     config: {
       background: { type: "solid", color: "#0f172a" },
       colors: { brand: "#0f172a", foreground: "#f8fafc" },
+      footer: "kensiosoftware.co.uk",
+    },
+  },
+  {
+    name: "article-wide",
+    dimensions: wide,
+    props: {
+      template: "article",
+      tags: ["typescript", "testing"],
+      title: "Keep test state inside each test case",
+      subtitle:
+        "Shared fixtures save a few lines and cost you the ability to read " +
+        "one test on its own",
+      author: "Hugh Grigg",
+      date: "30 July 2026",
+      avatar,
+    },
+    config: brand,
+  },
+  {
+    name: "quote-square",
+    dimensions: square,
+    props: {
+      template: "quote",
+      quote:
+        "A template is a layout, and a layout is arithmetic you can look at.",
+      author: "Hugh Grigg",
+      role: "Kensio Software",
+      avatar,
+    },
+    config: teal,
+  },
+  {
+    name: "terminal-wide",
+    dimensions: wide,
+    props: {
+      template: "terminal",
+      title: "colophon",
+      command: "colophon build content --force",
+      output:
+        "rendered 14 images from 7 posts\n" +
+        "wrote content/posts/hello/hello-og.png\n" +
+        "done in 1.9s",
+    },
+    config: {
+      colors: { brand: "#0f172a", brandDark: "#020617", brandWarm: "#38bdf8" },
+      footer: "kensiosoftware.co.uk",
+    },
+  },
+  {
+    name: "release-square",
+    dimensions: square,
+    props: {
+      template: "release",
+      version: "2.5.0",
+      title: "Templates, themes and a browser-safe core",
+      changes: [
+        "Nine more templates",
+        "Per-size config overrides",
+        "A manifest of every image a build wrote",
+        "Signed URLs for rendering on demand",
+      ],
+    },
+    config: teal,
+  },
+  {
+    name: "stat-square",
+    dimensions: square,
+    props: {
+      template: "stat",
+      title: "Downloads this month",
+      stat: "1.4M",
+      subtitle: "Up from 900k in June, mostly from CI",
+    },
+    config: teal,
+  },
+  {
+    name: "photo-wide",
+    dimensions: wide,
+    props: {
+      template: "photo",
+      title: "A morning on the Mendips",
+      subtitle: "Twelve miles, one flask of tea",
+      image: scene,
+    },
+    config: { footer: "kensiosoftware.co.uk" },
+  },
+  {
+    name: "wordmark-wide",
+    dimensions: wide,
+    props: {
+      template: "wordmark",
+      title: "@kensio/colophon",
+      subtitle: "Social meta images from frontmatter",
+    },
+    config: {
+      colors: brandColors,
+      footer: "kensiosoftware.co.uk",
+      logo: { data: mark },
+    },
+  },
+  {
+    name: "docs-wide",
+    dimensions: wide,
+    props: {
+      template: "docs",
+      breadcrumb: ["Docs", "Configuration", "Fonts"],
+      title: "Fonts",
+      subtitle: "Load font files so a build renders the same image everywhere",
+    },
+    config: { colors: brandColors, footer: "colophonjs.dev" },
+  },
+  {
+    name: "event-square",
+    dimensions: square,
+    props: {
+      template: "event",
+      date: "14 November 2026",
+      title: "Rendering text without a browser",
+      location: "Bristol JS, The Old Fire Station",
+    },
+    config: {
+      colors: { brand: "#b91c1c", brandDark: "#7f1d1d", brandWarm: "#f59e0b" },
       footer: "kensiosoftware.co.uk",
     },
   },

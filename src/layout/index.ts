@@ -31,12 +31,21 @@ export type { Align, BoxStyle, Extent, Placed, Rect, Span } from "./types.js";
 
 export { blockLines } from "./block.js";
 export type { StyledBlock, TextBlock, TextLine } from "./block.js";
-export { baselineFor, drawLines, placeLines } from "./lines.js";
-export type { LinesStyle, PlacedLine } from "./lines.js";
+export { lineExtents, linesHeight } from "./extent.js";
+export { drawLines } from "./draw.js";
+export type { LinesStyle } from "./draw.js";
+export { baselineFor, placeLines } from "./lines.js";
+export type { PlacedLine } from "./lines.js";
 export { measureIn } from "./measure.js";
 
-export { optionalString } from "../props.js";
-export { escapeXml, fitText, textElement, wrapText } from "../text/index.js";
+export { optionalString, stringList } from "../props.js";
+export {
+  clampLine,
+  escapeXml,
+  fitText,
+  textElement,
+  wrapText,
+} from "../text/index.js";
 export type {
   FitOptions,
   FittedText,

@@ -1,6 +1,6 @@
 import type { CodeToken, HighlightedCode } from "../../highlight/index.js";
 import type { Dimensions, ResolvedConfig } from "../../types.js";
-import { ellipsis } from "./ellipsis.js";
+import { ellipsis } from "../../text/ellipsis.js";
 
 /**
  * Pick the largest font size that fits the snippet in the panel on both axes,

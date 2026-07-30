@@ -85,9 +85,18 @@ describe("resolveConfig", () => {
       ],
     });
     assertArrayEquals(Object.keys(resolved.templates), [
+      "article",
       "banner",
       "card",
       "code",
+      "docs",
+      "event",
+      "photo",
+      "quote",
+      "release",
+      "stat",
+      "terminal",
+      "wordmark",
     ]);
     assertObjectEquals(resolved.code, DEFAULT_CODE_STYLE);
   });

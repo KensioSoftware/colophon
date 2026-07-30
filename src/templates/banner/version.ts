@@ -1,6 +1,6 @@
 import type { MetaImageProps } from "../../types.js";
-import { optionalString } from "../../props.js";
 import type { TextLine } from "../../layout/index.js";
+import { versionLabel } from "../version.js";
 import type { BannerSizes } from "./lines.js";
 
 /**
@@ -11,15 +11,15 @@ export function versionLines(
   props: MetaImageProps,
   sizes: BannerSizes,
 ): readonly TextLine[] {
-  const version = optionalString(props.version);
+  const version = versionLabel(props.version);
 
-  if (version === undefined || version === "") {
+  if (version === undefined) {
     return [];
   }
 
   return [
     {
-      text: `v${version}`,
+      text: version,
       fontSize: sizes.versionFs,
       fontWeight: 700,
       opacity: 0.85,

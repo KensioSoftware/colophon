@@ -16,6 +16,8 @@ export interface LoadedImages {
   readonly logo: ImageAsset | undefined;
   readonly avatar: ImageAsset | undefined;
   readonly background: ImageAsset | undefined;
+  /** The post's own photograph, from its `image` prop. */
+  readonly picture: ImageAsset | undefined;
 }
 
 /**
@@ -49,7 +51,7 @@ async function loadOptional(
 }
 
 /**
- * Load the logo, the background photo and the post's avatar for one image.
+ * Load the logo, the background photo and the post's own images.
  *
  * Reading files is the renderer's job rather than the template's. A template
  * stays a synchronous function over values it was handed, and the bytes of a
@@ -62,11 +64,12 @@ export async function loadImages(
   const background =
     config.background.type === "image" ? config.background.source : undefined;
 
-  const [logo, avatar, backgroundImage] = await Promise.all([
+  const [logo, avatar, picture, backgroundImage] = await Promise.all([
     loadOptional(config.logo, "logo"),
     loadProp(props.avatar, "props.avatar"),
+    loadProp(props.image, "props.image"),
     loadOptional(background, "background.source"),
   ]);
 
-  return { logo, avatar, background: backgroundImage };
+  return { logo, avatar, picture, background: backgroundImage };
 }

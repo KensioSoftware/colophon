@@ -41,7 +41,7 @@ yourself.
 | `code`        | `github-dark`, monospace stack                | Styling for [the code template](../code-template/).               |
 | `onWarning`   | `console.warn`                                | Where compromises are reported. See [Warnings](./warnings/).      |
 | `sizes`       | `og` and `square`                             | Named output sizes. See [Output sizes](./sizes/).                 |
-| `templates`   | `banner`, `card`, `code`                      | Merged over the built-ins. See [Templates](../templates/).        |
+| `templates`   | the twelve built-ins                          | Merged over the built-ins. See [Templates](../templates/).        |
 | `rasteriser`  | resvg                                         | What turns SVG into bytes. See [Rasteriser](./rasteriser/).       |
 | `content`     | `meta_img_props`, `.md` and `.markdown` files | How props are read. See [Frontmatter](./frontmatter/).            |
 | `placement`   | `beside-content`                              | Where images go and their URL. See [Placement](./placement/).     |

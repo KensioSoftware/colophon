@@ -1,9 +1,9 @@
 # Warnings
 
-Some inputs cannot be honoured exactly. There are two cases: code too long to
-render legibly, described in [the code template](../../code-template/), and a
-post whose `badge` prop is neither a badge nor `false`, described in
-[Templates](../../templates/).
+Some inputs cannot be honoured exactly. There are two cases: a snippet too long
+to render legibly, described in [the code template](../../code-template/) and
+reported the same way for a `terminal` session, and a post whose `badge` prop is
+neither a badge nor `false`, described in [Templates](../../templates/).
 
 Colophon renders anyway and reports the compromise through `onWarning`, which
 defaults to `console.warn`. Pass your build's logger to route the messages

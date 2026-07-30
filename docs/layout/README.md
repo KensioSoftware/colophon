@@ -92,6 +92,35 @@ const widthOf = measureIn(measure, config.fontFamily, 700);
 const chipWidth = widthOf("release", 32) + 48;
 ```
 
+`linesHeight` says how tall a block of lines will be before it is drawn, which
+is what a template needs when the words are one item in a group rather than the
+whole of it. The `wordmark` template uses it to `stack` a logo above a name:
+both have to be measured before either can be placed.
+
+```ts
+const [markSlot, textSlot] = stack(
+  [{ size: 240 }, { size: linesHeight(lines), gapBefore: 60 }],
+  content,
+);
+```
+
+`clampLine` is the other way to make text fit: it cuts one line to the width it
+has and marks the cut with an ellipsis. Shrinking is the better answer wherever
+there is room for it, which is what `blockLines` does. Reach for this where a
+line cannot shrink on its own without looking like a mistake, such as one item
+in a list set at the same size as the rest.
+
+```ts
+clampLine(change, content.width - indent, widthOf, 44);
+```
+
+And `stringList` reads a prop that may be a YAML sequence or a single value,
+which is what a hand-written `tags:` or `breadcrumb:` field turns out to be:
+
+```ts
+stringList(props["tags"]); // ["typescript", "testing"], or [] for nothing usable
+```
+
 ## Boxes and panels
 
 `box` is a rectangle with a fill, corners and a stroke. Attributes you do not

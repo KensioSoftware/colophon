@@ -1,5 +1,3 @@
-import path from "node:path";
-
 import {
   assertArrayLength,
   assertIdentical,
@@ -11,63 +9,28 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { resolveConfig } from "./config/index.js";
-import { loadImages } from "./image/index.js";
-import { createMeasurer } from "./measure/index.js";
+import {
+  baselineOf,
+  renderTemplate as render,
+  samplePng,
+  sansFont,
+  titleSize,
+  wide,
+} from "../test/template.js";
 import {
   bannerTemplate,
   builtinTemplates,
   cardTemplate,
   codeTemplate,
 } from "./templates/index.js";
-import type {
-  ColophonConfig,
-  Dimensions,
-  MetaImageProps,
-  Template,
-} from "./types.js";
-
-const square: Dimensions = { width: 1200, height: 1200 };
-const wide: Dimensions = { width: 1200, height: 630 };
-
-// A real font file, for the tests that need text measured rather than guessed.
-const sansFont = path.join(
-  process.cwd(),
-  "node_modules/dejavu-fonts-ttf/ttf/DejaVuSans.ttf",
-);
-
-// A real 1200x630 PNG, so the logo has proportions worth laying out.
-const samplePng = path.join(process.cwd(), "docs/samples/card-wide-solid.png");
-
-async function render(
-  template: Template,
-  props: MetaImageProps,
-  config: ColophonConfig = {},
-  dimensions: Dimensions = square,
-): Promise<string> {
-  const resolved = resolveConfig(config);
-  const images = await loadImages(resolved, props);
-
-  return template.render({
-    props,
-    config: resolved,
-    dimensions,
-    measure: await createMeasurer(resolved),
-    logo: images.logo,
-    avatar: images.avatar,
-  });
-}
-
-/** The size the first line of text is drawn at. */
-function titleSize(svg: string): number {
-  return Number(/font-size="(\d+)"/.exec(svg)?.[1] ?? 0);
-}
+import type { MetaImageProps } from "./types.js";
 
 describe("builtinTemplates", () => {
-  it("registers banner, card and code by name", () => {
+  it("registers every built-in template by name", () => {
     assertIdentical(builtinTemplates["banner"], bannerTemplate);
     assertIdentical(builtinTemplates["card"], cardTemplate);
     assertIdentical(builtinTemplates["code"], codeTemplate);
+    assertArrayLength(Object.keys(builtinTemplates), 12);
   });
 });
 
@@ -290,14 +253,6 @@ function panelRect(svg: string): { x: number; y: number; width: number } {
     y: Number(match[2]),
     width: Number(match[3]),
   };
-}
-
-/** The baseline of the one `<text>` element a pattern matches. */
-function baselineOf(svg: string, pattern: RegExp): number {
-  const match = pattern.exec(svg);
-  assertNonNullable(match);
-
-  return Number(match[1]);
 }
 
 /** Every x a token is drawn at, in image coordinates. */
