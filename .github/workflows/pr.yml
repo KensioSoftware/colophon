@@ -41,6 +41,18 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:coverage
 
+      # A visual regression failure is about an image, and the numbers in the
+      # log only say how far it moved. This is the image itself, to open next to
+      # the baseline it did not match. Nothing is uploaded on a green run, or
+      # when the job failed for some other reason.
+      - name: Upload rendered images
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression
+          path: test/.visual/
+          if-no-files-found: ignore
+
   build:
     name: Build
     runs-on: blacksmith-4vcpu-ubuntu-2404

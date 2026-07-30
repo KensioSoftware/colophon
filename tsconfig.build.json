@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.json",
+  // `rootDir` belongs to the build rather than to the base config, which also
+  // checks `test/`: a fixture importing a fixture is a file outside `src/` in
+  // the program, and with a `rootDir` of `src` that is an error even under
+  // `--noEmit`. Nothing outside `src/` is ever emitted, so this is where it
+  // needs saying.
+  "compilerOptions": { "rootDir": "src" },
   "include": ["src/**/*", "typings/**/*.d.ts"],
   "exclude": ["test", "**/*.test.ts", "**/*.spec.ts"]
 }
