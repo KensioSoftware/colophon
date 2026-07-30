@@ -38,15 +38,35 @@ export async function writeBaseline(name: string, png: Buffer): Promise<void> {
   await writeFile(baselinePath(name), png);
 }
 
+/** Whether a failed read failed because the file was not there. */
+function isMissing(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "ENOENT"
+  );
+}
+
 /**
  * Read a baseline, or `undefined` where there is none, which means a sample was
  * added without recording one rather than that anything is wrong with it.
+ *
+ * Only a missing file is `undefined`. `stamp/read.ts` and `cli/init/fs.ts` both
+ * treat anything unreadable as absent, but they can afford to: what follows
+ * either is safe work, rendering the image again or writing the config. What
+ * follows this one is a failure telling the reader to run `pnpm baselines`, and
+ * that is the wrong instruction for a file that is there and cannot be read.
  */
 export async function readBaseline(name: string): Promise<Buffer | undefined> {
   try {
     return await readFile(baselinePath(name));
-  } catch {
-    return undefined;
+  } catch (error) {
+    if (isMissing(error)) {
+      return undefined;
+    }
+
+    throw error;
   }
 }
 
