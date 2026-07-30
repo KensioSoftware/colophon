@@ -29,6 +29,14 @@ function browserSubstitutions(): ReadonlyMap<string, string> {
 
 /** Every `from "..."` in a built module, which is all `tsc` emits. */
 function specifiersIn(file: string): readonly string[] {
+  if (!existsSync(file)) {
+    throw new Error(
+      `${path.relative(root, file)} is not there. This walks the built` +
+        ` package rather than the source, since what a consumer resolves is` +
+        ` dist/, so run \`pnpm build\` first. \`pnpm check\` does.`,
+    );
+  }
+
   const source = readFileSync(file, "utf8");
 
   return Array.from(

@@ -6,9 +6,9 @@
  * A single `import` added to a file three levels down is all it would take to
  * put `node:fs` back, and nothing else in the suite would notice.
  *
- * It reads `dist/`, so `pnpm build` has to have run. The build is part of
- * `pnpm check` by way of `build:check`, and a stale `dist/` shows up here as a
- * failure naming a module that no longer exists.
+ * It reads `dist/`, so `pnpm build` has to have run. `pnpm check` builds before
+ * it tests for that reason: `build:check` typechecks and emits nothing, so it
+ * is not enough on its own.
  */
 import {
   assertArrayEquals,
