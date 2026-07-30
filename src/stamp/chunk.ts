@@ -47,7 +47,13 @@ export function stampPng(png: Buffer, stamp: string): Buffer {
     !png.subarray(0, pngSignature.length).equals(pngSignature) ||
     png.toString("latin1", 12, 16) !== "IHDR"
   ) {
-    throw new Error("Cannot stamp: not a PNG image.");
+    // Reachable in practice only through a configured rasteriser, since resvg
+    // writes nothing else. Saying why beats leaving someone to work out that
+    // the stamp is the reason their WebP backend cannot be used yet.
+    throw new Error(
+      "Cannot stamp: not a PNG image. The rebuild stamp is a PNG chunk, so a" +
+        " rasteriser has to produce PNG for a build to be able to skip it.",
+    );
   }
 
   return Buffer.concat([

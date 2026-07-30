@@ -6,6 +6,7 @@ import { crc32 } from "node:zlib";
 import {
   assertArrayIncludes,
   assertIdentical,
+  assertStringIncludes,
   assertThrowsError,
   assertTrue,
   assertUndefined,
@@ -121,6 +122,22 @@ describe("createStamper", () => {
     );
   });
 
+  it("changes the stamp when the rasteriser changes", async () => {
+    // Swapping the backend changes every pixel of every image, which is the
+    // one thing about it a stamp has to notice.
+    assertRestamped(
+      await stampFor({ rasteriser: () => Buffer.from("a") }),
+      await stampFor({ rasteriser: () => Buffer.from("b") }),
+    );
+  });
+
+  it("changes the stamp when a rasteriser is configured at all", async () => {
+    assertRestamped(
+      await stampFor({}),
+      await stampFor({ rasteriser: () => Buffer.from("a") }),
+    );
+  });
+
   it("changes the stamp when a size's own overrides change", async () => {
     // The whole point of #19 meeting the stamp: an override is config, so
     // changing one has to re-render that image and not the others.
@@ -218,7 +235,9 @@ describe("stampPng", () => {
       stampPng(Buffer.from("not a png, but long enough to look at"), "x");
     });
 
-    assertIdentical(error.message, "Cannot stamp: not a PNG image.");
+    assertStringIncludes(error.message, "Cannot stamp: not a PNG image.");
+    // The reason, since a configured rasteriser is how someone gets here.
+    assertStringIncludes(error.message, "rasteriser has to produce PNG");
   });
 });
 

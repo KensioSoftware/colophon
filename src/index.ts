@@ -23,6 +23,7 @@ export type {
   OutputSize,
   Placement,
   PropsFromFrontmatter,
+  Rasteriser,
   RenderedMetaImage,
   SlugStrategy,
   SizeOverrides,
@@ -49,7 +50,15 @@ export { resolveConfigForSize } from "./config/size.js";
 
 export { backgroundSvg } from "./background/index.js";
 export { textureSvg } from "./texture/index.js";
-export { buildSvg, renderMetaImages, renderSvgToPng } from "./render/index.js";
+export {
+  buildSvg,
+  renderMetaImages,
+  renderSvgToPng,
+  resvgRasteriser,
+} from "./render/index.js";
+// Exported for a rasteriser that takes file paths: a font may be configured as
+// bytes, and this is what writes those somewhere a backend can open them.
+export { fontFilePaths } from "./fonts/index.js";
 export {
   bannerTemplate,
   builtinTemplates,

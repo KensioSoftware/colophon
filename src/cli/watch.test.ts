@@ -5,6 +5,7 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import {
   assertArrayLength,
+  assertArrayMinLength,
   assertFalse,
   assertIdentical,
   assertTrue,
@@ -15,11 +16,19 @@ import { isContentChange } from "./watch/filter.js";
 import { watchContent } from "./watch/index.js";
 import { createRebuildQueue } from "./watch/queue.js";
 
-/** Poll rather than sleep for a fixed time, so a slow machine still passes. */
+/**
+ * Poll rather than sleep for a fixed time, so a slow machine still passes.
+ *
+ * At least `count`, not exactly: how many events one saved file produces is the
+ * operating system's business. Creating a file emits both a rename and a change
+ * under inotify, and where those land either side of the coalescing window is
+ * exactly what makes the count vary. A test that needs an exact number drives
+ * the queue itself, where nothing is watching a real directory.
+ */
 async function waitForBuilds(runs: string[], count: number): Promise<void> {
   await vi.waitFor(
     () => {
-      assertArrayLength(runs, count);
+      assertArrayMinLength(runs, count);
     },
     {
       timeout: 2000,
