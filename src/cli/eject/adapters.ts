@@ -1,3 +1,4 @@
+import { astroComponent } from "./astro.js";
 import { hugoPartial } from "./hugo.js";
 
 /** A template a site can have written into it, and where it goes. */
@@ -18,6 +19,14 @@ export interface Adapter {
  * command.
  */
 export const adapters: Readonly<Record<string, Adapter>> = {
+  astro: {
+    file: "src/components/ColophonMeta.astro",
+    contents: astroComponent,
+    usage:
+      `Use it in your layout's head:\n` +
+      `  <ColophonMeta />\n` +
+      `and point the config's manifest option at src/data/colophon.json.`,
+  },
   hugo: {
     file: "layouts/partials/colophon.html",
     contents: hugoPartial,

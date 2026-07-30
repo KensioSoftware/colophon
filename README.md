@@ -100,6 +100,7 @@ Full documentation is in [`docs/`](./docs/).
 - [The command line](./docs/cli/ "Every command and flag, including init, preview, eject, dry runs and watching")
 - [Templates](./docs/templates/ "The built-in layouts and how to register your own")
 - [The code template](./docs/code-template/ "Syntax-highlighted code images")
+- [Astro](./docs/astro/ "The integration and the meta tags component")
 - [The layout toolkit](./docs/layout/ "The primitives templates are built from")
 - [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, grain, dots and rules")
 - [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")

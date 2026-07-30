@@ -2,12 +2,18 @@ import {
   assertArrayEquals,
   assertArrayLength,
   assertIdentical,
+  assertNonNullable,
   assertStringIncludes,
   assertThrowsError,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { metaTags, metaTagsHtml } from "./meta/index.js";
+import {
+  metaTags,
+  metaTagsForPath,
+  metaTagsHtml,
+  slugCandidates,
+} from "./meta/index.js";
 import type { Manifest, MetaTag } from "./types.js";
 
 const manifest: Manifest = {
@@ -244,5 +250,78 @@ describe("metaTagsHtml", () => {
 
   it("gives an unknown page an empty string, not a stray blank tag", () => {
     assertIdentical(metaTagsHtml(manifest, "blog/draft", site), "");
+  });
+});
+
+describe("slugCandidates", () => {
+  it("takes the whole path first, for a route slug", () => {
+    assertArrayEquals(slugCandidates("/blog/my-post/"), [
+      "blog/my-post",
+      "my-post",
+    ]);
+  });
+
+  it("offers only the one candidate where they are the same", () => {
+    assertArrayEquals(slugCandidates("/my-post"), ["my-post"]);
+  });
+
+  it("calls the site root index, as a build does", () => {
+    assertArrayEquals(slugCandidates("/"), ["index"]);
+    assertArrayEquals(slugCandidates(""), ["index"]);
+  });
+});
+
+describe("metaTagsForPath", () => {
+  it("finds a page keyed by its route", () => {
+    const tags = metaTagsForPath(manifest, "/blog/my-post/", site);
+
+    assertIdentical(
+      contentOf(tags, "og:image"),
+      "https://example.com/og/blog/my-post-og.png",
+    );
+  });
+
+  it("falls back to the basename key a build may have written", () => {
+    // The same page under `slugStrategy: "basename"`, which is the default, so
+    // one call has to cover both without being told which was used.
+    const page = manifest.pages["blog/my-post"];
+    assertNonNullable(page);
+
+    const tags = metaTagsForPath(
+      { version: 1, pages: { "my-post": page } },
+      "/blog/my-post/",
+      site,
+    );
+
+    assertIdentical(
+      contentOf(tags, "og:image"),
+      "https://example.com/og/blog/my-post-og.png",
+    );
+  });
+
+  it("prefers the route key where a manifest holds both", () => {
+    const page = manifest.pages["blog/my-post"];
+    assertNonNullable(page);
+    const both: Manifest = {
+      version: 1,
+      pages: {
+        "blog/my-post": page,
+        "my-post": {
+          images: { og: { url: "/og/other.png", width: 1200, height: 630 } },
+          widest: "og",
+        },
+      },
+    };
+
+    const tags = metaTagsForPath(both, "/blog/my-post/", site);
+
+    assertIdentical(
+      contentOf(tags, "og:image"),
+      "https://example.com/og/blog/my-post-og.png",
+    );
+  });
+
+  it("gives a path with no image no tags at all", () => {
+    assertArrayLength(metaTagsForPath(manifest, "/blog/nothing/", site), 0);
   });
 });

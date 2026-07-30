@@ -73,6 +73,22 @@ Import from `@kensio/colophon/meta` rather than the package root. Emitting tags
 reads a JSON file, and a site's templates should not have to load a rasteriser
 and a syntax highlighter to write a `<head>`.
 
+## Tags for a route rather than a slug
+
+A framework that renders routes knows the path it is rendering and not the
+content file behind it. `metaTagsForPath` takes that path and finds the key:
+
+```ts
+import { metaTagsForPath } from "@kensio/colophon/meta";
+
+const tags = metaTagsForPath(manifest, "/blog/my-post/", site);
+```
+
+It tries the whole path first and its last segment second, so it covers both
+[slug strategies](../sizes/#slug-strategies) without being told which the build
+used. A path no key matches gets no tags, as an unknown slug does. This is what
+[the Astro component](../../astro/) is built on.
+
 ## Sites that do not run JavaScript
 
 A Hugo site cannot call any of this from a Go template. `colophon eject hugo`

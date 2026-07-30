@@ -10,6 +10,7 @@ project. The [README](../README.md) has the install steps and a short example.
 - [The command line](./cli/ "Every command and flag, including init, preview, eject, dry runs and watching")
 - [Templates](./templates/ "The built-in layouts and how to register your own")
 - [The code template](./code-template/ "Syntax-highlighted code images")
+- [Astro](./astro/ "The integration and the meta tags component")
 - [The layout toolkit](./layout/ "The primitives templates are built from")
 - [Rebuilds](./rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./programmatic-use/ "The API behind the CLI")

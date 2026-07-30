@@ -164,6 +164,6 @@ describe("runEject", () => {
       runEject(args({ adapter: "wordpress" }), dir),
     );
 
-    assertStringIncludes(error.message, "Try one of: hugo.");
+    assertStringIncludes(error.message, "Try one of: astro, hugo.");
   });
 });
