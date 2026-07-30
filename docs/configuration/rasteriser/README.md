@@ -23,8 +23,8 @@ ignore whatever is installed on the machine, which is what
 
 - **A wasm build**, so the same code runs at the edge or in a browser rather
   than needing a native binary.
-- **Another encoder.** sharp reaches formats and quality settings resvg has no
-  equivalent for.
+- **Another PNG encoder**, for the compression settings resvg does not expose.
+  Other formats are not this yet: see below.
 - **Post-processing**, where you want the default output and something done to
   it, or the document changed before it is drawn.
 
@@ -76,7 +76,7 @@ chunk, which is how it knows next time whether anything changed. Bytes it cannot
 stamp are bytes it cannot write, so a rasteriser returning WebP or AVIF fails
 with:
 
-```
+```text
 Cannot stamp: not a PNG image. The rebuild stamp is a PNG chunk, so a
 rasteriser has to produce PNG for a build to be able to skip it.
 ```

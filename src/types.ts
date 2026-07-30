@@ -602,14 +602,21 @@ export interface Template {
 }
 
 /**
- * Turns one finished SVG document into image bytes.
+ * Turns one finished SVG document into PNG bytes.
  *
  * The default is resvg, which is what makes the output reproducible: it takes
  * explicit font files and can be told to ignore the ones the machine has
- * installed. The seam is here for the backends it is not. A wasm build of the
- * same renderer would let a build run at the edge or in a browser, and sharp
- * reaches encoders resvg has no equivalent for, so a project wanting WebP or a
- * quality setting has somewhere to go without waiting for the package.
+ * installed. The seam is here for the backends it is not, such as a wasm build
+ * of the same renderer, which would let a build run at the edge or in a
+ * browser, or another rasteriser entirely for a project that has one.
+ *
+ * PNG, though, and not a way to other formats yet. `generate` and
+ * `colophon preview` record a rebuild stamp in each image they write, as a PNG
+ * `tEXt` chunk, so bytes that cannot be stamped cannot be written and a WebP or
+ * AVIF backend fails with `Cannot stamp: not a PNG image`. `renderMetaImages`
+ * hands its bytes straight back and stamps nothing, so it will return whatever
+ * a backend produces; a project going that way is writing the files itself and
+ * giving up the rebuild skip along with them.
  *
  * A rasteriser is handed the whole resolved config rather than an argument list
  * of the parts of it that matter, as a template is, because which parts matter
@@ -687,9 +694,10 @@ export interface ColophonConfig {
   /** Extra templates, merged over (and able to override) the built-ins. */
   readonly templates?: Readonly<Record<string, Template>>;
   /**
-   * What turns each finished SVG into image bytes. Defaults to resvg, which is
+   * What turns each finished SVG into PNG bytes. Defaults to resvg, which is
    * what the package renders with and what its font handling is built around.
-   * See {@link Rasteriser} for when a project would want another.
+   * See {@link Rasteriser} for when a project would want another, and for why
+   * it still has to be PNG.
    */
   readonly rasteriser?: Rasteriser;
   /**
