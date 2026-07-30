@@ -71,7 +71,12 @@ export function metaTags(
   slug: string,
   options?: MetaTagOptions,
 ): readonly MetaTag[] {
-  const page = manifest.pages[slug];
+  // An own key, not merely a readable one: a manifest is parsed JSON, so it
+  // inherits `Object.prototype`, and a page slugged `toString` would otherwise
+  // look present and then fail as though the manifest were malformed.
+  const page = Object.hasOwn(manifest.pages, slug)
+    ? manifest.pages[slug]
+    : undefined;
 
   if (page === undefined) {
     return [];

@@ -17,6 +17,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./astro": {
+      "types": "./dist/astro/index.d.ts",
+      "import": "./dist/astro/index.js"
+    },
     "./content": {
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"

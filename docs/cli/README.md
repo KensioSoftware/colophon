@@ -102,7 +102,19 @@ file: in a build the same post is simply skipped.
 
 ```bash
 colophon eject hugo
+colophon eject astro
 ```
+
+Writes a template into your site that emits the meta tags for the page being
+rendered. There is one per generator:
+
+| Generator | Written to                          |
+| --------- | ----------------------------------- |
+| `hugo`    | `layouts/partials/colophon.html`    |
+| `astro`   | `src/components/ColophonMeta.astro` |
+
+The Astro one is half of [the Astro integration](../astro/); the rest of this
+section is about the Hugo one.
 
 Writes `layouts/partials/colophon.html` into a Hugo site: a partial that looks
 the current page up in the [manifest](../configuration/manifest/) and emits its

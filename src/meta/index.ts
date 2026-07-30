@@ -6,5 +6,6 @@
  * should not load a rasteriser and a syntax highlighter to write a `<head>`.
  */
 export { metaTagsHtml } from "./html.js";
+export { metaTagsForPath, slugCandidates } from "./path.js";
 export { metaTags } from "./tags.js";
 export { absoluteUrl } from "./url.js";
