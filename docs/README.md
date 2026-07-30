@@ -7,7 +7,7 @@ project. The [README](../README.md) has the install steps and a short example.
 ## Guides
 
 - [Getting started](./getting-started/ "Install, frontmatter, config and the CLI")
-- [The command line](./cli/ "Every command and flag, including init, preview, dry runs and watching")
+- [The command line](./cli/ "Every command and flag, including init, preview, eject, dry runs and watching")
 - [Templates](./templates/ "The built-in layouts and how to register your own")
 - [The code template](./code-template/ "Syntax-highlighted code images")
 - [The layout toolkit](./layout/ "The primitives templates are built from")

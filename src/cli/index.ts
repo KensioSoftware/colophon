@@ -2,6 +2,7 @@
 import type { CliArgs } from "./args/index.js";
 import { parseCliArgs, usage } from "./args/index.js";
 import { runBuild } from "./build.js";
+import { runEject } from "./eject/index.js";
 import { runInit } from "./init/index.js";
 import { messageOf } from "./message.js";
 import { runPreview } from "./preview/index.js";
@@ -14,6 +15,9 @@ async function run(args: CliArgs): Promise<void> {
     }
     case "preview": {
       return runPreview(args);
+    }
+    case "eject": {
+      return runEject(args);
     }
     case "generate": {
       return runBuild(args);

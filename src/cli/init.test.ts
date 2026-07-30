@@ -21,6 +21,7 @@ function args(overrides: Partial<CliArgs> = {}): CliArgs {
     command: "init",
     contentDir: undefined,
     file: undefined,
+    adapter: undefined,
     configPath: undefined,
     overwrite: false,
     dryRun: false,
