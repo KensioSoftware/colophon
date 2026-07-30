@@ -47,8 +47,9 @@ export type ColophonIntegrationOptions = GenerateOptions;
  *
  * Running on every dev start sounds expensive and is not, because of the
  * rebuild stamps: a second run reads the content tree, compares digests and
- * writes nothing. The first run in a session pays for the images, and only
- * the images that changed.
+ * renders nothing. The manifest is rewritten either way, being a small file
+ * describing images that are already there. Only the first run in a session
+ * pays for rendering, and only for the images that changed.
  */
 export default function colophon(
   options: ColophonIntegrationOptions,

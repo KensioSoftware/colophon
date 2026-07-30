@@ -214,6 +214,12 @@ describe("metaTags", () => {
   });
 });
 
+describe("metaTags and inherited keys", () => {
+  it("treats a slug that names an Object property as absent", () => {
+    assertArrayLength(metaTags(manifest, "toString"), 0);
+  });
+});
+
 describe("metaTagsHtml", () => {
   it("renders the tags with the attribute each platform reads", () => {
     const html = metaTagsHtml(manifest, "blog/my-post", site);
@@ -323,5 +329,13 @@ describe("metaTagsForPath", () => {
 
   it("gives a path with no image no tags at all", () => {
     assertArrayLength(metaTagsForPath(manifest, "/blog/nothing/", site), 0);
+  });
+
+  it("does not mistake an inherited property for a page", () => {
+    // A manifest is parsed JSON, so `pages.toString` is a function rather than
+    // undefined. A page at that route is unlikely and a TypeError from inside a
+    // layout is not the way to find out.
+    assertArrayLength(metaTagsForPath(manifest, "/toString", site), 0);
+    assertArrayLength(metaTagsForPath(manifest, "/blog/constructor", site), 0);
   });
 });

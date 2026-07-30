@@ -44,7 +44,8 @@ should show the images the build will produce rather than the last build's.
 
 Running on every dev start sounds expensive and is not. The
 [rebuild stamps](../rebuilds/) mean a second run reads the content tree,
-compares digests and writes nothing.
+compares digests and renders no images. It does rewrite the manifest, which is
+a small JSON file describing what is already there.
 
 A build that cannot render fails the Astro build rather than warning, because
 the alternative is a site shipping pages whose tags point at images that were

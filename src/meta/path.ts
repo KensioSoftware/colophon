@@ -39,7 +39,10 @@ export function metaTagsForPath(
   options?: MetaTagOptions,
 ): readonly MetaTag[] {
   for (const slug of slugCandidates(pathname)) {
-    if (manifest.pages[slug] !== undefined) {
+    // Own keys only. A manifest is parsed JSON, so it inherits `toString` and
+    // the rest of `Object.prototype`, and a plain lookup would take a page at
+    // `/toString` for a hit and then fail on it.
+    if (Object.hasOwn(manifest.pages, slug)) {
       return metaTags(manifest, slug, options);
     }
   }
