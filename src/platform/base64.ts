@@ -29,7 +29,10 @@ export function toBase64(bytes: Uint8Array): string {
 }
 
 /** Decode it again, for a `data:` URI that arrived carrying its payload. */
-export function fromBase64(text: string): Uint8Array {
+// `Uint8Array<ArrayBuffer>` rather than the default `ArrayBufferLike`: Web
+// Crypto will not take a possibly-shared buffer, and a signature is decoded
+// straight into it.
+export function fromBase64(text: string): Uint8Array<ArrayBuffer> {
   // eslint-disable-next-line unicorn/prefer-uint8array-base64
   const binary = atob(text);
 

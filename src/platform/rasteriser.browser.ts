@@ -9,7 +9,9 @@ import type { Rasteriser } from "../types.js";
  *
  * The core builds SVG and mostly stops there, so this is only reached by asking
  * for pixels. `config.rasteriser` is the way to have them: a wasm build of resvg
- * is the obvious one, and that seam exists already.
+ * is the obvious one, and that seam exists already. It returns a `Uint8Array`,
+ * which is what such a backend has to give and what {@link Rasteriser} asks
+ * for.
  */
 export const defaultRasteriser: Rasteriser = () => {
   throw new Error(

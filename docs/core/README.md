@@ -42,7 +42,8 @@ not include it, and nothing here turns the SVG into pixels. Two ways on:
 - Take the SVG. Browsers draw it, and it is often what you wanted anyway.
 - Set [`config.rasteriser`](../configuration/rasteriser/) to something that runs
   where you are. A wasm build of resvg is the obvious one, and that seam already
-  exists.
+  exists. It returns a `Uint8Array`, so a backend with no `Buffer` to hand back
+  is not a problem.
 
 Asking for pixels without one is an error rather than a blank image.
 
@@ -109,6 +110,12 @@ is a template name or a size anyone can change. It is HMAC-SHA256 over the
 parameters sorted by name, so the order they arrive in does not matter, and the
 check is `crypto.subtle.verify` rather than a string comparison that would stop
 at the first wrong byte.
+
+A query string that repeats a parameter is refused rather than resolved.
+`URLSearchParams.get` takes the first value of a repeated key and building an
+object from the pairs takes the last, so appending a second copy of a key to a
+signed URL is how a check like this is got round. No honest signed URL repeats
+one.
 
 `signParams` and `verifyParams` are there for a URL shape of your own.
 

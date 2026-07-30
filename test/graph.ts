@@ -78,11 +78,10 @@ export function importGraph(entry: string, isBrowser = false): Graph {
         continue;
       }
 
-      const resolved = path.resolve(path.dirname(target), specifier);
-
-      if (existsSync(resolved)) {
-        walk(resolved);
-      }
+      // Followed unconditionally: a relative specifier that resolves to
+      // nothing is a broken build, and skipping it quietly would let the
+      // purity check pass having looked at less than it thinks.
+      walk(path.resolve(path.dirname(target), specifier));
     }
   };
 

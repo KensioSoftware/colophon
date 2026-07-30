@@ -2,6 +2,7 @@ import {
   assertFalse,
   assertIdentical,
   assertStringIncludes,
+  assertThrowsErrorAsync,
   assertTrue,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
@@ -84,5 +85,62 @@ describe("signedQuery", () => {
 
   it("rejects a query string carrying no signature", async () => {
     assertFalse(await verifySignedQuery(new URLSearchParams(params), secret));
+  });
+
+  it("rejects a query string that repeats a parameter", async () => {
+    // The attack this exists to stop. `URLSearchParams.get` takes the first
+    // value and building an object from the pairs takes the last, so a handler
+    // reading "Evil" could otherwise be handed a signature made for "Good".
+    const signed = await signedQuery({ title: "Good" }, secret);
+    const injected = new URLSearchParams(`title=Evil&${signed}`);
+
+    assertIdentical(injected.get("title"), "Evil");
+    assertFalse(await verifySignedQuery(injected, secret));
+  });
+
+  it("rejects a query string that repeats the signature", async () => {
+    const signed = await signedQuery({ title: "Good" }, secret);
+
+    assertFalse(
+      await verifySignedQuery(new URLSearchParams(`${signed}&s=other`), secret),
+    );
+  });
+});
+
+describe("the signature parameter as an input", () => {
+  it("refuses to sign parameters that include it", async () => {
+    // Dropping it quietly would sign something other than what was passed, and
+    // `signedQuery` would then put two of them in one URL.
+    const error = await assertThrowsErrorAsync(async () =>
+      signParams({ title: "Hello", s: "mine" }, secret),
+    );
+
+    assertStringIncludes(error.message, "cannot be one of the parameters");
+  });
+
+  it("refuses to build a query from them either", async () => {
+    await assertThrowsErrorAsync(async () =>
+      signedQuery({ title: "Hello", s: "mine" }, secret),
+    );
+  });
+});
+
+describe("key ordering", () => {
+  it("does not depend on the runtime's collation", async () => {
+    // Keys are sorted by code unit, not by `localeCompare`, which puts "ä"
+    // before "z" under `en` and after it under `sv`. A signature is a protocol
+    // between two machines, so the answer cannot depend on either one's locale.
+    //
+    // Pinned to a known value rather than compared with itself, since that is
+    // what says the bytes signed are the ones this was written to sign. It
+    // fails if the sort, the escaping or the digest ever changes, which for a
+    // wire format is the point.
+    assertIdentical(
+      await signParams({ z: "1", "\u{E4}": "2" }, secret),
+      // A test vector rather than a secret: the signature of two known
+      // parameters under the secret at the top of this file.
+      // eslint-disable-next-line no-secrets/no-secrets
+      "_Bmn_XwjwMZL8muQqvcgoHAzVnY055a7g6TWQ1NerEw",
+    );
   });
 });
