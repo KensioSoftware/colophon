@@ -1,5 +1,5 @@
 /** What the CLI has been asked to do. */
-export type CliCommand = "generate" | "init" | "preview";
+export type CliCommand = "generate" | "init" | "preview" | "eject";
 
 /**
  * The commands that are named on the command line. `generate` is not among
@@ -8,6 +8,7 @@ export type CliCommand = "generate" | "init" | "preview";
 const named: Readonly<Record<string, CliCommand>> = {
   init: "init",
   preview: "preview",
+  eject: "eject",
 };
 
 /**

@@ -19,6 +19,8 @@ export interface CliArgs {
   readonly contentDir: string | undefined;
   /** The post `preview` renders. */
   readonly file: string | undefined;
+  /** What `eject` writes, naming the generator it is for. */
+  readonly adapter: string | undefined;
   readonly configPath: string | undefined;
   readonly overwrite: boolean;
   readonly dryRun: boolean;
@@ -28,23 +30,34 @@ export interface CliArgs {
   readonly size: string | undefined;
 }
 
-/** The one positional each command takes, which is a path either way. */
+/** Where each command's one positional goes: a path, or a generator's name. */
 function target(
   command: CliCommand,
   positionals: readonly string[],
-): Pick<CliArgs, "contentDir" | "file"> {
-  const first = positionals[0];
+): Pick<CliArgs, "contentDir" | "file" | "adapter"> {
   const extra = positionals[1];
 
-  // Two paths is a mistake worth naming rather than quietly resolving: taking
-  // the last would build a tree the run did not mean to name.
+  // Two positionals is a mistake worth naming rather than quietly resolving:
+  // taking the last would build a tree the run did not mean to name.
   if (extra !== undefined) {
     throw new Error(`Unexpected argument "${extra}".`);
   }
 
-  return command === "preview"
-    ? { contentDir: undefined, file: first }
-    : { contentDir: first, file: undefined };
+  const first = positionals[0];
+  const empty = { contentDir: undefined, file: undefined, adapter: undefined };
+
+  switch (command) {
+    case "preview": {
+      return { ...empty, file: first };
+    }
+    case "eject": {
+      return { ...empty, adapter: first };
+    }
+    case "generate":
+    case "init": {
+      return { ...empty, contentDir: first };
+    }
+  }
 }
 
 /**

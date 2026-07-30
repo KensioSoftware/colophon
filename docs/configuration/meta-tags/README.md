@@ -72,3 +72,9 @@ A page whose image has no URL does throw, because that is a config that forgot
 Import from `@kensio/colophon/meta` rather than the package root. Emitting tags
 reads a JSON file, and a site's templates should not have to load a rasteriser
 and a syntax highlighter to write a `<head>`.
+
+## Sites that do not run JavaScript
+
+A Hugo site cannot call any of this from a Go template. `colophon eject hugo`
+writes a partial that does the same job in Go, reading the same manifest and
+emitting the same tags. See [the command line](../../cli/#colophon-eject).

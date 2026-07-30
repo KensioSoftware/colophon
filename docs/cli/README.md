@@ -4,12 +4,13 @@
 colophon [contentDir] [options]    Render the images for a content tree
 colophon init [contentDir]         Write a starter config module
 colophon preview <file> [options]  Render one post and open it
+colophon eject hugo                Write a Hugo partial that emits the tags
 ```
 
 | Option                | What it does                                                                       |
 | --------------------- | ---------------------------------------------------------------------------------- |
 | `-c`, `--config` path | Load a config module, whose default export is a config or a function returning it  |
-| `-f`, `--force`       | Re-render every image, ignoring the stamps. For `init`, replace an existing config |
+| `-f`, `--force`       | Re-render every image, ignoring the stamps. For `init` and `eject`, replace a file |
 | `-o`, `--overwrite`   | Alias for `--force`                                                                |
 | `-n`, `--dry-run`     | Report what would change and write nothing                                         |
 | `-w`, `--watch`       | Rebuild whenever a content file changes                                            |
@@ -18,7 +19,7 @@ colophon preview <file> [options]  Render one post and open it
 | `-h`, `--help`        | Show the help text                                                                 |
 
 The first argument is read as a command only where it names one, so a content
-directory called `init` or `preview` has to be written as `./init`. Everything
+directory called `init`, `preview` or `eject` has to be written as `./init`. Everything
 else stays as it was: with no command, the first argument is the content
 directory, and `content` is the default.
 
@@ -96,6 +97,64 @@ colophon preview content/posts/hello.md --size og
 
 A post that declares no image props is an error here, because the run named that
 file: in a build the same post is simply skipped.
+
+## colophon eject
+
+```bash
+colophon eject hugo
+```
+
+Writes `layouts/partials/colophon.html` into a Hugo site: a partial that looks
+the current page up in the [manifest](../configuration/manifest/) and emits its
+social meta tags. Call it from your head:
+
+```go-html-template
+{{ partial "colophon.html" . }}
+```
+
+and point `manifest` at `data/colophon.json`, which is where Hugo reads site
+data from.
+
+Without it a Hugo site does this part itself, globbing for `*-og.png` to find
+the landscape variant and hardcoding 1200 and 630 into the tags, because nothing
+told it what was generated. The two sites this partial was taken from spent 50
+and 58 lines on it.
+
+### What it emits
+
+The same tags [`metaTags`](../configuration/meta-tags/) does, which is the same
+job for a site that renders in JavaScript: `og:image` with its width, height and
+alt text, and the Twitter pair, with `summary_large_image` for a landscape image
+and `summary` for a square one.
+
+### Finding the page
+
+The manifest is keyed by slug, and which slug depends on the
+[`slugStrategy`](../configuration/sizes/#slug-strategies) the build used. The
+partial tries, in order: a `colophon_key` page parameter, the page's own `slug`,
+the route, and the file's base name. So it covers both strategies without being
+told which, and `colophon_key` is there for a site whose keys are its own.
+
+### The fallback chain
+
+An explicit `images` parameter on the page wins, then the generated image, then
+the site's own `images` parameter. Both are Hugo's existing convention, so a
+site that already sets them keeps working. Width, height and alt describe the
+generated image, so they are emitted only for that one.
+
+A manifest entry whose image has no URL counts as no image, and falls through to
+the site default. That happens when the [placement](../configuration/placement/)
+has no `urlBase`, which records dimensions and no address.
+
+### It is yours after that
+
+Ejecting rather than importing is the point. Colophon writes the file and then
+leaves it alone, so a site that wants a different fallback chain, or one more
+tag, edits it. `colophon eject hugo --force` replaces it, which is worth
+remembering before running that.
+
+It needs Hugo 0.156 or newer for `hugo.Data`. On an older Hugo, change the two
+references in the file to `site.Data`, which the file itself says.
 
 ## Dry runs
 
