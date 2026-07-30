@@ -624,12 +624,18 @@ export interface Template {
  * says whether to look further, and `fontFamily` is what to fall back to.
  * {@link Dimensions} is the size to produce; the SVG carries the same
  * proportions, so a backend that only scales by width will land on it anyway.
+ *
+ * It returns a `Uint8Array` rather than a `Buffer`, because `Buffer` is Node's
+ * and the point of the seam is the backends that are not: a wasm renderer in a
+ * browser or a worker hands back a `Uint8Array` and has no `Buffer` to convert
+ * it to. A `Buffer` is one, so a Node backend needs no change; the one place
+ * that wants the extra methods converts on the way out.
  */
 export type Rasteriser = (
   svg: string,
   dimensions: Dimensions,
   config: ResolvedConfig,
-) => Buffer | Promise<Buffer>;
+) => Uint8Array | Promise<Uint8Array>;
 
 /**
  * User-supplied configuration. Every field is optional; defaults are applied

@@ -101,6 +101,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Templates](./docs/templates/ "The built-in layouts and how to register your own")
 - [The code template](./docs/code-template/ "Syntax-highlighted code images")
 - [Astro](./docs/astro/ "The integration and the meta tags component")
+- [The browser-safe core](./docs/core/ "Running the template layer outside Node")
 - [The layout toolkit](./docs/layout/ "The primitives templates are built from")
 - [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, grain, dots and rules")
 - [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")
@@ -196,16 +197,16 @@ theme sets and how to override part of one.
 
 ## Development
 
-| Script                            | What it does                                                               |
-| --------------------------------- | -------------------------------------------------------------------------- |
-| `pnpm build`                      | Compile to `dist/`.                                                        |
-| `pnpm test`, `pnpm test:coverage` | Run Vitest.                                                                |
-| `pnpm lint`                       | ESLint and Prettier check.                                                 |
-| `pnpm fmt`                        | Auto-fix.                                                                  |
-| `pnpm samples`                    | Regenerate the sample images into `docs/samples/`.                         |
-| `pnpm baselines`                  | Re-record the visual regression baselines in `test/baselines/`.            |
-| `pnpm fta`                        | [FTA](https://ftaproject.dev) scores, failing on any file 50 or above.     |
-| `pnpm check`                      | Format, FTA, typecheck and test with coverage. Run this before committing. |
+| Script                            | What it does                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| `pnpm build`                      | Compile to `dist/`.                                                          |
+| `pnpm test`, `pnpm test:coverage` | Run Vitest.                                                                  |
+| `pnpm lint`                       | ESLint and Prettier check.                                                   |
+| `pnpm fmt`                        | Auto-fix.                                                                    |
+| `pnpm samples`                    | Regenerate the sample images into `docs/samples/`.                           |
+| `pnpm baselines`                  | Re-record the visual regression baselines in `test/baselines/`.              |
+| `pnpm fta`                        | [FTA](https://ftaproject.dev) scores, failing on any file 50 or above.       |
+| `pnpm check`                      | Format, FTA, typecheck, build and test with coverage. Run before committing. |
 
 ### Visual regression
 

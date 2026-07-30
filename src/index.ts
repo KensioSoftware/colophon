@@ -142,5 +142,14 @@ export type { WalkOptions } from "./content/index.js";
 
 export { metaTags, metaTagsHtml } from "./meta/index.js";
 
+export {
+  signatureParam,
+  signParams,
+  signedQuery,
+  verifyParams,
+  verifySignedQuery,
+} from "./sign/index.js";
+export type { SignedParams } from "./sign/index.js";
+
 export { createPlacer } from "./placement/index.js";
 export type { PlacedImage, Placer } from "./placement/index.js";

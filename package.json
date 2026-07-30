@@ -21,6 +21,10 @@
       "types": "./dist/astro/index.d.ts",
       "import": "./dist/astro/index.js"
     },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
     "./content": {
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"
@@ -34,6 +38,10 @@
       "import": "./dist/meta/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "browser": {
+    "./dist/platform/read-file.node.js": "./dist/platform/read-file.browser.js",
+    "./dist/platform/rasteriser.node.js": "./dist/platform/rasteriser.browser.js"
   },
   "files": [
     "dist",
@@ -58,7 +66,7 @@
     "samples": "pnpm build && node scripts/gen-samples.ts",
     "baselines": "COLOPHON_UPDATE_BASELINES=1 vitest run src/visual.test.ts",
     "fta": "./scripts/sh/fta.sh",
-    "check": "pnpm fmt && pnpm fta && pnpm build:check && pnpm test:coverage"
+    "check": "pnpm fmt && pnpm fta && pnpm build:check && pnpm build && pnpm test:coverage"
   },
   "keywords": [
     "open-graph",

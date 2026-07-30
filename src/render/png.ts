@@ -18,5 +18,11 @@ export async function renderSvgToPng(
   dimensions: Dimensions,
   config: ResolvedConfig = resolveConfig(),
 ): Promise<Buffer> {
-  return config.rasteriser(svg, dimensions, config);
+  const bytes = await config.rasteriser(svg, dimensions, config);
+
+  // A rasteriser returns bytes, since not every one of them has a `Buffer` to
+  // return. Everything downstream of here is Node, and the stamp reads the PNG
+  // with `Buffer`'s own methods, so this is where the two meet. A `Buffer`
+  // arrives as itself rather than being copied.
+  return Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
 }

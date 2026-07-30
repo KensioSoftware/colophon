@@ -39,6 +39,9 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # The import-graph test walks `dist/`, since what a consumer resolves is
+      # the built package rather than the source. Nothing else here needs it.
+      - run: pnpm build
       - run: pnpm test:coverage
 
       # A visual regression failure is about an image, and the numbers in the

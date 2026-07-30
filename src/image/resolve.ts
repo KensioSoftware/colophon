@@ -1,6 +1,4 @@
-import { existsSync, statSync } from "node:fs";
-import path from "node:path";
-
+import { resolveReadablePath } from "../platform/read-file.node.js";
 import type { ImageSource } from "../types.js";
 
 /**
@@ -42,16 +40,7 @@ export function resolveImageSource(
     );
   }
 
-  const absolute = path.resolve(raw.path);
-
-  if (!existsSync(absolute) || !statSync(absolute).isFile()) {
-    throw new Error(
-      `${label}: image file not found at ${absolute} (from "${raw.path}").` +
-        ` Relative paths resolve from the working directory.`,
-    );
-  }
-
-  return { path: absolute };
+  return { path: resolveReadablePath(raw.path, label, "image file") };
 }
 
 /** The same for a source that may not be there at all. */

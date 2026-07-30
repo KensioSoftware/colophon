@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-
+import { toBase64 } from "../platform/base64.js";
+import { readFileBytes } from "../platform/read-file.node.js";
 import type { ImageAsset, ImageSource } from "../types.js";
 import { sniffMediaType } from "./media.js";
 import { aspectOf } from "./size.js";
@@ -14,17 +14,6 @@ const byPath = new Map<string, Promise<ImageAsset>>();
 
 /** The same for images given as bytes, keyed by the array itself. */
 const byData = new WeakMap<Uint8Array, Promise<ImageAsset>>();
-
-/**
- * `Uint8Array.toBase64` reads better and is not on the oldest Node this
- * package supports, so the encoding goes through a Buffer.
- */
-function base64(bytes: Uint8Array): string {
-  // eslint-disable-next-line unicorn/prefer-uint8array-base64
-  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString(
-    "base64",
-  );
-}
 
 /**
  * Turn bytes into something drawable: a `data:` URI and the proportions of the
@@ -45,19 +34,15 @@ function toAsset(bytes: Uint8Array, label: string): ImageAsset {
     );
   }
 
-  // `Uint8Array.toBase64` would read better and does not exist on the oldest
-  // Node this package supports.
   return {
-    href: `data:${mediaType};base64,${base64(bytes)}`,
+    href: `data:${mediaType};base64,${toBase64(bytes)}`,
     aspect: aspectOf(bytes, mediaType) ?? 1,
   };
 }
 
 async function read(source: ImageSource, label: string): Promise<ImageAsset> {
   const bytes =
-    "data" in source
-      ? source.data
-      : new Uint8Array(await readFile(source.path));
+    "data" in source ? source.data : await readFileBytes(source.path);
 
   return toAsset(bytes, label);
 }
