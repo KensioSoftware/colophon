@@ -72,6 +72,8 @@ export default defineConfig({
 });
 ```
 
+`colophon init` writes that file for you, guessing where your content lives.
+
 Run it over a content tree:
 
 ```bash
@@ -82,6 +84,10 @@ For every file that declares `meta_img_props`, Colophon writes one PNG per
 output size next to it, named `<slug>-<size>.png`, so `post/index.md` produces
 `post/post-og.png` and `post/post-square.png`.
 
+While tuning a template, `colophon preview <file>` renders one post and opens
+it, `--watch` rebuilds on every change, and `--dry-run` reports what would
+change without writing anything.
+
 There is also a programmatic API. `renderMetaImages` takes props and config and
 returns rendered bytes, and `generate` ties walking, rendering and writing
 together.
@@ -91,6 +97,7 @@ together.
 Full documentation is in [`docs/`](./docs/).
 
 - [Getting started](./docs/getting-started/ "Install, frontmatter, config and the CLI")
+- [The command line](./docs/cli/ "Every command and flag, including init, preview, dry runs and watching")
 - [Templates](./docs/templates/ "The built-in layouts and how to register your own")
 - [The code template](./docs/code-template/ "Syntax-highlighted code images")
 - [The layout toolkit](./docs/layout/ "The primitives templates are built from")

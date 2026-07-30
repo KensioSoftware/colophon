@@ -231,6 +231,52 @@ describe("generate", () => {
     assertTrue(results.every((result) => !result.skipped));
   }, 10_000);
 
+  it("reports what a dry run would write, and writes none of it", async () => {
+    const results = await generate(options(dir, { dryRun: true }));
+
+    assertArrayLength(results, 2);
+    assertTrue(results.every((result) => !result.skipped));
+    assertPathNotExists(results.map((result) => result.outputPath));
+  });
+
+  it("reports an up-to-date image as skipped in a dry run", async () => {
+    await generate(options(dir));
+
+    const results = await generate(options(dir, { dryRun: true }));
+
+    // What a real build would do, which is the whole question a dry run asks.
+    assertTrue(results.every((result) => result.skipped));
+  }, 10_000);
+
+  it("writes no manifest in a dry run", async () => {
+    const { manifest, options: withIt } = withManifest({ dryRun: true });
+
+    await generate(withIt);
+
+    assertPathNotExists(manifest);
+  });
+
+  it("still refuses a config that could not be built, in a dry run", async () => {
+    const card = path.join(dir, "npm.png");
+    const image: ExtraImage = {
+      props: { template: "banner", title: "@kensio/colophon" },
+      output: card,
+    };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          dryRun: true,
+          config: { sizes: [tinyOg], extra: [image, image] },
+        }),
+      ),
+    );
+
+    // Every check a real build makes still runs, which is half the point of
+    // asking what a build would do.
+    assertStringIncludes(error.message, "Two images would be written to");
+  });
+
   it("names the content file in a template's warnings", async () => {
     const warnings: string[] = [];
     await mkdir(path.join(dir, "snippet"), { recursive: true });

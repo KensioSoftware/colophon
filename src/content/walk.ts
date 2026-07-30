@@ -1,15 +1,8 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import path from "node:path";
 
-import matter from "gray-matter";
-
 import type { ContentFile, ContentOptions } from "../types.js";
-import { coerceString, extractProps } from "./props.js";
-import { assertSlugStaysInside, slugFromPath } from "./slug.js";
-
-const defaultSlugField = "slug";
-const defaultSlugStrategy = "basename";
-const defaultExtensions: readonly string[] = [".md", ".markdown"];
+import { defaultContentExtensions, readContentFile } from "./read.js";
 
 /**
  * Options for {@link walkContent}: everything a project can say about reading
@@ -57,38 +50,13 @@ async function collectContentFiles(
 export async function walkContent(
   options: WalkOptions,
 ): Promise<ContentFile[]> {
-  const extensions = options.extensions ?? defaultExtensions;
+  const extensions = options.extensions ?? defaultContentExtensions;
   const filePaths = await collectContentFiles(options.dir, extensions);
 
-  const slugField = options.slugField ?? defaultSlugField;
-  const slugStrategy = options.slugStrategy ?? defaultSlugStrategy;
-
   const files = await Promise.all(
-    filePaths.map(async (filePath) => {
-      const raw = await readFile(filePath, "utf8");
-      const frontmatter: Record<string, unknown> = matter(raw).data;
-      const props = extractProps(frontmatter, options);
-
-      if (props === undefined) {
-        return;
-      }
-
-      const contentPath = path.relative(options.dir, filePath);
-      const declaredSlug = coerceString(frontmatter[slugField])?.trim();
-      const slug =
-        declaredSlug !== undefined && declaredSlug !== ""
-          ? declaredSlug
-          : slugFromPath(contentPath, slugStrategy);
-
-      assertSlugStaysInside(slug, contentPath);
-
-      return {
-        contentPath,
-        absolutePath: filePath,
-        slug,
-        props,
-      };
-    }),
+    filePaths.map(async (filePath) =>
+      readContentFile(filePath, options.dir, options),
+    ),
   );
 
   return files.filter((file): file is ContentFile => file !== undefined);

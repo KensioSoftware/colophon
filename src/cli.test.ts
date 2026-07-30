@@ -4,6 +4,7 @@ import path from "node:path";
 
 import {
   assertIdentical,
+  assertObjectMatches,
   assertStringIncludes,
   assertThrowsError,
   assertThrowsErrorAsync,
@@ -11,7 +12,7 @@ import {
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
 
-import { parseCliArgs } from "./cli/args.js";
+import { parseCliArgs } from "./cli/args/index.js";
 import { loadConfig } from "./cli/config.js";
 import type { ColophonConfig } from "./types.js";
 
@@ -27,10 +28,96 @@ describe("parseCliArgs", () => {
     assertIdentical(parseCliArgs(["--config", "b.js"]).configPath, "b.js");
   });
 
+  it("reads a value joined to its flag with an equals sign", () => {
+    assertIdentical(parseCliArgs(["--config=a.js"]).configPath, "a.js");
+    assertIdentical(parseCliArgs(["--concurrency=3"]).concurrency, 3);
+  });
+
+  it("keeps an equals sign that belongs to the value", () => {
+    assertIdentical(parseCliArgs(["--config=a=b.js"]).configPath, "a=b.js");
+  });
+
   it("rejects a config flag with nothing after it", () => {
     const error = assertThrowsError(() => parseCliArgs(["--config"]));
 
     assertStringIncludes(error.message, "Missing value for --config");
+  });
+
+  it("builds a content tree when no command is named", () => {
+    const args = parseCliArgs(["docs/content"]);
+
+    assertIdentical(args.command, "generate");
+    assertIdentical(args.contentDir, "docs/content");
+    assertUndefined(args.file);
+  });
+
+  it("names no content directory of its own, so each command can default it", () => {
+    assertUndefined(parseCliArgs([]).contentDir);
+  });
+
+  it("reads the switches off either spelling", () => {
+    assertObjectMatches(parseCliArgs(["-n", "-w", "-f"]), {
+      dryRun: true,
+      watch: true,
+      overwrite: true,
+    });
+    assertObjectMatches(parseCliArgs(["--dry-run", "--watch", "--overwrite"]), {
+      dryRun: true,
+      watch: true,
+      overwrite: true,
+    });
+  });
+
+  it("takes the argument after a command as its subject", () => {
+    const args = parseCliArgs([
+      "preview",
+      "content/post/index.md",
+      "--size",
+      "og",
+    ]);
+
+    assertObjectMatches(args, {
+      command: "preview",
+      file: "content/post/index.md",
+      size: "og",
+    });
+    assertUndefined(args.contentDir);
+  });
+
+  it("passes a content directory to init", () => {
+    const args = parseCliArgs(["init", "src/content"]);
+
+    assertIdentical(args.command, "init");
+    assertIdentical(args.contentDir, "src/content");
+  });
+
+  // Ignoring it would have `--dry-runs` render and write the whole tree, which
+  // is the one thing the run was asking it not to do.
+  it("rejects an option it does not have, suggesting the one it looks like", () => {
+    const error = assertThrowsError(() => parseCliArgs(["--dry-runs"]));
+
+    assertStringIncludes(error.message, 'Unknown option "--dry-runs"');
+    assertStringIncludes(error.message, 'Did you mean "--dry-run"?');
+  });
+
+  it("points at the help text when nothing is close enough to suggest", () => {
+    const error = assertThrowsError(() => parseCliArgs(["--colour=blue"]));
+
+    assertStringIncludes(error.message, "colophon --help");
+  });
+
+  it("rejects a second path rather than quietly building the last one", () => {
+    const error = assertThrowsError(() => parseCliArgs(["content", "posts"]));
+
+    assertStringIncludes(error.message, 'Unexpected argument "posts"');
+  });
+
+  it("rejects a concurrency that is not a positive integer", () => {
+    const error = assertThrowsError(() =>
+      parseCliArgs(["--concurrency", "half"]),
+    );
+
+    assertStringIncludes(error.message, "expected a positive integer");
   });
 });
 

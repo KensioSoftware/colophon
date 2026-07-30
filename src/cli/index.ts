@@ -1,7 +1,25 @@
 #!/usr/bin/env node
-import { generate } from "../generate/index.js";
-import { parseCliArgs, usage } from "./args.js";
-import { loadConfig } from "./config.js";
+import type { CliArgs } from "./args/index.js";
+import { parseCliArgs, usage } from "./args/index.js";
+import { runBuild } from "./build.js";
+import { runInit } from "./init/index.js";
+import { messageOf } from "./message.js";
+import { runPreview } from "./preview/index.js";
+
+/** Run whichever command the arguments asked for. */
+async function run(args: CliArgs): Promise<void> {
+  switch (args.command) {
+    case "init": {
+      return runInit(args);
+    }
+    case "preview": {
+      return runPreview(args);
+    }
+    case "generate": {
+      return runBuild(args);
+    }
+  }
+}
 
 async function main(): Promise<void> {
   const argv = process.argv.slice(2);
@@ -11,33 +29,12 @@ async function main(): Promise<void> {
     return;
   }
 
-  const args = parseCliArgs(argv);
-  const config = await loadConfig(args.configPath);
-
-  const results = await generate({
-    contentDir: args.contentDir,
-    overwrite: args.overwrite,
-    ...(config !== undefined && { config }),
-    ...(args.concurrency !== undefined && { concurrency: args.concurrency }),
-    onResult: (result) => {
-      // The URL is the half of a placement nothing else on the command line
-      // would show, and the quickest way to see a `urlBase` is wrong.
-      const served = result.url === undefined ? "" : ` -> ${result.url}`;
-      console.log(
-        `${result.skipped ? "skip " : "wrote"} ${result.outputPath}${served}`,
-      );
-    },
-  });
-
-  const written = results.filter((result) => !result.skipped).length;
-  console.log(
-    `Done: ${String(written)} written, ${String(results.length - written)} skipped.`,
-  );
+  await run(parseCliArgs(argv));
 }
 
 try {
   await main();
 } catch (error) {
-  console.error(error instanceof Error ? error.message : String(error));
+  console.error(messageOf(error));
   process.exitCode = 1;
 }
