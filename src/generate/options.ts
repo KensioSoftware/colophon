@@ -22,7 +22,10 @@ export interface GeneratedImage {
    * `extra` that named its own path.
    */
   readonly url: string | undefined;
-  /** True when an up-to-date image was left in place (no `overwrite`). */
+  /**
+   * True when an up-to-date image was left in place (no `overwrite`). Under
+   * `dryRun` it says what the build would have done rather than what it did.
+   */
   readonly skipped: boolean;
 }
 
@@ -42,6 +45,13 @@ export interface GenerateOptions {
    * as up to date. Default `false`.
    */
   readonly overwrite?: boolean;
+  /**
+   * Work out what the build would do and write nothing: no images, and no
+   * manifest. Every check a real build makes still runs, so a dry run is also
+   * how to find a config that would fail before it writes anything. Default
+   * `false`.
+   */
+  readonly dryRun?: boolean;
   /**
    * How many images to render at once. Defaults to the number of CPUs the
    * process can use. Must be a positive integer.

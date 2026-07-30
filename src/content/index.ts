@@ -1,4 +1,5 @@
 export { extractProps } from "./props.js";
+export { defaultContentExtensions, readContentFile } from "./read.js";
 export { slugFromPath } from "./slug.js";
 export { walkContent } from "./walk.js";
 export type { WalkOptions } from "./walk.js";

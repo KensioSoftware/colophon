@@ -122,7 +122,13 @@ export type {
   TextLine,
 } from "./layout/index.js";
 
-export { extractProps, slugFromPath, walkContent } from "./content/index.js";
+export {
+  defaultContentExtensions,
+  extractProps,
+  readContentFile,
+  slugFromPath,
+  walkContent,
+} from "./content/index.js";
 export type { WalkOptions } from "./content/index.js";
 
 export { metaTags, metaTagsHtml } from "./meta/index.js";

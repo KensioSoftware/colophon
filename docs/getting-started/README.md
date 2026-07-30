@@ -37,6 +37,11 @@ carry so you do not have to edit every file.
 ## Add a config file
 
 Config is optional. Without one, Colophon renders with neutral defaults.
+`colophon init` writes a starter one, and guesses where your content lives:
+
+```bash
+colophon init
+```
 
 ```ts
 // colophon.config.ts
@@ -76,17 +81,23 @@ one URL prefix, see [Placement](../configuration/placement/).
 ## Command line options
 
 ```text
-colophon [contentDir] [options]
+colophon [contentDir] [options]    Render the images for a content tree
+colophon init [contentDir]         Write a starter config module
+colophon preview <file> [options]  Render one post and open it
 
   -c, --config <path>   Config module whose default export is a ColophonConfig,
                         or a function returning one
   -f, --force           Re-render every image, ignoring the stamps
   -o, --overwrite       Alias for --force
+  -n, --dry-run         Report what would change and write nothing
+  -w, --watch           Rebuild whenever a content file changes
   --concurrency <n>     How many images to render at once
+  --size <name>         Which configured size preview renders
   -h, --help            Show help
 
   contentDir            defaults to "content"
   --concurrency         defaults to one per available CPU
+  --size                defaults to the first configured size
 ```
 
 Images are rendered a few at a time rather than all at once, so a tree of a few
@@ -94,8 +105,13 @@ hundred posts does not start a few hundred rasterisations and thrash. The
 default of one per available CPU suits a build machine with nothing else to do.
 Lower it with `--concurrency` to leave room for whatever else is running.
 
+While tuning a template, `colophon preview <file>` renders one post and opens
+it, and `--watch` rebuilds the tree on every change. [The command
+line](../cli/) covers all of it.
+
 ## Where to go next
 
+- [The command line](../cli/) covers `init`, `preview`, dry runs and watching.
 - [Templates](../templates/) covers the built-in layouts and how to add one.
 - [Rebuilds](../rebuilds/) explains when an image is rendered again.
 - [Programmatic use](../programmatic-use/) covers the API the CLI is built on.

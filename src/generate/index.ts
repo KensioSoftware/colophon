@@ -22,6 +22,10 @@ export type { GeneratedImage, GenerateOptions } from "./options.js";
  *
  * Rendering runs `concurrency` images at a time rather than all of them, so a
  * large tree does not start hundreds of rasterisations at once.
+ *
+ * `dryRun` stops short of writing: the plan is built and the stamps are read,
+ * so the results say which images are out of date, but nothing is rendered and
+ * no manifest is written.
  */
 export async function generate(
   options: GenerateOptions,
@@ -34,7 +38,7 @@ export async function generate(
       options.overwrite !== true &&
       (await readPngStamp(job.outputPath)) === job.stamp;
 
-    if (!isSkipped) {
+    if (!isSkipped && options.dryRun !== true) {
       await renderImage(job, job.stamp);
     }
 
@@ -51,7 +55,9 @@ export async function generate(
 
   // Written last, and only once every image is on disk: a manifest naming a
   // file that failed to render would outlive the build that failed.
-  await writeManifest(plan.manifest);
+  if (options.dryRun !== true) {
+    await writeManifest(plan.manifest);
+  }
 
   return results;
 }

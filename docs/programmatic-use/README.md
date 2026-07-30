@@ -50,6 +50,7 @@ await generate({
   contentDir: "content",
   config: { colors: { brand: "#2563eb" } },
   overwrite: false,
+  dryRun: false, // work out what would change and write nothing
   concurrency: 4, // defaults to one per available CPU
   onResult: (result) =>
     // result.url is where it is served, when the placement knows.
@@ -61,6 +62,11 @@ await generate({
 because their [stamp](../rebuilds/) still matched. A result for an
 [extra image](../configuration/extra-images/) has `contentPath` set to
 `undefined`, since there is no post behind it.
+
+Under `dryRun` the results say what a real build would have done: `skipped` is
+`true` for an image whose stamp still matches, and `false` for one that would be
+rendered. Nothing is written, not even the manifest, and every check a build
+makes still runs. It is what the CLI's [`--dry-run`](../cli/) is.
 
 ### Options that are not config
 
@@ -91,6 +97,17 @@ const files = await walkContent({ dir: "content" });
 Import it from the `@kensio/colophon/content` subpath when frontmatter discovery
 is all you want. The root entry point pulls in the rasteriser and the syntax
 highlighter, and this subpath does not.
+
+`readContentFile` is the same work for one file, which is what
+[`colophon preview`](../cli/) uses. It takes the file, the content root its path
+and slug are relative to, and the same options, and returns `undefined` where
+the file asks for no image:
+
+```ts
+import { readContentFile } from "@kensio/colophon/content";
+
+const file = await readContentFile("content/posts/hello.md", "content");
+```
 
 ## Other exports
 

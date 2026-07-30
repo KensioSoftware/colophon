@@ -53,6 +53,13 @@ colophon content --config colophon.config.ts --force
 `--overwrite` is an alias for the same flag, and `generate` takes an
 `overwrite` option that does the same thing.
 
+To see which images the stamps make out of date without rendering any of them,
+ask for a [dry run](../cli/#dry-runs):
+
+```bash
+colophon content --config colophon.config.ts --dry-run
+```
+
 ## Hashed filenames
 
 If you want a changed image to get a new URL rather than replacing an old one,
