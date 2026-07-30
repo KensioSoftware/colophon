@@ -154,7 +154,7 @@ describe("validateConfig", () => {
     assertStringIncludes(message, 'Unknown option "wibble". Valid options');
     assertStringIncludes(
       message,
-      "sizes, templates, content, placement, manifest, extra.",
+      "sizes, templates, rasteriser, content, placement, manifest, extra.",
     );
     assertStringNotIncludes(message, "Did you mean");
   });

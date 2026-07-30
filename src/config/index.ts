@@ -1,5 +1,6 @@
 import { resolveFonts } from "../fonts/index.js";
 import { resolveOptionalImage } from "../image/index.js";
+import { resvgRasteriser } from "../render/rasterise.js";
 import { builtinTemplates } from "../templates/index.js";
 import { applyTheme } from "../theme/index.js";
 import { resolveTexture } from "../texture/index.js";
@@ -96,5 +97,8 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
     onWarning: config.onWarning ?? warnToConsole,
     sizes: resolveSizes(config.sizes),
     templates: { ...builtinTemplates, ...config.templates },
+    // Named from `render/rasterise.js` rather than from the barrel, which would
+    // pull `render/png.js` back round to this module.
+    rasteriser: config.rasteriser ?? resvgRasteriser,
   };
 }

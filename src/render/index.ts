@@ -11,6 +11,7 @@ import { selectTemplate } from "./template.js";
 
 export { buildSvg } from "./svg.js";
 export { renderSvgToPng } from "./png.js";
+export { resvgRasteriser } from "./rasterise.js";
 
 /**
  * Render an image for every configured output size from a single set of props.

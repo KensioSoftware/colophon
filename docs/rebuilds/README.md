@@ -42,7 +42,9 @@ changing one re-renders that size and leaves the others alone.
 A custom template is covered by its own source code, hashed from
 `render.toString()`. That cannot see anything the source does not name, so a
 template that reads a closed-over value or loads a file itself can change
-without Colophon noticing.
+without Colophon noticing. A custom
+[rasteriser](../configuration/rasteriser/) is covered the same way, and has the
+same gap.
 
 `--force` re-renders everything, ignoring the stamps:
 

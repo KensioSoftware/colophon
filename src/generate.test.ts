@@ -24,6 +24,7 @@ import {
 import { afterEach, beforeEach, describe, it } from "vitest";
 
 import type { ContentFile } from "./content/index.js";
+import { readPngStamp } from "./stamp/index.js";
 import { defaultOutputPath, generate } from "./generate/index.js";
 import type { GenerateOptions } from "./generate/index.js";
 import type { ExtraImage, Manifest, OutputSize } from "./types.js";
@@ -33,6 +34,9 @@ const tinySquare: OutputSize = { name: "square", width: 16, height: 16 };
 const tinySizes: OutputSize[] = [tinyOg, tinySquare];
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+
+// A committed sample, used where a test needs real PNG bytes it did not render.
+const samplePng = path.join(process.cwd(), "docs/samples/card-wide-solid.png");
 
 async function readManifest(file: string): Promise<Manifest> {
   return JSON.parse(await readFile(file, "utf8")) as Manifest;
@@ -185,6 +189,38 @@ describe("generate", () => {
 
     assertTrue(results.every((result) => !result.skipped));
   }, 10_000);
+
+  it("writes the bytes a configured rasteriser produced", async () => {
+    // A committed sample stands in for another backend's output. It is 1200
+    // across and the job asks for 32, so the size on disk is what says which
+    // one drew it: the seam is under `generate` and not only under the render
+    // core.
+    const stub = await readFile(samplePng);
+    const results = await generate(
+      options(dir, { config: { sizes: [tinyOg], rasteriser: () => stub } }),
+    );
+
+    assertArrayLength(results, 1);
+    const written = await readFile(results[0].outputPath);
+    assertIdentical(written.readUInt32BE(16), 1200);
+    // Still stamped, so the build can still skip it next time.
+    assertNonNullable(await readPngStamp(results[0].outputPath));
+  }, 5000);
+
+  it("fails when a rasteriser produces something other than PNG", async () => {
+    // The rebuild stamp is a PNG chunk, so a build cannot write what it cannot
+    // stamp. Worth pinning: it is the one constraint on a custom backend, and
+    // the thing standing between the seam and other output formats.
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        options(dir, {
+          config: { sizes: [tinyOg], rasteriser: () => Buffer.from("webp?") },
+        }),
+      ),
+    );
+
+    assertStringIncludes(error.message, "not a PNG image");
+  }, 5000);
 
   it("replaces an existing image it cannot recognise", async () => {
     await writeFile(target, "sentinel");

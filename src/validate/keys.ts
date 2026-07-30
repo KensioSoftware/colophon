@@ -67,6 +67,7 @@ export const configKeys = knownKeys<ColophonConfig>({
   onWarning: true,
   sizes: true,
   templates: true,
+  rasteriser: true,
   content: true,
   placement: true,
   manifest: true,

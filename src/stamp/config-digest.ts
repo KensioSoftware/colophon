@@ -57,6 +57,13 @@ async function backgroundDigest(background: Background): Promise<unknown> {
  * `templates`: the one size and the one template an image actually uses go into
  * its own stamp, so adding a third size or an unrelated custom template does
  * not invalidate everything already on disk.
+ *
+ * The rasteriser is in, by its source, since swapping the backend is one of the
+ * few config changes that alters every pixel of every image. It is hashed the
+ * way a custom template is, with the same gap: source text cannot see a value
+ * the function closed over, so a rasteriser configured by something outside
+ * itself needs `--force`. For the default it adds nothing the package version
+ * was not already saying, which is why there is no special case for it.
  */
 export async function configDigest(config: ResolvedConfig): Promise<string> {
   const fonts = await Promise.all(
@@ -78,6 +85,7 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
       footer: config.footer,
       badge: config.badge,
       code: config.code,
+      rasteriser: config.rasteriser.toString(),
     }),
   );
 }

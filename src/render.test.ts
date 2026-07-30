@@ -5,6 +5,8 @@ import {
   assertBufferEqual,
   assertFalse,
   assertIdentical,
+  assertMapSize,
+  assertNonNullable,
   assertNumberBetween,
   assertObjectEquals,
   assertStringEndsWith,
@@ -17,6 +19,7 @@ import { describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
 import { buildSvg, renderMetaImages, renderSvgToPng } from "./render/index.js";
+import type { Dimensions, ResolvedConfig } from "./types.js";
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
 
@@ -119,6 +122,47 @@ describe("renderSvgToPng", () => {
     assertFalse(sans.equals(serif));
     assertBufferEqual(sans, again);
   }, 5000);
+
+  it("rasterises with the configured backend instead of resvg", async () => {
+    // No native rasteriser is reached here at all, which is half of why the
+    // seam is worth having: the renderer becomes testable without one.
+    const calls: { svg: string; dimensions: Dimensions }[] = [];
+    const config = resolveConfig({
+      footer: "example.com",
+      rasteriser: (svg, dimensions) => {
+        calls.push({ svg, dimensions });
+        return Buffer.from("not really an image");
+      },
+    });
+
+    const png = await renderSvgToPng("<svg/>", { width: 8, height: 4 }, config);
+
+    assertIdentical(png.toString(), "not really an image");
+    assertArrayLength(calls, 1);
+    assertIdentical(calls[0].svg, "<svg/>");
+    assertObjectEquals(calls[0].dimensions, { width: 8, height: 4 });
+  });
+
+  it("hands the rasteriser the config the image was resolved with", async () => {
+    // Fonts, `systemFonts` and the fallback family are all a backend has to go
+    // on, so what arrives has to be the resolved config rather than the input.
+    let seen: ResolvedConfig | undefined;
+    const config = resolveConfig({
+      fonts: [{ family: "DejaVu Sans", path: sansFont }],
+      rasteriser: (_svg, _dimensions, given) => {
+        seen = given;
+        return Buffer.alloc(0);
+      },
+    });
+
+    await renderSvgToPng("<svg/>", { width: 8, height: 4 }, config);
+
+    assertNonNullable(seen);
+    assertFalse(seen.systemFonts);
+    assertIdentical(seen.fontFamily, "DejaVu Sans");
+    assertArrayLength(seen.fonts, 1);
+    assertIdentical(seen.fonts[0].family, "DejaVu Sans");
+  });
 });
 
 describe("renderMetaImages", () => {
@@ -141,6 +185,36 @@ describe("renderMetaImages", () => {
     assertIdentical(images[1].name, "tiny");
     assertObjectEquals(images[1].dimensions, { width: 48, height: 24 });
   }, 5000);
+
+  it("gives the rasteriser each size and its own resolved config", async () => {
+    // Keyed by width rather than collected in a list: the sizes are rendered
+    // concurrently, so which one reaches the rasteriser first is not something
+    // to assert on.
+    const footers = new Map<number, string | undefined>();
+    const images = await renderMetaImages(
+      { template: "banner", title: "hello" },
+      {
+        footer: "example.com",
+        rasteriser: (_svg, dimensions, config) => {
+          footers.set(dimensions.width, config.footer);
+          return Buffer.from(String(dimensions.width));
+        },
+        sizes: [
+          { name: "og", width: 64, height: 32 },
+          { name: "square", width: 48, height: 48, footer: "beta.example.com" },
+        ],
+      },
+    );
+
+    // A per-size override reaches the backend as well as the template, since
+    // both are handed the same config for that one size.
+    assertMapSize(footers, 2);
+    assertIdentical(footers.get(64), "example.com");
+    assertIdentical(footers.get(48), "beta.example.com");
+    assertArrayLength(images, 2);
+    assertIdentical(images[0].png.toString(), "64");
+    assertIdentical(images[1].png.toString(), "48");
+  });
 
   it("renders each size with its own overrides", async () => {
     const images = await renderMetaImages(

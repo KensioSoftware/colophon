@@ -602,6 +602,29 @@ export interface Template {
 }
 
 /**
+ * Turns one finished SVG document into image bytes.
+ *
+ * The default is resvg, which is what makes the output reproducible: it takes
+ * explicit font files and can be told to ignore the ones the machine has
+ * installed. The seam is here for the backends it is not. A wasm build of the
+ * same renderer would let a build run at the edge or in a browser, and sharp
+ * reaches encoders resvg has no equivalent for, so a project wanting WebP or a
+ * quality setting has somewhere to go without waiting for the package.
+ *
+ * A rasteriser is handed the whole resolved config rather than an argument list
+ * of the parts of it that matter, as a template is, because which parts matter
+ * is the backend's business: `fonts` may hold bytes or paths, `systemFonts`
+ * says whether to look further, and `fontFamily` is what to fall back to.
+ * {@link Dimensions} is the size to produce; the SVG carries the same
+ * proportions, so a backend that only scales by width will land on it anyway.
+ */
+export type Rasteriser = (
+  svg: string,
+  dimensions: Dimensions,
+  config: ResolvedConfig,
+) => Buffer | Promise<Buffer>;
+
+/**
  * User-supplied configuration. Every field is optional; defaults are applied
  * by `resolveConfig`.
  */
@@ -663,6 +686,12 @@ export interface ColophonConfig {
   readonly sizes?: readonly OutputSize[];
   /** Extra templates, merged over (and able to override) the built-ins. */
   readonly templates?: Readonly<Record<string, Template>>;
+  /**
+   * What turns each finished SVG into image bytes. Defaults to resvg, which is
+   * what the package renders with and what its font handling is built around.
+   * See {@link Rasteriser} for when a project would want another.
+   */
+  readonly rasteriser?: Rasteriser;
   /**
    * How to read props out of the content tree. Used by `generate` and the CLI;
    * the render core never sees it.
@@ -791,6 +820,7 @@ export interface ResolvedConfig {
   readonly onWarning: WarningHandler;
   readonly sizes: readonly OutputSize[];
   readonly templates: Readonly<Record<string, Template>>;
+  readonly rasteriser: Rasteriser;
 }
 
 /**
