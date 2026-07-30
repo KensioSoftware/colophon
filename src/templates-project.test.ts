@@ -50,6 +50,15 @@ describe("releaseTemplate", () => {
     assertStringNotIncludes(svg, ">vv3");
   });
 
+  it("takes a label that is not a number as its own version too", async () => {
+    const svg = await render(releaseTemplate, {
+      template: "release",
+      version: "vNext",
+    });
+
+    assertStringIncludes(svg, ">vNext</text>");
+  });
+
   it("draws only the four changes there is room to read", async () => {
     const svg = await render(releaseTemplate, {
       template: "release",

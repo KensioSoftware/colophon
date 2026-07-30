@@ -9,6 +9,10 @@ import type { MeasureText, MetaImageProps } from "../../types.js";
 
 const maxNameLines = 1;
 const maxTaglineLines = 2;
+
+/** The weight the name is both drawn at and measured at, which have to agree. */
+const nameWeight = 800;
+
 const nameFloor = 0.45;
 const taglineFloor = 0.8;
 
@@ -38,7 +42,7 @@ function nameLines(props: MetaImageProps, text: WordmarkText): TextLine[] {
     maxLines: maxNameLines,
     fontSize: text.nameFs,
     floor: nameFloor,
-    fontWeight: 800,
+    fontWeight: nameWeight,
     opacity: 1,
   });
 
@@ -52,7 +56,7 @@ function nameLines(props: MetaImageProps, text: WordmarkText): TextLine[] {
       text: clampLine(
         name,
         contentWidth,
-        measureIn(measure, fontFamily, 800),
+        measureIn(measure, fontFamily, nameWeight),
         line.fontSize,
       ),
     },

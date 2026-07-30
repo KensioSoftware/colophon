@@ -1,3 +1,4 @@
+import { clampLine } from "../../layout/index.js";
 import type { MeasureAt } from "../../layout/index.js";
 
 /** What goes between two segments of the trail. */
@@ -36,5 +37,7 @@ export function crumbLine(
     }
   }
 
-  return parts.at(-1);
+  // Not even the last segment on its own fits, so it is cut to the width
+  // rather than drawn past the margin.
+  return clampLine(parts.at(-1) ?? "", maxWidth, measure, fontSize);
 }

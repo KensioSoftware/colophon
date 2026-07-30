@@ -10,6 +10,7 @@ import { describe, it } from "vitest";
 
 import {
   breakWord,
+  clampLine,
   escapeXml,
   fitText,
   textElement,
@@ -109,6 +110,32 @@ describe("fitText", () => {
 
   it("returns no lines for empty text", () => {
     assertArrayEquals(fitText("", byCharacterAt, options).lines, []);
+  });
+});
+
+describe("clampLine", () => {
+  it("leaves a line that already fits", () => {
+    assertIdentical(clampLine("abcde", 50, byCharacterAt, 10), "abcde");
+  });
+
+  it("cuts to the width and marks the cut", () => {
+    // Six characters at ten units each, with the ellipsis taking one of them.
+    assertIdentical(clampLine("abcdefghij", 60, byCharacterAt, 10), "abcde…");
+  });
+
+  it("cuts to nothing but the mark where there is no room at all", () => {
+    // A negative width is what a template gets when something else on the line
+    // has taken all of it, and cutting from the end of the string instead is
+    // how that used to come out longer than the text it was clamping.
+    assertIdentical(clampLine("abcdefghij", -40, byCharacterAt, 10), "…");
+  });
+
+  it("does not cut a character in half", () => {
+    // The emoji is two units wide to `slice`, and this width leaves room for
+    // three of them and the mark, so the cut lands between its halves. Half a
+    // character is not one, and escaping it would put a lone surrogate in the
+    // document, so it goes with the rest.
+    assertIdentical(clampLine("ab🎉cd", 40, byCharacterAt, 10), "ab…");
   });
 });
 

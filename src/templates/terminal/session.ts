@@ -78,9 +78,15 @@ export async function terminalSession(
     tabSize,
   });
 
+  // Every line of the command block gets its own prompt, since a block of them
+  // is a run of commands typed one after another, which is what a terminal
+  // shows. A blank line between two of them does not: a prompt with nothing
+  // after it reads as a command that was never typed.
   const indent = prompt === "" ? 0 : prompt.length + 1;
   const commands = highlighted.lines.map((tokens) => [
-    ...(indent === 0 ? [] : [promptToken(prompt, config.colors.brandWarm)]),
+    ...(indent === 0 || tokens.length === 0
+      ? []
+      : [promptToken(prompt, config.colors.brandWarm)]),
     ...tokens.map((token) => ({ ...token, column: token.column + indent })),
   ]);
 

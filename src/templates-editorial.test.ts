@@ -69,6 +69,19 @@ describe("articleTemplate", () => {
     assertStringNotIncludes(svg, "30 July");
   });
 
+  it("gives up the byline entirely when the footer leaves no room", async () => {
+    const svg = await render(
+      articleTemplate,
+      { template: "article", title: "t", author: "Hugh Grigg" },
+      { footer: `a-domain-of-${"considerable-".repeat(8)}length.example.com` },
+    );
+
+    // Nothing but the mark saying a name was cut. What this must not do is
+    // cut from the wrong end of the name and draw it over the footer.
+    assertStringIncludes(svg, ">…</text>");
+    assertStringNotIncludes(svg, "Grigg");
+  });
+
   it("puts the byline and the footer at opposite ends of one line", async () => {
     const svg = await render(
       articleTemplate,

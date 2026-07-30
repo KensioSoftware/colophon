@@ -55,6 +55,17 @@ describe("docsTemplate", () => {
     assertStringNotIncludes(svg, ">A documentation site");
   });
 
+  it("cuts a lone segment with nothing left to drop", async () => {
+    const svg = await render(docsTemplate, {
+      template: "docs",
+      breadcrumb: `A section named at ${"considerable ".repeat(12)}length`,
+      title: "t",
+    });
+
+    assertStringIncludes(svg, "…</text>");
+    assertStringNotIncludes(svg, "length</text>");
+  });
+
   it("draws no rule where the post named no trail", async () => {
     const svg = await render(docsTemplate, { template: "docs", title: "t" });
 

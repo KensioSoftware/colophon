@@ -8,6 +8,11 @@ import { optionalString } from "../props.js";
  * written one itself. Frontmatter is hand-typed and both `1.2.0` and `v1.2.0`
  * are what somebody means by the same release, so the alternative is an image
  * that says `vv1.2.0`.
+ *
+ * Any leading `v` counts, not only one in front of a digit, since `vNext` and
+ * `v2.0` are the same kind of label and nothing here validates a version
+ * anyway. The cost is that a version that genuinely starts with a `v` and is
+ * not a prefix goes unprefixed, and no such version has ever been written.
  */
 export function versionLabel(value: unknown): string | undefined {
   const version = optionalString(value);
@@ -16,5 +21,5 @@ export function versionLabel(value: unknown): string | undefined {
     return undefined;
   }
 
-  return /^v\d/.test(version) ? version : `v${version}`;
+  return version.startsWith("v") ? version : `v${version}`;
 }

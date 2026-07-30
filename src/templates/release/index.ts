@@ -51,15 +51,14 @@ export const releaseTemplate: Template = {
     const changes = stringList(props["changes"]).slice(0, maxChanges);
     const changeFs = Math.round(height * 0.037);
 
+    const listHeight = changesHeight(changes.length, changeFs);
+
     const [headSlot, listSlot] = stack(
       [
         { size: linesHeight(lines, lineHeight) },
         {
-          size: changesHeight(changes.length, changeFs),
-          gapBefore: gapAfter(
-            changesHeight(changes.length, changeFs),
-            Math.round(height * 0.06),
-          ),
+          size: listHeight,
+          gapBefore: gapAfter(listHeight, Math.round(height * 0.06)),
         },
       ],
       area,

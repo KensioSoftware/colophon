@@ -22,10 +22,16 @@ The `code` template has enough of its own behaviour to need
 [a page of its own](../code-template/). Every one of the others is described
 under [The templates one by one](#the-templates-one-by-one) below.
 
-All of them draw the configured [footer](../configuration/), and all but
-`quote` and `wordmark` draw the configured logo in a corner. Anything a
-template reads and the post does not carry is simply left out, and the rest of
-the layout takes the room back.
+All of them draw the configured [footer](../configuration/). Most draw the
+configured logo too, in the corner the layout leaves free, except that
+`wordmark` puts it in the middle as the subject of the image and `code`,
+`terminal` and `quote` draw no logo at all: the first two have a panel where it
+would go, and the third is a quotation with nothing else on the image. See
+[Logos, avatars and photographs](../configuration/images/) for where each one
+puts them.
+
+Anything a template reads and the post does not carry is simply left out, and
+the rest of the layout takes the room back.
 
 ## Choosing a template
 
@@ -162,6 +168,11 @@ meta_img_props:
 above it. The command is highlighted as shell; the output is not, since a shell
 grammar run over arbitrary output colours words for reasons the reader cannot
 see.
+
+A `command` of several lines is several commands, so each one gets its own
+prompt, which is what a terminal shows for a run of them. A blank line between
+two does not, since a prompt with nothing after it reads as a command that was
+never typed.
 
 Underneath it is the `code` template, so everything under
 [`code`](../code-template/) applies here too: the monospace family, the line

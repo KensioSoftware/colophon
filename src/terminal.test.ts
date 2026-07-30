@@ -122,6 +122,18 @@ describe("terminalTemplate", () => {
     assertStringIncludes(warnings[0], "terminal session does not fit");
   }, 5000);
 
+  it("prompts each command in a block, but not the blank line between", async () => {
+    const svg = await render(terminalTemplate, {
+      template: "terminal",
+      command: "npm install\n\nnpm test",
+    });
+
+    // One prompt for each of the two commands, and the blank line drawn as
+    // nothing rather than as a prompt with no command after it.
+    assertArrayLength(svg.match(/>\$<\/tspan>/g), 2);
+    assertArrayLength(svg.match(/<text y=/g), 2);
+  }, 5000);
+
   it("renders output on its own, with no prompt above it", async () => {
     const svg = await render(terminalTemplate, {
       template: "terminal",
