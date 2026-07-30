@@ -1,3 +1,5 @@
+import { fromBase64 } from "../platform/base64.js";
+
 /**
  * The bytes behind a `data:` URI, so that an image already inline is measured
  * and checked on the same terms as one read from disk.
@@ -15,9 +17,7 @@ export function bytesFromDataUri(uri: string, label: string): Uint8Array {
   }
 
   if (head.endsWith(";base64")) {
-    // `Uint8Array.fromBase64` is not on the oldest Node this package supports.
-    // eslint-disable-next-line unicorn/prefer-uint8array-base64
-    return Buffer.from(body, "base64");
+    return fromBase64(body);
   }
 
   return new TextEncoder().encode(decodeURIComponent(body));

@@ -21,6 +21,10 @@
       "types": "./dist/astro/index.d.ts",
       "import": "./dist/astro/index.js"
     },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
     "./content": {
       "types": "./dist/content/index.d.ts",
       "import": "./dist/content/index.js"
@@ -34,6 +38,10 @@
       "import": "./dist/meta/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "browser": {
+    "./dist/platform/read-file.node.js": "./dist/platform/read-file.browser.js",
+    "./dist/platform/rasteriser.node.js": "./dist/platform/rasteriser.browser.js"
   },
   "files": [
     "dist",

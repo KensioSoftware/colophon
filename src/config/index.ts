@@ -1,6 +1,8 @@
-import { resolveFonts } from "../fonts/index.js";
+// From `resolve.js` rather than the barrel, which also exports the font
+// materialising that only a path-taking rasteriser needs.
+import { resolveFonts } from "../fonts/resolve.js";
 import { resolveOptionalImage } from "../image/index.js";
-import { resvgRasteriser } from "../render/rasterise.js";
+import { defaultRasteriser } from "../platform/rasteriser.node.js";
 import { builtinTemplates } from "../templates/index.js";
 import { applyTheme } from "../theme/index.js";
 import { resolveTexture } from "../texture/index.js";
@@ -97,8 +99,10 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
     onWarning: config.onWarning ?? warnToConsole,
     sizes: resolveSizes(config.sizes),
     templates: { ...builtinTemplates, ...config.templates },
-    // Named from `render/rasterise.js` rather than from the barrel, which would
-    // pull `render/png.js` back round to this module.
-    rasteriser: config.rasteriser ?? resvgRasteriser,
+    // Through `platform/`, for two reasons. Naming `render/index.js` would pull
+    // `render/png.js` back round to this module, and naming resvg directly
+    // would put a native binary in the graph of every build that resolves a
+    // config, including one for a browser.
+    rasteriser: config.rasteriser ?? defaultRasteriser,
   };
 }

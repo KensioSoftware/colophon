@@ -11,6 +11,7 @@ project. The [README](../README.md) has the install steps and a short example.
 - [Templates](./templates/ "The built-in layouts and how to register your own")
 - [The code template](./code-template/ "Syntax-highlighted code images")
 - [Astro](./astro/ "The integration and the meta tags component")
+- [The browser-safe core](./core/ "Running the template layer outside Node")
 - [The layout toolkit](./layout/ "The primitives templates are built from")
 - [Rebuilds](./rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./programmatic-use/ "The API behind the CLI")

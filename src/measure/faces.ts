@@ -1,6 +1,7 @@
 import type { Font } from "fontkit";
-import { create, open } from "fontkit";
+import { create } from "fontkit";
 
+import { readFileBytes } from "../platform/read-file.node.js";
 import type { FontSource, WarningHandler } from "../types.js";
 
 /**
@@ -70,9 +71,13 @@ async function load(
   onWarning: WarningHandler,
 ): Promise<readonly Face[]> {
   try {
-    return facesOf(
-      "data" in font ? create(Buffer.from(font.data)) : await open(font.path),
-    );
+    // `fontkit.open` reads the path itself, which would be a second way into
+    // the filesystem. Reading the bytes first leaves one.
+    const bytes = "data" in font ? font.data : await readFileBytes(font.path);
+
+    // A plain `Uint8Array`, not a `Buffer`: fontkit reads either, and `Buffer`
+    // is Node's, which this has to run without.
+    return facesOf(create(bytes as Parameters<typeof create>[0]));
   } catch (error) {
     const name = "data" in font ? (font.family ?? "font data") : font.path;
     const reason = error instanceof Error ? error.message : String(error);

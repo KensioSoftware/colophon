@@ -1,6 +1,4 @@
-import { existsSync, statSync } from "node:fs";
-import path from "node:path";
-
+import { resolveReadablePath } from "../platform/read-file.node.js";
 import type { FontSource } from "../types.js";
 
 function label(index: number): string {
@@ -44,18 +42,9 @@ function resolveFont(font: FontSource, index: number): FontSource {
     );
   }
 
-  const absolute = path.resolve(source.path);
-
-  if (!existsSync(absolute) || !statSync(absolute).isFile()) {
-    throw new Error(
-      `${label(index)}: font file not found at ${absolute}` +
-        ` (from "${source.path}"). Relative paths resolve from the working directory.`,
-    );
-  }
-
   return {
     ...(source.family !== undefined && { family: source.family }),
-    path: absolute,
+    path: resolveReadablePath(source.path, label(index), "font file"),
   };
 }
 
