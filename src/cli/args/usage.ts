@@ -30,4 +30,4 @@ Defaults:
   --size                the first configured size
 
 The first argument is a command where it names one, so a content directory
-called init or preview has to be written as ./init.`;
+called init, preview or eject has to be written as ./init.`;
