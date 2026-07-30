@@ -218,6 +218,10 @@ fabric.properties
 cdk.out/
 .coverage/
 
+# What a failing visual regression test rendered, for looking at next to the
+# baseline it did not match.
+test/.visual/
+
 scripts/input/*
 !scripts/input/.gitkeep
 

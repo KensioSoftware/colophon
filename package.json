@@ -52,6 +52,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "samples": "pnpm build && node scripts/gen-samples.ts",
+    "baselines": "COLOPHON_UPDATE_BASELINES=1 vitest run src/visual.test.ts",
     "fta": "./scripts/sh/fta.sh",
     "check": "pnpm fmt && pnpm fta && pnpm build:check && pnpm test:coverage"
   },

@@ -29,8 +29,7 @@
     "sourceMap": true,
     "removeComments": false,
 
-    "outDir": "dist",
-    "rootDir": "src"
+    "outDir": "dist"
   },
   "include": ["src/**/*", "test/**/*", "typings/**/*.d.ts"]
 }
