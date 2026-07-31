@@ -44,6 +44,49 @@ describe("extractProps", () => {
     assertIdentical(numeric.title, "5");
   });
 
+  it("falls back to the post's own title", () => {
+    const props = extractProps({
+      title: "Setting up continuous integration",
+      meta_img_props: { template: "banner" },
+    });
+
+    assertNonNullable(props);
+    assertIdentical(props.title, "Setting up continuous integration");
+  });
+
+  it("prefers a title the props block gives to the post's own", () => {
+    const props = extractProps({
+      title: "Setting up continuous integration",
+      meta_img_props: { template: "banner", title: "CI" },
+    });
+
+    assertNonNullable(props);
+    assertIdentical(props.title, "CI");
+  });
+
+  it("prefers a title the mapper gives to the post's own", () => {
+    const props = extractProps(
+      { title: "Setting up continuous integration", headline: "CI" },
+      {
+        defaultTemplate: "banner",
+        props: (frontmatter) => ({ title: frontmatter["headline"] }),
+      },
+    );
+
+    assertNonNullable(props);
+    assertIdentical(props.title, "CI");
+  });
+
+  it("does not let a post's title ask for an image on its own", () => {
+    // The fallback fills a title in for a post already having an image. A
+    // file that asked for none is still a file that asked for none, or every
+    // markdown file with a title would start rendering one.
+    assertUndefined(extractProps({ title: "Not a post worth sharing" }));
+    assertUndefined(
+      extractProps({ title: "Nor this" }, { defaultTemplate: "banner" }),
+    );
+  });
+
   it("reads template, title, subtitle, version and extras", () => {
     const props = extractProps({
       meta_img_props: {
