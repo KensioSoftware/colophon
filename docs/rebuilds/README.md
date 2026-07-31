@@ -1,8 +1,7 @@
 # Rebuilds
 
 Every image Colophon writes carries a stamp: a hash of the props, the config and
-the output size it was rendered from, stored in the PNG itself as a `tEXt`
-chunk.
+the output size it was rendered from, stored inside the image file itself.
 
 On the next run, an image whose stamp still matches is left alone. One whose
 title, colours, template or size has moved on is rendered again. Correcting a
@@ -19,6 +18,33 @@ written by an older version of the package.
 
 Note that the decision is made from the stamp, not from whether the file exists.
 An image that is present but stale is still re-rendered.
+
+## Where the stamp goes
+
+PNG is what the default rasteriser writes, and the other three are here for a
+[rasteriser](../configuration/rasteriser/) that produces something else.
+
+| Format | Where                                                  |
+| ------ | ------------------------------------------------------ |
+| PNG    | A `tEXt` chunk straight after the header.              |
+| JPEG   | A `COM` segment, after any `APPn` and before the scan. |
+| WebP   | A `CLPH` chunk appended to the RIFF file.              |
+| AVIF   | A `uuid` box appended to the file.                     |
+
+What a decoder gives back is unchanged in every case: the same pixels, at the
+same size, with the same colour information. Two of the four are appended rather
+than tucked in near the front,
+which is not a preference: a plain WebP declares no room for a chunk before its
+bitstream, and an AVIF locates its picture by an offset from the start of the
+file that inserting anything earlier would move.
+
+Reading a stamp back means reading 4KB from one end of a file or the other,
+never the whole image. Reading a whole image to compare a hash against it would
+cost about what rendering it again costs, and there would be no point skipping
+anything.
+
+A format that is none of these cannot be written at all, since an image with no
+stamp is one every later build renders again without ever saying why.
 
 ## What the stamp covers
 

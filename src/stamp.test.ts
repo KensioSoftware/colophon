@@ -15,7 +15,7 @@ import { afterEach, beforeEach, describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
 import { renderSvgToPng } from "./render/index.js";
-import { createStamper, readPngStamp, stampPng } from "./stamp/index.js";
+import { createStamper, readImageStamp, stampImage } from "./stamp/index.js";
 import type { ColophonConfig, MetaImageProps, OutputSize } from "./types.js";
 
 const og: OutputSize = { name: "og", width: 32, height: 16 };
@@ -35,6 +35,21 @@ async function tinyPng(): Promise<Buffer> {
       '<rect width="4" height="4" fill="#123456"/></svg>',
     { width: 4, height: 4 },
   );
+}
+
+/**
+ * A WebP comfortably longer than the window a stamp is read through, so that
+ * the read comes off the end of the file rather than out of the head of it.
+ */
+function bigWebp(): Buffer {
+  const file = Buffer.alloc(20 + 8192);
+
+  file.write("RIFF", 0, "latin1");
+  file.writeUInt32LE(file.length - 8, 4);
+  file.write("WEBP", 8, "latin1");
+  file.write("VP8 ", 12, "latin1");
+  file.writeUInt32LE(8192, 16);
+  return file;
 }
 
 async function stampFor(
@@ -219,14 +234,14 @@ describe("createStamper", () => {
   });
 });
 
-describe("stampPng", () => {
+describe("stampImage", () => {
   it("embeds a stamp that reads back, leaving the image valid", async () => {
     const dir = await mkdtemp(path.join(tmpdir(), "colophon-stamp-"));
 
     try {
       const stamp = await stampFor({});
       const file = path.join(dir, "stamped.png");
-      const stamped = stampPng(await tinyPng(), stamp);
+      const stamped = stampImage(await tinyPng(), stamp);
       await writeFile(file, stamped);
 
       const types = chunkTypes(stamped);
@@ -234,24 +249,24 @@ describe("stampPng", () => {
       assertIdentical(types[1], "tEXt");
       assertArrayIncludes(types, "IDAT");
       assertIdentical(types.at(-1), "IEND");
-      assertIdentical(await readPngStamp(file), stamp);
+      assertIdentical(await readImageStamp(file), stamp);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
   }, 10_000);
 
-  it("refuses anything that is not a PNG", () => {
+  it("refuses a format none of the carriers knows", () => {
     const error = assertThrowsError(() => {
-      stampPng(Buffer.from("not a png, but long enough to look at"), "x");
+      stampImage(Buffer.from("not an image, but long enough to look at"), "x");
     });
 
-    assertStringIncludes(error.message, "Cannot stamp: not a PNG image.");
+    assertStringIncludes(error.message, "Cannot stamp: unrecognised image");
     // The reason, since a configured rasteriser is how someone gets here.
-    assertStringIncludes(error.message, "rasteriser has to produce PNG");
+    assertStringIncludes(error.message, "a rasteriser has to produce one of");
   });
 });
 
-describe("readPngStamp", () => {
+describe("readImageStamp", () => {
   let dir: string;
 
   beforeEach(async () => {
@@ -263,20 +278,35 @@ describe("readPngStamp", () => {
   });
 
   it("returns undefined for a file that is not there", async () => {
-    assertUndefined(await readPngStamp(path.join(dir, "missing.png")));
+    assertUndefined(await readImageStamp(path.join(dir, "missing.png")));
   });
 
-  it("returns undefined for a file that is not a PNG", async () => {
+  it("returns undefined for a file that is not an image", async () => {
     const file = path.join(dir, "not-a.png");
     await writeFile(file, "sentinel");
 
-    assertUndefined(await readPngStamp(file));
+    assertUndefined(await readImageStamp(file));
   });
 
   it("returns undefined for an unstamped PNG", async () => {
     const file = path.join(dir, "plain.png");
     await writeFile(file, await tinyPng());
 
-    assertUndefined(await readPngStamp(file));
+    assertUndefined(await readImageStamp(file));
   }, 10_000);
+
+  it("reads a stamp off the end of an image longer than the window", async () => {
+    const stamp = await stampFor({});
+    const file = path.join(dir, "big.webp");
+    await writeFile(file, stampImage(bigWebp(), stamp));
+
+    assertIdentical(await readImageStamp(file), stamp);
+  });
+
+  it("returns undefined for an unstamped image longer than the window", async () => {
+    const file = path.join(dir, "plain.webp");
+    await writeFile(file, bigWebp());
+
+    assertUndefined(await readImageStamp(file));
+  });
 });

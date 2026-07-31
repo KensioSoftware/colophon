@@ -24,7 +24,7 @@ import {
 import { afterEach, beforeEach, describe, it } from "vitest";
 
 import type { ContentFile } from "./content/index.js";
-import { readPngStamp } from "./stamp/index.js";
+import { readImageStamp } from "./stamp/index.js";
 import { defaultOutputPath, generate } from "./generate/index.js";
 import type { GenerateOptions } from "./generate/index.js";
 import type { ExtraImage, Manifest, OutputSize } from "./types.js";
@@ -44,6 +44,22 @@ async function readManifest(file: string): Promise<Manifest> {
 
 function byPath(a: string, b: string): number {
   return a.localeCompare(b);
+}
+
+/**
+ * A RIFF file a stamp carrier will take, standing in for what a rasteriser
+ * producing WebP would return. The bytes need not decode: what is under test
+ * is that a build can stamp them, write them and read the stamp back.
+ */
+function fakeWebp(): Buffer {
+  const file = Buffer.alloc(28);
+
+  file.write("RIFF", 0, "latin1");
+  file.writeUInt32LE(file.length - 8, 4);
+  file.write("WEBP", 8, "latin1");
+  file.write("VP8 ", 12, "latin1");
+  file.writeUInt32LE(8, 16);
+  return file;
 }
 
 /** An extra image rendering at the og size with a brand colour of its own. */
@@ -204,22 +220,33 @@ describe("generate", () => {
     const written = await readFile(results[0].outputPath);
     assertIdentical(written.readUInt32BE(16), 1200);
     // Still stamped, so the build can still skip it next time.
-    assertNonNullable(await readPngStamp(results[0].outputPath));
+    assertNonNullable(await readImageStamp(results[0].outputPath));
   }, 5000);
 
-  it("fails when a rasteriser produces something other than PNG", async () => {
-    // The rebuild stamp is a PNG chunk, so a build cannot write what it cannot
-    // stamp. Worth pinning: it is the one constraint on a custom backend, and
-    // the thing standing between the seam and other output formats.
+  it("skips a rebuild of an image a rasteriser produced as WebP", async () => {
+    // The stamp is what a rasteriser other than the default has always run
+    // into, so the round trip through a container that is not PNG is worth
+    // pinning at the level a project actually meets it.
+    const config = { sizes: [tinyOg], rasteriser: () => fakeWebp() };
+
+    await generate(options(dir, { config }));
+    const [result] = await generate(options(dir, { config }));
+
+    assertObjectMatches(result, { skipped: true });
+  }, 5000);
+
+  it("fails when a rasteriser produces a format nothing can stamp", async () => {
+    // A build cannot write what it cannot stamp, since an image with no stamp
+    // in it is one every later build renders again without saying why.
     const error = await assertThrowsErrorAsync(async () =>
       generate(
         options(dir, {
-          config: { sizes: [tinyOg], rasteriser: () => Buffer.from("webp?") },
+          config: { sizes: [tinyOg], rasteriser: () => Buffer.from("tiff?") },
         }),
       ),
     );
 
-    assertStringIncludes(error.message, "not a PNG image");
+    assertStringIncludes(error.message, "unrecognised image format");
   }, 5000);
 
   it("replaces an existing image it cannot recognise", async () => {

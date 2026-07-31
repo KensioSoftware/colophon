@@ -2,8 +2,8 @@ import type { MetaImageProps, OutputSize, ResolvedConfig } from "../types.js";
 import { configDigest } from "./config-digest.js";
 import { sha256, stableStringify } from "./digest.js";
 
-export { stampPng } from "./chunk.js";
-export { readPngStamp } from "./read.js";
+export { stampImage } from "./write.js";
+export { readImageStamp } from "./read.js";
 
 /**
  * Computes stamps for the images rendered from one resolved config.

@@ -629,13 +629,14 @@ export interface Template {
  * of the same renderer, which would let a build run at the edge or in a
  * browser, or another rasteriser entirely for a project that has one.
  *
- * PNG, though, and not a way to other formats yet. `generate` and
- * `colophon preview` record a rebuild stamp in each image they write, as a PNG
- * `tEXt` chunk, so bytes that cannot be stamped cannot be written and a WebP or
- * AVIF backend fails with `Cannot stamp: not a PNG image`. `renderMetaImages`
- * hands its bytes straight back and stamps nothing, so it will return whatever
- * a backend produces; a project going that way is writing the files itself and
- * giving up the rebuild skip along with them.
+ * PNG, JPEG, WebP or AVIF. `generate` and `colophon preview` record a rebuild
+ * stamp inside each image they write, so bytes that cannot be stamped cannot be
+ * written and a backend producing anything else fails with `Cannot stamp:
+ * unrecognised image format`. What is still missing for a format other than PNG
+ * is the rest of the way there: there is no `format` config, and a build names
+ * its files `.png` whatever they hold, so a project going that way is choosing
+ * its own paths through `placement`. `renderMetaImages` has no limit at all,
+ * since it stamps nothing and hands its bytes straight back.
  *
  * A rasteriser is handed the whole resolved config rather than an argument list
  * of the parts of it that matter, as a template is, because which parts matter
@@ -719,10 +720,10 @@ export interface ColophonConfig {
   /** Extra templates, merged over (and able to override) the built-ins. */
   readonly templates?: Readonly<Record<string, Template>>;
   /**
-   * What turns each finished SVG into PNG bytes. Defaults to resvg, which is
+   * What turns each finished SVG into image bytes. Defaults to resvg, which is
    * what the package renders with and what its font handling is built around.
-   * See {@link Rasteriser} for when a project would want another, and for why
-   * it still has to be PNG.
+   * See {@link Rasteriser} for when a project would want another, and for the
+   * formats a build can write.
    */
   readonly rasteriser?: Rasteriser;
   /**
@@ -739,6 +740,11 @@ export interface ColophonConfig {
    * stamp still matches is not rendered again. A level of `6` is most of the
    * saving for about a tenth of the time, and `0` writes the rasteriser's own
    * bytes unchanged.
+   *
+   * PNG only, since a zlib level is a PNG's own idea of compression. Bytes in
+   * any other format are handed on as they came, whatever this says, and a
+   * {@link Rasteriser} producing one is the party that decides how hard they
+   * were compressed.
    */
   readonly compressionLevel?: number;
   /**
@@ -876,12 +882,17 @@ export interface ResolvedConfig {
 }
 
 /**
- * One rendered image: the source SVG plus the encoded PNG bytes.
+ * One rendered image: the source SVG plus the encoded bytes.
  */
 export interface RenderedMetaImage {
   /** The name of the output size this image was rendered for. */
   readonly name: string;
   readonly dimensions: Dimensions;
   readonly svg: string;
+  /**
+   * The rasterised bytes, in whatever format {@link ColophonConfig.rasteriser}
+   * produced. PNG unless a project configured otherwise; the field is named for
+   * the default rather than renamed for every caller that has one.
+   */
   readonly png: Buffer;
 }

@@ -1,63 +1,52 @@
 import type { FileHandle } from "node:fs/promises";
 import { open } from "node:fs/promises";
 
-import { pngSignature } from "../png/chunk.js";
-import { stampKeyword } from "./chunk.js";
+import type { StampCarrier } from "./carrier/index.js";
+import { carrierFor } from "./carrier/index.js";
+import { stampWindow } from "./window.js";
 
-/**
- * How much of a PNG to read when looking for a stamp. The stamp goes in
- * immediately after `IHDR`, so this only has to cover the header. Reading
- * whole images just to compare a hash would defeat the point of skipping them.
- */
-const headBytes = 4096;
+async function readAt(
+  handle: FileHandle,
+  position: number,
+  length: number,
+): Promise<Buffer> {
+  const buffer = Buffer.alloc(length);
+  const { bytesRead } = await handle.read(buffer, 0, length, position);
+  return buffer.subarray(0, bytesRead);
+}
 
-/**
- * Find the stamp in the leading bytes of a PNG, or `undefined` if there is
- * none, meaning the image was written by something else, or by a Colophon
- * that did not stamp yet.
- */
-function findStamp(head: Buffer): string | undefined {
-  if (!head.subarray(0, pngSignature.length).equals(pngSignature)) {
-    return undefined;
+/** The window a carrier reads from; for a short file that is the whole of it. */
+async function windowFor(
+  carrier: StampCarrier,
+  handle: FileHandle,
+  head: Buffer,
+): Promise<Buffer> {
+  if (carrier.end === "head" || head.length < stampWindow) {
+    return head;
   }
 
-  let offset = pngSignature.length;
+  const { size } = await handle.stat();
+  return readAt(handle, size - stampWindow, stampWindow);
+}
 
-  while (offset + 8 <= head.length) {
-    const length = head.readUInt32BE(offset);
-    const type = head.toString("latin1", offset + 4, offset + 8);
-    const start = offset + 8;
-    const end = start + length;
+async function stampIn(handle: FileHandle): Promise<string | undefined> {
+  const head = await readAt(handle, 0, stampWindow);
+  const carrier = carrierFor(head);
 
-    // Image data starts here; anything past it is not worth reading for a hash.
-    if (type === "IDAT" || type === "IEND" || end > head.length) {
-      return undefined;
-    }
-
-    if (type === "tEXt") {
-      const data = head.subarray(start, end);
-      const separator = data.indexOf(0);
-
-      if (
-        separator !== -1 &&
-        data.toString("latin1", 0, separator) === stampKeyword
-      ) {
-        return data.toString("latin1", separator + 1);
-      }
-    }
-
-    offset = end + 4;
-  }
-
-  return undefined;
+  return carrier === undefined
+    ? undefined
+    : carrier.read(await windowFor(carrier, handle, head));
 }
 
 /**
- * Read the stamp out of a PNG file. Returns `undefined` when the file is
- * missing, unreadable, not a PNG, or carries no stamp, all of which mean the
- * image cannot be shown to be up to date, so it should be rendered again.
+ * Read the stamp out of an image file. Returns `undefined` when the file is
+ * missing, unreadable, in a format no carrier knows, or carries no stamp, all
+ * of which mean the image cannot be shown to be up to date, so it should be
+ * rendered again.
  */
-export async function readPngStamp(file: string): Promise<string | undefined> {
+export async function readImageStamp(
+  file: string,
+): Promise<string | undefined> {
   let handle: FileHandle;
 
   try {
@@ -67,9 +56,7 @@ export async function readPngStamp(file: string): Promise<string | undefined> {
   }
 
   try {
-    const buffer = Buffer.alloc(headBytes);
-    const { bytesRead } = await handle.read(buffer, 0, headBytes, 0);
-    return findStamp(buffer.subarray(0, bytesRead));
+    return await stampIn(handle);
   } finally {
     await handle.close();
   }
