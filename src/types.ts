@@ -740,6 +740,11 @@ export interface ColophonConfig {
    * stamp still matches is not rendered again. A level of `6` is most of the
    * saving for about a tenth of the time, and `0` writes the rasteriser's own
    * bytes unchanged.
+   *
+   * PNG only, since a zlib level is a PNG's own idea of compression. Bytes in
+   * any other format are handed on as they came, whatever this says, and a
+   * {@link Rasteriser} producing one is the party that decides how hard they
+   * were compressed.
    */
   readonly compressionLevel?: number;
   /**
@@ -877,12 +882,17 @@ export interface ResolvedConfig {
 }
 
 /**
- * One rendered image: the source SVG plus the encoded PNG bytes.
+ * One rendered image: the source SVG plus the encoded bytes.
  */
 export interface RenderedMetaImage {
   /** The name of the output size this image was rendered for. */
   readonly name: string;
   readonly dimensions: Dimensions;
   readonly svg: string;
+  /**
+   * The rasterised bytes, in whatever format {@link ColophonConfig.rasteriser}
+   * produced. PNG unless a project configured otherwise; the field is named for
+   * the default rather than renamed for every caller that has one.
+   */
   readonly png: Buffer;
 }

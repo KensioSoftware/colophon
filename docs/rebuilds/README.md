@@ -31,8 +31,9 @@ PNG is what the default rasteriser writes, and the other three are here for a
 | WebP   | A `CLPH` chunk appended to the RIFF file.              |
 | AVIF   | A `uuid` box appended to the file.                     |
 
-Nothing about the picture changes in any of them, and nothing a decoder reads
-does either. Two of the four are appended rather than tucked in near the front,
+What a decoder gives back is unchanged in every case: the same pixels, at the
+same size, with the same colour information. Two of the four are appended rather
+than tucked in near the front,
 which is not a preference: a plain WebP declares no room for a chunk before its
 bitstream, and an AVIF locates its picture by an offset from the start of the
 file that inserting anything earlier would move.

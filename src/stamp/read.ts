@@ -3,14 +3,7 @@ import { open } from "node:fs/promises";
 
 import type { StampCarrier } from "./carrier/index.js";
 import { carrierFor } from "./carrier/index.js";
-
-/**
- * How much of a file to read when looking for a stamp. Every carrier puts it
- * within this much of one end or the other, so a build reads at most two of
- * these per image. Reading whole images back to compare a hash would defeat
- * the point of skipping them.
- */
-const windowBytes = 4096;
+import { stampWindow } from "./window.js";
 
 async function readAt(
   handle: FileHandle,
@@ -28,16 +21,16 @@ async function windowFor(
   handle: FileHandle,
   head: Buffer,
 ): Promise<Buffer> {
-  if (carrier.end === "head" || head.length < windowBytes) {
+  if (carrier.end === "head" || head.length < stampWindow) {
     return head;
   }
 
   const { size } = await handle.stat();
-  return readAt(handle, size - windowBytes, windowBytes);
+  return readAt(handle, size - stampWindow, stampWindow);
 }
 
 async function stampIn(handle: FileHandle): Promise<string | undefined> {
-  const head = await readAt(handle, 0, windowBytes);
+  const head = await readAt(handle, 0, stampWindow);
   const carrier = carrierFor(head);
 
   return carrier === undefined

@@ -86,13 +86,13 @@ to be able to skip it.
 ```
 
 See [Rebuilds](../../rebuilds/#where-the-stamp-goes) for where the stamp lands
-in each of them. Nothing about the picture changes, and nothing about the file
-changes that a decoder reads.
+in each of them. What a decoder gives back is unchanged in every case: the same
+pixels, at the same size, with the same colour information.
 
-Two things this does not yet make a config option. Colophon has no `format`
-setting, so producing WebP means a rasteriser that produces WebP; and the
-filenames a build writes still end in `.png`, whatever the bytes are, so a
-project going this way is naming its own output through
+Two things are not configurable yet. Colophon has no `format` setting, so
+producing WebP means a rasteriser that produces WebP; and the filenames a build
+writes still end in `.png`, whatever the bytes are, so a project going this way
+is naming its own output through
 [`placement: "custom"`](../placement/#custom-placements).
 
 `renderMetaImages` has no limit at all here, since nothing stamps there and the

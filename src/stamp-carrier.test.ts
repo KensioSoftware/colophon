@@ -58,8 +58,18 @@ function jpegComment(text: string): Buffer {
   return segment;
 }
 
+/** An application segment of `size` payload bytes, such as a colour profile. */
+function jpegApplication(size: number): Buffer {
+  const segment = Buffer.alloc(4 + size);
+
+  segment.writeUInt8(0xff, 0);
+  segment.writeUInt8(0xe2, 1);
+  segment.writeUInt16BE(size + 2, 2);
+  return segment;
+}
+
 /** The fixture with `segment` where the stamp's own comment would go. */
-function withComment(segment: Buffer): Buffer {
+function withSegment(segment: Buffer): Buffer {
   return Buffer.concat([
     jpeg().subarray(0, afterApp0),
     segment,
@@ -142,14 +152,26 @@ describe("the JPEG carrier", () => {
     assertUndefined(carrierFor(stamped)?.read(stamped.subarray(0, 60)));
   });
 
+  it("keeps the comment inside the window a reader takes", () => {
+    // An embedded colour profile runs to tens of kilobytes, and a comment put
+    // after one would be a stamp no later build ever finds. So it goes at the
+    // last segment boundary with room for it instead.
+    const stamped = stampImage(withSegment(jpegApplication(8192)), stamp);
+
+    assertIdentical(
+      carrierFor(stamped)?.read(stamped.subarray(0, 4096)),
+      stamp,
+    );
+  });
+
   it("ignores a comment carrying no keyword at all", () => {
-    const file = withComment(jpegComment("hey"));
+    const file = withSegment(jpegComment("hey"));
 
     assertUndefined(carrierFor(file)?.read(file));
   });
 
   it("ignores a comment that is somebody else's", () => {
-    const file = withComment(jpegComment("rendered by hand"));
+    const file = withSegment(jpegComment("rendered by hand"));
 
     assertIdentical(carrierFor(file)?.read(stampImage(file, stamp)), stamp);
   });
@@ -173,11 +195,17 @@ describe("the WebP carrier", () => {
   });
 
   it("pads an odd payload without counting the padding", () => {
-    const stamped = stampImage(webp(), "odd");
+    // `colophon`, a separator and four characters is thirteen bytes, so the
+    // chunk needs a fourteenth to end on the even boundary RIFF wants, and
+    // says thirteen all the same.
+    const expected = Buffer.concat([
+      Buffer.from("CLPH", "latin1"),
+      Buffer.from([13, 0, 0, 0]),
+      Buffer.from("colophon\u{0}odds", "latin1"),
+      Buffer.from([0]),
+    ]);
 
-    // `colophon`, a separator and three characters is twelve bytes.
-    assertIdentical(stamped.readUInt32LE(32), 12);
-    assertIdentical(stamped.length % 2, 0);
+    assertBufferEqual(stampImage(webp(), "odds").subarray(28), expected);
   });
 
   it("ignores the keyword turning up in the image data", () => {
@@ -212,9 +240,11 @@ describe("the AVIF carrier", () => {
   });
 
   it("ignores the keyword turning up in the image data", () => {
-    const file = avif(16);
+    // Far enough in that a box header could precede it, so that the check on
+    // that header is what rejects this rather than the file being too short.
+    const file = avif(64);
 
-    file.write("colophon", 20, "latin1");
+    file.write("colophon", 48, "latin1");
     assertUndefined(carrierFor(file)?.read(file));
   });
 
