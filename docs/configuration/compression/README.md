@@ -21,9 +21,10 @@ deflated again with the pixels and the row filters untouched, so the file
 decodes to exactly the bytes it did before. Only how hard the deflater looked
 for matches is different.
 
-There is no quality setting because there is nothing to trade away. The visual
-regression baselines in this repository were not re-recorded when this landed,
-which is the proof: every sample rendered identically.
+There is no quality setting because there is nothing to trade away. The tests
+decode an image before and after and compare the pixels, and compare the
+inflated scanlines byte for byte as well, so the row filters are covered along
+with them.
 
 ## What it costs
 
@@ -42,9 +43,10 @@ for about a tenth of the time:
 | `6`   | 2.1MB          | 0.3s                 |
 | `9`   | 1.7MB          | 3.1s                 |
 
-`0` writes the rasteriser's own bytes unchanged, which is also what happens to
-bytes that are not a PNG this can take apart. Anything outside 0 to 9 is a
-config error rather than a value clamped into range.
+`0` writes the rasteriser's own bytes unchanged. So does any level when the
+bytes are not a PNG that can be taken apart and put back together, which covers
+both another format entirely and a PNG whose chunks do not read. Anything
+outside 0 to 9 is a config error rather than a value clamped into range.
 
 ## It changes every image's stamp
 

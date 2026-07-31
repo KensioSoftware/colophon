@@ -157,4 +157,45 @@ describe("renderSvgToPng", () => {
     assertTrue(most.length <= some.length, `expected 9 to beat 6; ${sizes}`);
     assertBufferEqual(decodePng(most).pixels, decodePng(none).pixels);
   });
+
+  it("compresses whatever a backend returns, Uint8Array and all", async () => {
+    // A `Uint8Array` rather than a `Buffer` is what a backend without one has
+    // to hand back, so this covers the conversion at the seam as well as the
+    // level reaching a rasteriser that is not the default.
+    const png = await original();
+    const rasteriser = (): Uint8Array => Uint8Array.from(png);
+
+    const [untouched, smaller] = await Promise.all([
+      renderSvgToPng(
+        busySvg,
+        dimensions,
+        resolveConfig({ rasteriser, compressionLevel: 0 }),
+      ),
+      renderSvgToPng(
+        busySvg,
+        dimensions,
+        resolveConfig({ rasteriser, compressionLevel: 9 }),
+      ),
+    ]);
+
+    assertBufferEqual(untouched, png);
+    assertTrue(
+      smaller.length < png.length,
+      `expected a saving on the backend's own bytes; ${String(smaller.length)}`,
+    );
+    assertBufferEqual(decodePng(smaller).pixels, decodePng(png).pixels);
+  });
+
+  it("hands a backend's bytes back when they are not a PNG", async () => {
+    // What the docs promise a backend producing another format: nothing here
+    // refuses it, since refusing it here would be refusing it for the wrong
+    // reason. Writing it is where the stamp still says no.
+    const bytes = Buffer.from("not an image at all", "latin1");
+    const config = resolveConfig({
+      rasteriser: () => Uint8Array.from(bytes),
+      compressionLevel: 9,
+    });
+
+    assertBufferEqual(await renderSvgToPng(busySvg, dimensions, config), bytes);
+  });
 });
