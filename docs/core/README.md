@@ -25,6 +25,41 @@ identically; imported into a bundle it swaps two modules, through
 `package.json`'s `browser` field, for versions that cannot touch a filesystem or
 a native binary.
 
+## Frontmatter, without a content tree
+
+Finding posts needs a filesystem, but understanding one does not. `extractProps`
+takes a parsed frontmatter object and returns the props a template renders from,
+so something handed a post rather than going and looking for one gets the same
+reading of `meta_img_props` that a build does:
+
+```js
+import { extractProps } from "@kensio/colophon/core";
+
+const props = extractProps(frontmatter, { defaultTemplate: "card" });
+```
+
+It returns `undefined` for a post that should not have an image, which is the
+same signal the [`props` mapper](../configuration/frontmatter/) gives. The rest
+of the content layer — walking a tree, reading files, deriving slugs — is on
+`@kensio/colophon/content` and stays in Node.
+
+## Problems, rather than an exception
+
+`resolveConfig` validates what it is given and throws, which is what a build
+wants: there is nowhere to put a problem but the end of the run. Somewhere with
+a place to put them, such as an editor rendering a config as it is typed, wants
+the list instead:
+
+```js
+import { configProblems } from "@kensio/colophon/core";
+
+for (const problem of configProblems(config)) {
+  // 'Unknown option "colors.forground". Did you mean "foreground"?'
+}
+```
+
+An empty array means the config is one `resolveConfig` will accept.
+
 ## Two things it cannot do
 
 **Fonts and images have to be bytes.** There is no filesystem to resolve a path

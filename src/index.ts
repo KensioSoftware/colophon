@@ -144,6 +144,10 @@ export {
 } from "./content/index.js";
 export type { WalkOptions } from "./content/index.js";
 
+// `resolveConfig` validates what it is given and throws, which is what a build
+// wants. These are for a caller that would rather show the problems than stop.
+export { configProblems, validateConfig } from "./validate/index.js";
+
 export { metaTags, metaTagsHtml } from "./meta/index.js";
 
 export {

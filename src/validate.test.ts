@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import {
+  assertArrayEquals,
   assertIdentical,
   assertStringIncludes,
   assertStringNotIncludes,
@@ -9,7 +10,7 @@ import {
 import { describe, it } from "vitest";
 
 import type { ColophonConfig } from "./types.js";
-import { validateConfig } from "./validate/index.js";
+import { configProblems, validateConfig } from "./validate/index.js";
 
 const sansFont = path.join(
   process.cwd(),
@@ -494,5 +495,23 @@ describe("validateConfig", () => {
     assertStringIncludes(message, '  - Unknown option "dimensions"');
     assertStringIncludes(message, '  - Unknown option "colors.forground"');
     assertStringIncludes(message, '  - Unknown option "code.tabsize"');
+  });
+});
+
+describe("configProblems", () => {
+  it("returns the problems rather than throwing them", () => {
+    const problems = configProblems({
+      dimensions: [],
+      colors: { brand: "#000", forground: "#fff" },
+    } as ColophonConfig);
+
+    assertArrayEquals(problems, [
+      'Unknown option "dimensions". Did you mean "sizes"?',
+      'Unknown option "colors.forground". Did you mean "foreground"?',
+    ]);
+  });
+
+  it("is empty for a config with nothing wrong with it", () => {
+    assertArrayEquals(configProblems({ colors: { brand: "#2563eb" } }), []);
   });
 });

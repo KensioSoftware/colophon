@@ -1,5 +1,7 @@
 import type { ColophonConfig } from "../types.js";
-import { collectProblems } from "./collect.js";
+import { configProblems } from "./collect.js";
+
+export { configProblems } from "./collect.js";
 
 /**
  * Reject a config carrying options Colophon does not know.
@@ -14,7 +16,7 @@ import { collectProblems } from "./collect.js";
  * reads whatever fields it understands.
  */
 export function validateConfig(config: ColophonConfig): void {
-  const problems = collectProblems(config);
+  const problems = configProblems(config);
   const [first, ...rest] = problems;
 
   if (first === undefined) {

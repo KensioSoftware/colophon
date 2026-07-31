@@ -28,6 +28,7 @@ export type {
   BrandColors,
   CodeStyle,
   ColophonConfig,
+  ContentOptions,
   Dimensions,
   FontSource,
   GradientStop,
@@ -69,6 +70,15 @@ export {
   cardTemplate,
   codeTemplate,
 } from "../templates/index.js";
+
+// Imported from `content/props.js` rather than from `content/index.js`, whose
+// other exports walk and read a content tree. `extractProps` is pure, and a
+// bundle for the browser should not have to pull `node:fs` in behind it.
+export { extractProps } from "../content/props.js";
+
+// The problems in a config, rather than an exception carrying them. A build
+// wants the throw; an editor rendering a config as it is typed wants the list.
+export { configProblems } from "../validate/index.js";
 
 export { createMeasurer } from "../measure/index.js";
 export { escapeXml, fitText, textElement, wrapText } from "../text/index.js";
