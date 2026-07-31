@@ -1,7 +1,8 @@
 import type { FileHandle } from "node:fs/promises";
 import { open } from "node:fs/promises";
 
-import { pngSignature, stampKeyword } from "./chunk.js";
+import { pngSignature } from "../png/chunk.js";
+import { stampKeyword } from "./chunk.js";
 
 /**
  * How much of a PNG to read when looking for a stamp. The stamp goes in

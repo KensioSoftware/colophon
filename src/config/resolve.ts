@@ -9,6 +9,7 @@ import { resolveImageSource } from "../image/index.js";
 import {
   DEFAULT_CODE_STYLE,
   DEFAULT_COLORS,
+  DEFAULT_COMPRESSION_LEVEL,
   DEFAULT_SIZES,
 } from "./defaults.js";
 
@@ -91,6 +92,30 @@ export function resolveSizes(
   }
 
   return sizes;
+}
+
+/**
+ * How hard to compress the rendered PNG, checked here rather than in
+ * `validate/`, which checks keys and the names of closed sets.
+ *
+ * Out of range is rejected rather than clamped: zlib takes 0 to 9 and nothing
+ * else, so a config asking for 10 has a number in mind that this cannot give it,
+ * and quietly rendering at 9 would leave someone believing they had asked for
+ * more than they had.
+ */
+export function resolveCompressionLevel(level: number | undefined): number {
+  if (level === undefined) {
+    return DEFAULT_COMPRESSION_LEVEL;
+  }
+
+  if (!Number.isSafeInteger(level) || level < 0 || level > 9) {
+    throw new Error(
+      `Invalid compressionLevel ${String(level)}; expected a whole number from` +
+        ` 0 (write the rasteriser's own bytes) to 9 (compress hardest).`,
+    );
+  }
+
+  return level;
 }
 
 /**

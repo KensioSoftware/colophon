@@ -17,6 +17,7 @@ import { describe, it, vi } from "vitest";
 import {
   DEFAULT_CODE_STYLE,
   DEFAULT_COLORS,
+  DEFAULT_COMPRESSION_LEVEL,
   DEFAULT_FONT_FAMILY,
   DEFAULT_SIZES,
   defineConfig,
@@ -321,6 +322,32 @@ describe("resolveConfig", () => {
     assertThrowsError(
       () => resolveConfig({ logo: { path: "nope.png" } }),
       "image file not found",
+    );
+  });
+
+  it("compresses hardest by default, and takes any level zlib does", () => {
+    assertIdentical(
+      resolveConfig().compressionLevel,
+      DEFAULT_COMPRESSION_LEVEL,
+    );
+    assertIdentical(resolveConfig({ compressionLevel: 0 }).compressionLevel, 0);
+    assertIdentical(resolveConfig({ compressionLevel: 6 }).compressionLevel, 6);
+  });
+
+  it("rejects a compression level zlib has no meaning for", () => {
+    // Rejected rather than clamped: 10 is a number somebody had in mind, and
+    // rendering at 9 without a word would leave them believing they got it.
+    assertThrowsError(
+      () => resolveConfig({ compressionLevel: 10 }),
+      "Invalid compressionLevel 10",
+    );
+    assertThrowsError(
+      () => resolveConfig({ compressionLevel: -1 }),
+      "Invalid compressionLevel -1",
+    );
+    assertThrowsError(
+      () => resolveConfig({ compressionLevel: 6.5 }),
+      "Invalid compressionLevel 6.5",
     );
   });
 

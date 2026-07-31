@@ -33,6 +33,17 @@ export const DEFAULT_SIZES: readonly OutputSize[] = [
  */
 export const DEFAULT_FONT_FAMILY = "Arial, Helvetica, sans-serif";
 
+/**
+ * Default zlib level for the rendered PNG: the strongest there is.
+ *
+ * A meta image is written once and then served for as long as the post is up,
+ * so the trade is a hundred milliseconds of build time against bytes every
+ * reader pays for. The stamps mean even that time is paid once per image rather
+ * than once per build. See `png/recompress.ts` for what the level does and does
+ * not change.
+ */
+export const DEFAULT_COMPRESSION_LEVEL = 9;
+
 /** Neutral default palette, used when no `colors.brand` is supplied. */
 export const DEFAULT_COLORS: Required<BrandColors> = {
   brand: "#4f46e5",

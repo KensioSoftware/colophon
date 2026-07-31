@@ -726,6 +726,22 @@ export interface ColophonConfig {
    */
   readonly rasteriser?: Rasteriser;
   /**
+   * How hard to compress the rendered PNG, from `0` to `9`. Defaults to `9`.
+   *
+   * The image data a rasteriser produces is re-encoded at this zlib level, with
+   * the pixels and the row filters untouched, so nothing about the picture
+   * changes and only the size of the file does. resvg encodes for speed, which
+   * on a 1200x1200 gradient costs about three times the bytes; these are images
+   * a site commits and then serves to everyone who shares a link, so the
+   * default is the strongest setting.
+   *
+   * It costs around 150ms per 1200x1200 image, paid once, since an image whose
+   * stamp still matches is not rendered again. A level of `6` is most of the
+   * saving for about a tenth of the time, and `0` writes the rasteriser's own
+   * bytes unchanged.
+   */
+  readonly compressionLevel?: number;
+  /**
    * How to read props out of the content tree. Used by `generate` and the CLI;
    * the render core never sees it.
    */
@@ -775,9 +791,11 @@ export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
  * again for each.
  *
  * Only what a template reads while drawing is overridable. `fonts`,
- * `systemFonts` and `templates` are shared build inputs rather than part of the
- * picture. `onWarning` is where messages go rather than what they say, and
- * `sizes` inside a size would be nonsense.
+ * `systemFonts`, `templates`, `rasteriser` and `compressionLevel` are shared
+ * build inputs rather than part of the picture, and the last two are about how
+ * the picture is encoded rather than what it shows. `onWarning` is where
+ * messages go rather than what they say, and `sizes` inside a size would be
+ * nonsense.
  */
 export interface SizeOverrides {
   /**
@@ -854,6 +872,7 @@ export interface ResolvedConfig {
   readonly sizes: readonly OutputSize[];
   readonly templates: Readonly<Record<string, Template>>;
   readonly rasteriser: Rasteriser;
+  readonly compressionLevel: number;
 }
 
 /**

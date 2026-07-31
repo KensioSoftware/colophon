@@ -106,6 +106,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, grain, dots and rules")
 - [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")
 - [Configuration](./docs/configuration/ "Every option, and what happens to an unknown one")
+- [File size](./docs/configuration/compression/ "How hard the rendered PNGs are compressed, and what it costs")
 - [Rebuilds](./docs/rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./docs/programmatic-use/ "The API behind the CLI")
 - [Upgrading](./docs/upgrading/ "The breaking changes in 2.0 and 3.0")

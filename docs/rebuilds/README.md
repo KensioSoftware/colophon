@@ -37,6 +37,11 @@ upgrading re-renders the tree once. Two things are deliberately left out:
 [Per-size overrides](../configuration/per-size-config/) are part of the stamp, so
 changing one re-renders that size and leaves the others alone.
 
+The one thing in the stamp that cannot change a pixel is
+[`compressionLevel`](../configuration/compression/). It changes every byte of
+every file instead, and leaving it out would mean turning compression up did
+nothing to the images already on disk.
+
 ## The gap, and the way out
 
 A custom template is covered by its own source code, hashed from
