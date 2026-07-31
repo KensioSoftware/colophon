@@ -20,8 +20,13 @@ import { checkFormat, checkSlugStrategy, checkTheme } from "./values.js";
  *
  * Collecting rather than throwing at the first problem is the point: a config
  * with three typos in it should take one run to fix rather than three.
+ *
+ * `validateConfig` is this with the list turned into an exception, which is
+ * what a build wants: it has nowhere to put a problem but the end of the run.
+ * An editor rendering a config as someone types it does have somewhere, so it
+ * takes the list.
  */
-export function collectProblems(config: ColophonConfig): string[] {
+export function configProblems(config: ColophonConfig): string[] {
   // The types say what should be here; validation exists for when it is not.
   const raw = config as {
     readonly theme?: unknown;
