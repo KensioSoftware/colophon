@@ -36,6 +36,9 @@ const namedFields = new Set(["template", "title", "subtitle", "version"]);
  * `props` mapper reading the frontmatter it already has. Where both speak the
  * post wins, field by field. The mapper describes the site's usual shape, and
  * a post that says otherwise is saying so on purpose.
+ *
+ * The title has a third place to come from, which is the post's own top-level
+ * `title`, used where neither of the other two set one.
  */
 export function extractProps(
   frontmatter: Record<string, unknown>,
@@ -72,9 +75,18 @@ export function extractProps(
     return undefined;
   }
 
-  // Title is optional: templates such as `code` describe the image entirely
-  // from their own fields, and requiring a title would be pure boilerplate.
-  const title = coerceString(record["title"]);
+  // A post that says nothing about its title gets the one it already has, so
+  // the common case of an image titled after its post needs no props for it.
+  //
+  // This is the last word rather than the first: the props block wins, then
+  // the mapper, then this. It also cannot opt a post in. A post with no props
+  // block and no mapper has already been skipped above, so a top-level title
+  // never turns a file that wanted no image into one that gets an image.
+  //
+  // Title is optional even so. Templates such as `code` describe the image
+  // entirely from their own fields, and a post carrying neither still renders.
+  const title =
+    coerceString(record["title"]) ?? coerceString(frontmatter["title"]);
   const subtitle = coerceString(record["subtitle"]);
   const version = coerceString(record["version"]);
 

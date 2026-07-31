@@ -20,6 +20,29 @@ Fields other than the template name are passed through to the template, so what
 a props block may contain depends on which template reads it. See
 [Templates](../../templates/).
 
+## The title
+
+A props block that sets no `title` gets the post's own top-level one, so an
+image titled after its post needs nothing said twice:
+
+```yaml
+---
+title: Setting up continuous integration
+meta_img_props:
+  template: banner
+---
+```
+
+That image is titled `Setting up continuous integration`. A `title` inside the
+props block is used ahead of it, and so is one from a [`props`
+mapper](#using-the-frontmatter-you-already-have).
+
+The fallback fills in a title for a post that is having an image drawn. It does
+not ask for one: a file with no props block and no mapper is skipped as before,
+whatever its title says. Templates that need no title, such as
+[`code`](../../code-template/), still render without one where the post has
+none either.
+
 ## Matching an existing convention
 
 Every part of that is configurable under `content`:
@@ -42,9 +65,9 @@ and takes precedence where both are given.
 
 ## Using the frontmatter you already have
 
-A site with 200 existing posts gets no images until someone adds a props block
-to 200 files. Most posts already carry the fields an image needs, just under
-different names, so map them instead:
+Posts usually carry the fields an image needs already, under names of their
+own. `props` maps them, so a site can render images from the frontmatter it has
+rather than adding a props block to every file:
 
 ```ts
 export default defineConfig({
@@ -53,13 +76,14 @@ export default defineConfig({
     props: (frontmatter) =>
       frontmatter.draft === true
         ? undefined
-        : { title: frontmatter.title, subtitle: frontmatter.description },
+        : { subtitle: frontmatter.description },
   },
 });
 ```
 
 Point it at your content directory and the site gets its images without a single
-post being edited.
+post being edited. The title needs no mapping, since a post's own is used where
+nothing else sets one.
 
 ### Returning `undefined` skips a post
 
