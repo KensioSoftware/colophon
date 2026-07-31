@@ -10,6 +10,7 @@ import type {
   GradientStop,
   ImageSource,
   MeshBlob,
+  OutputFormat,
   OutputSize,
   Placement,
   Scrim,
@@ -69,6 +70,10 @@ export const configKeys = knownKeys<ColophonConfig>({
   templates: true,
   rasteriser: true,
   compressionLevel: true,
+  format: true,
+  quality: true,
+  maxBytes: true,
+  emitSvg: true,
   content: true,
   placement: true,
   manifest: true,
@@ -316,6 +321,18 @@ export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
   grain: true,
   dots: true,
   rules: true,
+});
+
+/**
+ * The output formats, as values, for the reason {@link backgroundTypes} are:
+ * a mistyped `jpg` would otherwise reach the encoder, which has no better
+ * message for it than this does and would find out one image too late.
+ */
+export const outputFormats = knownKeys<Record<OutputFormat, unknown>>({
+  png: true,
+  jpeg: true,
+  webp: true,
+  avif: true,
 });
 
 /**

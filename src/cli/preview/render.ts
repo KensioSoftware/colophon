@@ -5,7 +5,8 @@ import path from "node:path";
 import { resolveConfig } from "../../config/index.js";
 import { resolveConfigForSize } from "../../config/size.js";
 import { readContentFile } from "../../content/index.js";
-import { buildSvg, renderSvgToPng } from "../../render/index.js";
+import { extensionFor } from "../../encode/index.js";
+import { buildSvg, renderSvgToImage } from "../../render/index.js";
 import type { ColophonConfig } from "../../types.js";
 import { contentRootFor } from "./root.js";
 import { pickSize } from "./size.js";
@@ -19,7 +20,7 @@ export interface PreviewOptions {
 }
 
 /**
- * Render one post to a temporary PNG and return where it landed.
+ * Render one post to a temporary image and return where it landed.
  *
  * The image goes to the system temp directory rather than into the tree,
  * because a preview is not a build output. Beside the post it would land on the
@@ -50,15 +51,15 @@ export async function previewImage(options: PreviewOptions): Promise<string> {
   const config = resolveConfigForSize(options.config, size);
   const dimensions = { width: size.width, height: size.height };
   const svg = await buildSvg(file.props, config, dimensions);
-  const png = await renderSvgToPng(svg, dimensions, config);
+  const image = await renderSvgToImage(svg, dimensions, config);
 
   const output = path.join(
     tmpdir(),
     "colophon-preview",
-    `${file.slug}-${size.name}.png`,
+    `${file.slug}-${size.name}${extensionFor(config.format)}`,
   );
   await mkdir(path.dirname(output), { recursive: true });
-  await writeFile(output, png);
+  await writeFile(output, image);
 
   return output;
 }

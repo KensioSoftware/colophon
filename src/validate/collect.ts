@@ -13,7 +13,7 @@ import {
 import { checkExtras, checkSizes } from "./overrides.js";
 import { checkPlacement } from "./placement.js";
 import { checkTexture } from "./texture.js";
-import { checkSlugStrategy, checkTheme } from "./values.js";
+import { checkFormat, checkSlugStrategy, checkTheme } from "./values.js";
 
 /**
  * Everything wrong with a config, in the order the config declares it.
@@ -36,6 +36,7 @@ export function collectProblems(config: ColophonConfig): string[] {
     readonly fonts?: unknown;
     readonly extra?: unknown;
     readonly placement?: unknown;
+    readonly format?: unknown;
   };
   const problems: string[] = [];
 
@@ -50,6 +51,7 @@ export function collectProblems(config: ColophonConfig): string[] {
   checkExtras(raw.extra, problems);
   checkEach(raw.fonts, "fonts", fontKeys, problems);
   checkTheme(raw.theme, problems);
+  checkFormat(raw.format, problems);
   checkBackground(raw.background, "background", problems);
   checkTexture(raw.texture, "texture", problems);
   checkPlacement(raw.placement, problems);

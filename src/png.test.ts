@@ -21,7 +21,7 @@ import { describe, it } from "vitest";
 import { decodePng } from "../test/visual/png.js";
 import { resolveConfig } from "./config/index.js";
 import { readChunks, recompressPng } from "./png/index.js";
-import { renderSvgToPng } from "./render/index.js";
+import { renderSvgToImage } from "./render/index.js";
 import { stampImage } from "./stamp/index.js";
 
 /**
@@ -43,7 +43,7 @@ const dimensions = { width: 200, height: 120 };
 
 /** One rendering, at the level asked for. */
 async function render(compressionLevel: number): Promise<Buffer> {
-  return renderSvgToPng(
+  return renderSvgToImage(
     busySvg,
     dimensions,
     resolveConfig({ compressionLevel }),
@@ -142,7 +142,7 @@ describe("recompressPng", () => {
   });
 });
 
-describe("renderSvgToPng", () => {
+describe("renderSvgToImage", () => {
   it("compresses at the configured level", async () => {
     const [none, some, most] = await Promise.all([
       render(0),
@@ -166,12 +166,12 @@ describe("renderSvgToPng", () => {
     const rasteriser = (): Uint8Array => Uint8Array.from(png);
 
     const [untouched, smaller] = await Promise.all([
-      renderSvgToPng(
+      renderSvgToImage(
         busySvg,
         dimensions,
         resolveConfig({ rasteriser, compressionLevel: 0 }),
       ),
-      renderSvgToPng(
+      renderSvgToImage(
         busySvg,
         dimensions,
         resolveConfig({ rasteriser, compressionLevel: 9 }),
@@ -196,6 +196,9 @@ describe("renderSvgToPng", () => {
       compressionLevel: 9,
     });
 
-    assertBufferEqual(await renderSvgToPng(busySvg, dimensions, config), bytes);
+    assertBufferEqual(
+      await renderSvgToImage(busySvg, dimensions, config),
+      bytes,
+    );
   });
 });

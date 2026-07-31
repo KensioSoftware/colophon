@@ -154,7 +154,7 @@ describe("validateConfig", () => {
     assertStringIncludes(message, 'Unknown option "wibble". Valid options');
     assertStringIncludes(
       message,
-      "sizes, templates, rasteriser, compressionLevel, content, placement,",
+      "sizes, templates, rasteriser, compressionLevel, format, quality,",
     );
     assertStringNotIncludes(message, "Did you mean");
   });
@@ -300,6 +300,20 @@ describe("validateConfig", () => {
         sizes: [{ name: "og", width: 1200, height: 630, theme: "papper" }],
       }),
       'Unknown theme "papper". Did you mean "paper"?',
+    );
+  });
+
+  it("turns the spelling everyone reaches for into the one there is", () => {
+    assertIdentical(
+      messageFor({ format: "jpg" }),
+      'Unknown output format "jpg". Did you mean "jpeg"?',
+    );
+  });
+
+  it("lists the output formats when nothing is close", () => {
+    assertStringIncludes(
+      messageFor({ format: "tiff" }),
+      "Valid formats: png, jpeg, webp, avif.",
     );
   });
 

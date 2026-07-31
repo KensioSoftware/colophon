@@ -27,27 +27,31 @@ yourself.
 
 ## Options
 
-| Option             | Default                                       | Notes                                                             |
-| ------------------ | --------------------------------------------- | ----------------------------------------------------------------- |
-| `theme`            | none                                          | A named look. See [Themes](./themes/).                            |
-| `colors`           | neutral indigo/pink                           | `brand`, `brandDark`, `brandWarm`, `foreground`.                  |
-| `background`       | gradient derived from `colors`                | Or a solid colour, a mesh, a gradient or a photo.                 |
-| `texture`          | none                                          | Grain, dots or ruled lines. See [Themes](./themes/).              |
-| `fonts`            | none                                          | Font files to render with. See [Fonts](./fonts/).                 |
-| `systemFonts`      | `true` until `fonts` is set                   | Whether installed fonts are loaded too.                           |
-| `fontFamily`       | first font, else `Arial, ...`                 | Font stack for template text.                                     |
-| `footer`           | none                                          | Footer text. Omit the field for none.                             |
-| `badge`            | none                                          | Corner badge for `banner`, which a post may override or turn off. |
-| `code`             | `github-dark`, monospace stack                | Styling for [the code template](../code-template/).               |
-| `onWarning`        | `console.warn`                                | Where compromises are reported. See [Warnings](./warnings/).      |
-| `sizes`            | `og` and `square`                             | Named output sizes. See [Output sizes](./sizes/).                 |
-| `templates`        | the twelve built-ins                          | Merged over the built-ins. See [Templates](../templates/).        |
-| `rasteriser`       | resvg                                         | What turns SVG into bytes. See [Rasteriser](./rasteriser/).       |
-| `compressionLevel` | `9`                                           | How hard to compress the PNG. See [File size](./compression/).    |
-| `content`          | `meta_img_props`, `.md` and `.markdown` files | How props are read. See [Frontmatter](./frontmatter/).            |
-| `placement`        | `beside-content`                              | Where images go and their URL. See [Placement](./placement/).     |
-| `manifest`         | none                                          | Path to write a JSON manifest to. See [Manifest](./manifest/).    |
-| `extra`            | none                                          | Images not tied to a post. See [One-off images](./extra-images/). |
+| Option             | Default                                       | Notes                                                               |
+| ------------------ | --------------------------------------------- | ------------------------------------------------------------------- |
+| `theme`            | none                                          | A named look. See [Themes](./themes/).                              |
+| `colors`           | neutral indigo/pink                           | `brand`, `brandDark`, `brandWarm`, `foreground`.                    |
+| `background`       | gradient derived from `colors`                | Or a solid colour, a mesh, a gradient or a photo.                   |
+| `texture`          | none                                          | Grain, dots or ruled lines. See [Themes](./themes/).                |
+| `fonts`            | none                                          | Font files to render with. See [Fonts](./fonts/).                   |
+| `systemFonts`      | `true` until `fonts` is set                   | Whether installed fonts are loaded too.                             |
+| `fontFamily`       | first font, else `Arial, ...`                 | Font stack for template text.                                       |
+| `footer`           | none                                          | Footer text. Omit the field for none.                               |
+| `badge`            | none                                          | Corner badge for `banner`, which a post may override or turn off.   |
+| `code`             | `github-dark`, monospace stack                | Styling for [the code template](../code-template/).                 |
+| `onWarning`        | `console.warn`                                | Where compromises are reported. See [Warnings](./warnings/).        |
+| `sizes`            | `og` and `square`                             | Named output sizes. See [Output sizes](./sizes/).                   |
+| `templates`        | the twelve built-ins                          | Merged over the built-ins. See [Templates](../templates/).          |
+| `rasteriser`       | resvg                                         | What turns SVG into bytes. See [Rasteriser](./rasteriser/).         |
+| `compressionLevel` | `9`                                           | How hard to compress the PNG. See [File size](./compression/).      |
+| `format`           | `png`                                         | Or `jpeg`, `webp`, `avif`. See [Output formats](./formats/).        |
+| `quality`          | `80`                                          | For the lossy formats. See [Output formats](./formats/).            |
+| `maxBytes`         | none                                          | A ceiling per image. See [Output formats](./formats/).              |
+| `emitSvg`          | `false`                                       | Write each image's SVG beside it. See [Output formats](./formats/). |
+| `content`          | `meta_img_props`, `.md` and `.markdown` files | How props are read. See [Frontmatter](./frontmatter/).              |
+| `placement`        | `beside-content`                              | Where images go and their URL. See [Placement](./placement/).       |
+| `manifest`         | none                                          | Path to write a JSON manifest to. See [Manifest](./manifest/).      |
+| `extra`            | none                                          | Images not tied to a post. See [One-off images](./extra-images/).   |
 
 ## Computing config at build time
 

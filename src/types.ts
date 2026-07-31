@@ -632,11 +632,12 @@ export interface Template {
  * PNG, JPEG, WebP or AVIF. `generate` and `colophon preview` record a rebuild
  * stamp inside each image they write, so bytes that cannot be stamped cannot be
  * written and a backend producing anything else fails with `Cannot stamp:
- * unrecognised image format`. What is still missing for a format other than PNG
- * is the rest of the way there: there is no `format` config, and a build names
- * its files `.png` whatever they hold, so a project going that way is choosing
- * its own paths through `placement`. `renderMetaImages` has no limit at all,
- * since it stamps nothing and hands its bytes straight back.
+ * unrecognised image format`. `renderMetaImages` has no limit at all, since it
+ * stamps nothing and hands its bytes straight back.
+ *
+ * A backend is not obliged to honour {@link ColophonConfig.format}: whatever it
+ * returns is converted to the configured format afterwards, and bytes that are
+ * already in it are left exactly as they are.
  *
  * A rasteriser is handed the whole resolved config rather than an argument list
  * of the parts of it that matter, as a template is, because which parts matter
@@ -651,6 +652,16 @@ export interface Template {
  * it to. A `Buffer` is one, so a Node backend needs no change; the one place
  * that wants the extra methods converts on the way out.
  */
+/**
+ * The formats a build can write.
+ *
+ * The rasteriser produces one of them (resvg produces PNG), and anything else
+ * is encoded from it afterwards. `png` therefore costs nothing extra, and the
+ * other three cost one conversion per image, paid once because an image whose
+ * rebuild stamp still matches is not rendered again.
+ */
+export type OutputFormat = "png" | "jpeg" | "webp" | "avif";
+
 export type Rasteriser = (
   svg: string,
   dimensions: Dimensions,
@@ -748,6 +759,51 @@ export interface ColophonConfig {
    */
   readonly compressionLevel?: number;
   /**
+   * What to write: `png` (the default), `jpeg`, `webp` or `avif`.
+   *
+   * PNG is lossless and the format every platform has always taken, which is
+   * why it is still the default. The other three are a good deal smaller for
+   * the same picture, and WebP in particular is read by every crawler that
+   * matters now. See {@link ColophonConfig.quality} for what is traded away.
+   *
+   * The extension a build writes follows this, so changing it renames every
+   * image. The old files are left where they are, since nothing here knows
+   * whether something else is still serving them.
+   */
+  readonly format?: OutputFormat;
+  /**
+   * Encoding quality from `1` to `100`, defaulting to `80`. Ignored by `png`,
+   * which is lossless and has {@link ColophonConfig.compressionLevel} instead.
+   *
+   * `80` is where the three lossy encoders are usually set, and on a meta image
+   * it is hard to tell from the original. Below about `50` the gradients start
+   * to band, which is what these images are mostly made of.
+   */
+  readonly quality?: number;
+  /**
+   * A ceiling on the size of each image, in bytes. Omit (the default) for none.
+   *
+   * An image over the cap is encoded again at a lower quality, and again, down
+   * to a floor below which the picture is no longer worth having. One that will
+   * not fit even there is written anyway and reported through
+   * {@link ColophonConfig.onWarning}: a build that renders no image at all is a
+   * worse answer than one that renders a large one and says so.
+   *
+   * There is nothing to step down for `png`, which has no quality to trade, so
+   * under that format this only ever reports.
+   */
+  readonly maxBytes?: number;
+  /**
+   * Write each image's SVG source beside it, under the same name with an `.svg`
+   * extension. Defaults to `false`.
+   *
+   * The SVG is what the raster was made from, so it is the thing to hand to a
+   * vector editor, to diff when a template changes, or to serve to whatever can
+   * take it. It is not stamped and it is not in the manifest: the image is what
+   * a build tracks, and the SVG follows it.
+   */
+  readonly emitSvg?: boolean;
+  /**
    * How to read props out of the content tree. Used by `generate` and the CLI;
    * the render core never sees it.
    */
@@ -797,11 +853,11 @@ export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
  * again for each.
  *
  * Only what a template reads while drawing is overridable. `fonts`,
- * `systemFonts`, `templates`, `rasteriser` and `compressionLevel` are shared
- * build inputs rather than part of the picture, and the last two are about how
- * the picture is encoded rather than what it shows. `onWarning` is where
- * messages go rather than what they say, and `sizes` inside a size would be
- * nonsense.
+ * `systemFonts` and `templates` are shared build inputs rather than part of the
+ * picture, and `rasteriser`, `compressionLevel`, `format`, `quality`,
+ * `maxBytes` and `emitSvg` are about how the picture is encoded rather than
+ * what it shows. `onWarning` is where messages go rather than what they say,
+ * and `sizes` inside a size would be nonsense.
  */
 export interface SizeOverrides {
   /**
@@ -840,9 +896,11 @@ export interface SizeOverrides {
 export interface ExtraImage {
   readonly props: MetaImageProps;
   /**
-   * Where to write the PNG, resolved from the current working directory when
+   * Where to write the image, resolved from the current working directory when
    * relative. This image has no post to sit beside, so there is nothing to
-   * derive a path from and `generate`'s `outputPath` is not consulted.
+   * derive a path from and `generate`'s `outputPath` is not consulted. The name
+   * is taken as given, extension and all, so a config changing `format` renames
+   * its own extras.
    */
   readonly output: string;
   /**
@@ -879,6 +937,11 @@ export interface ResolvedConfig {
   readonly templates: Readonly<Record<string, Template>>;
   readonly rasteriser: Rasteriser;
   readonly compressionLevel: number;
+  readonly format: OutputFormat;
+  readonly quality: number;
+  /** The cap on each image, or `undefined` where the config sets none. */
+  readonly maxBytes: number | undefined;
+  readonly emitSvg: boolean;
 }
 
 /**
@@ -890,9 +953,11 @@ export interface RenderedMetaImage {
   readonly dimensions: Dimensions;
   readonly svg: string;
   /**
-   * The rasterised bytes, in whatever format {@link ColophonConfig.rasteriser}
-   * produced. PNG unless a project configured otherwise; the field is named for
-   * the default rather than renamed for every caller that has one.
+   * The encoded image, in whatever {@link ColophonConfig.format} asked for.
+   *
+   * It was called `png` while that was the only thing it could hold. Now that
+   * a config chooses, a field named after one format would be wrong three
+   * times in four.
    */
-  readonly png: Buffer;
+  readonly bytes: Buffer;
 }

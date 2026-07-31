@@ -1,6 +1,12 @@
 import path from "node:path";
 
-import type { ContentFile, OutputSize, Placement } from "../types.js";
+import { DEFAULT_FORMAT } from "../config/defaults.js";
+import type {
+  ContentFile,
+  OutputFormat,
+  OutputSize,
+  Placement,
+} from "../types.js";
 import { assertPlacement } from "./check.js";
 import { besideContent, imageName } from "./relative.js";
 
@@ -59,10 +65,16 @@ function under(root: string, relative: string): string {
  * which is the page-bundle convention, and `public-dir` drops them so that a
  * flat directory can be served as one. Either way the same relative path
  * makes the disk path and the URL, so the two cannot drift apart.
+ *
+ * `format` is what the two name-building strategies end a filename with. It
+ * defaults to PNG for a caller placing images without having resolved a config,
+ * which is the only way there is to be holding a placement and not a format.
+ * A `custom` placement builds its own names and is not told.
  */
 export function createPlacer(
   placement: Placement | undefined,
   contentDir: string,
+  format: OutputFormat = DEFAULT_FORMAT,
 ): Placer {
   if (placement !== undefined) {
     assertPlacement(placement);
@@ -73,7 +85,12 @@ export function createPlacer(
     const isHashes = placement?.hash === true;
 
     return (file, size, stamp) => {
-      const relative = besideContent(file, size, isHashes ? stamp : undefined);
+      const relative = besideContent(
+        file,
+        size,
+        isHashes ? stamp : undefined,
+        format,
+      );
       return {
         path: under(contentDir, relative),
         url: toUrl(urlBase, relative),
@@ -85,7 +102,12 @@ export function createPlacer(
     const isHashes = placement.hash === true;
 
     return (file, size, stamp) => {
-      const relative = imageName(file, size, isHashes ? stamp : undefined);
+      const relative = imageName(
+        file,
+        size,
+        isHashes ? stamp : undefined,
+        format,
+      );
       return {
         path: under(placement.dir, relative),
         url: toUrl(placement.urlBase, relative),

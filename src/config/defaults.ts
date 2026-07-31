@@ -1,4 +1,9 @@
-import type { BrandColors, CodeStyle, OutputSize } from "../types.js";
+import type {
+  BrandColors,
+  CodeStyle,
+  OutputFormat,
+  OutputSize,
+} from "../types.js";
 
 /**
  * Named output-size presets covering the common social-image standards. Each
@@ -43,6 +48,38 @@ export const DEFAULT_FONT_FAMILY = "Arial, Helvetica, sans-serif";
  * not change.
  */
 export const DEFAULT_COMPRESSION_LEVEL = 9;
+
+/**
+ * Default output format: PNG, which is what Colophon wrote before there was a
+ * choice and what every platform has always accepted.
+ */
+export const DEFAULT_FORMAT: OutputFormat = "png";
+
+/**
+ * Default encoding quality for the lossy formats.
+ *
+ * `80` is where JPEG, WebP and AVIF are conventionally set, and on a meta image
+ * it is hard to tell from the original. Gradients are what these pictures are
+ * mostly made of and they are the first thing to band, so this is deliberately
+ * not lower.
+ */
+export const DEFAULT_QUALITY = 80;
+
+/**
+ * The lowest quality `maxBytes` will step down to.
+ *
+ * Below this the banding is obvious enough that the image is no longer doing
+ * its job, and an unreadable image under the cap is not what a cap was for.
+ */
+export const MINIMUM_QUALITY = 30;
+
+/**
+ * How far quality drops on each attempt at `maxBytes`.
+ *
+ * Ten points is a step a reader can predict from the setting they wrote, and
+ * from 80 it reaches the floor in five encodings.
+ */
+export const QUALITY_STEP = 10;
 
 /** Neutral default palette, used when no `colors.brand` is supplied. */
 export const DEFAULT_COLORS: Required<BrandColors> = {

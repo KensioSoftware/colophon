@@ -18,7 +18,11 @@ import {
 import { describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
-import { buildSvg, renderMetaImages, renderSvgToPng } from "./render/index.js";
+import {
+  buildSvg,
+  renderMetaImages,
+  renderSvgToImage,
+} from "./render/index.js";
 import type { Dimensions, ResolvedConfig } from "./types.js";
 
 const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
@@ -50,7 +54,7 @@ async function renderWithFont(family: string, file: string): Promise<Buffer> {
     dimensions,
   );
 
-  return renderSvgToPng(svg, dimensions, config);
+  return renderSvgToImage(svg, dimensions, config);
 }
 
 describe("buildSvg", () => {
@@ -97,14 +101,14 @@ describe("buildSvg", () => {
   });
 });
 
-describe("renderSvgToPng", () => {
+describe("renderSvgToImage", () => {
   it("produces a PNG at the requested size", async () => {
     const svg = await buildSvg(
       { template: "card", title: "x" },
       resolveConfig(),
       { width: 48, height: 24 },
     );
-    const png = await renderSvgToPng(svg, { width: 48, height: 24 });
+    const png = await renderSvgToImage(svg, { width: 48, height: 24 });
 
     assertBufferEqual(png.subarray(0, 4), pngSignature);
     assertObjectEquals(pngSize(png), { width: 48, height: 24 });
@@ -135,7 +139,11 @@ describe("renderSvgToPng", () => {
       },
     });
 
-    const png = await renderSvgToPng("<svg/>", { width: 8, height: 4 }, config);
+    const png = await renderSvgToImage(
+      "<svg/>",
+      { width: 8, height: 4 },
+      config,
+    );
 
     assertIdentical(png.toString(), "not really an image");
     assertArrayLength(calls, 1);
@@ -155,7 +163,7 @@ describe("renderSvgToPng", () => {
       },
     });
 
-    await renderSvgToPng("<svg/>", { width: 8, height: 4 }, config);
+    await renderSvgToImage("<svg/>", { width: 8, height: 4 }, config);
 
     assertNonNullable(seen);
     assertFalse(seen.systemFonts);
@@ -181,7 +189,7 @@ describe("renderMetaImages", () => {
     assertIdentical(images[0].name, "og");
     assertObjectEquals(images[0].dimensions, { width: 64, height: 64 });
     assertStringIncludes(images[0].svg, ">hello</text>");
-    assertBufferEqual(images[0].png.subarray(0, 4), pngSignature);
+    assertBufferEqual(images[0].bytes.subarray(0, 4), pngSignature);
     assertIdentical(images[1].name, "tiny");
     assertObjectEquals(images[1].dimensions, { width: 48, height: 24 });
   }, 5000);
@@ -212,8 +220,8 @@ describe("renderMetaImages", () => {
     assertIdentical(footers.get(64), "example.com");
     assertIdentical(footers.get(48), "beta.example.com");
     assertArrayLength(images, 2);
-    assertIdentical(images[0].png.toString(), "64");
-    assertIdentical(images[1].png.toString(), "48");
+    assertIdentical(images[0].bytes.toString(), "64");
+    assertIdentical(images[1].bytes.toString(), "48");
   });
 
   it("renders each size with its own overrides", async () => {

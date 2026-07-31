@@ -241,4 +241,28 @@ describe("createPlacer", () => {
 
     assertUndefined(placed.url);
   });
+
+  it("ends a filename with the configured format", () => {
+    const placed = createPlacer(
+      { strategy: "beside-content", urlBase: "/" },
+      "content",
+      "webp",
+    )(bundled, og, stamp);
+
+    assertIdentical(
+      placed.path,
+      path.join("content", "guide", "guide-og.webp"),
+    );
+    assertIdentical(placed.url, "/guide/guide-og.webp");
+  });
+
+  it("keeps a hash in front of the extension", () => {
+    const placed = createPlacer(
+      { strategy: "public-dir", dir: "public/og", urlBase: "/og", hash: true },
+      "content",
+      "avif",
+    )(bundled, og, stamp);
+
+    assertIdentical(placed.url, "/og/guide-og.01234567.avif");
+  });
 });

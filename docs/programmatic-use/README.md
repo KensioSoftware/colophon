@@ -28,12 +28,14 @@ const images = await renderMetaImages(
 
 for (const image of images) {
   // image.name is the output-size name ("og", "square", and so on).
-  await writeFile(`social-${image.name}.png`, image.png);
+  await writeFile(`social-${image.name}.png`, image.bytes);
 }
 ```
 
 One image is returned per configured output size. Each carries its `name`,
-`dimensions`, the source `svg` and the encoded `png` bytes.
+`dimensions`, the source `svg` and the encoded `bytes`, in whatever
+[`format`](../configuration/formats/) the config asked for. `extensionFor` is
+what a build names its own files with, if you would rather not hardcode `.png`.
 
 This is the right entry point for rendering an image from data that is not a
 markdown file at all, such as a database row or an API response.
@@ -112,7 +114,7 @@ const file = await readContentFile("content/posts/hello.md", "content");
 ## Other exports
 
 The pieces the above are built from are exported too, for anything that needs to
-work at a lower level: `buildSvg` and `renderSvgToPng` for the two halves of
+work at a lower level: `buildSvg` and `renderSvgToImage` for the two halves of
 rendering, `resolveConfig` and `resolveConfigForSize` for config, the
 [layout toolkit](../layout/) and `createMeasurer` for template authors, and
 `createStamper`, `readImageStamp` and `stampImage` for the rebuild stamps.

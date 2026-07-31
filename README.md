@@ -82,7 +82,8 @@ colophon content --config colophon.config.ts
 
 For every file that declares `meta_img_props`, Colophon writes one PNG per
 output size next to it, named `<slug>-<size>.png`, so `post/index.md` produces
-`post/post-og.png` and `post/post-square.png`.
+`post/post-og.png` and `post/post-square.png`. Set `format` to `webp`, `jpeg` or
+`avif` for a quarter of the bytes.
 
 While tuning a template, `colophon preview <file>` renders one post and opens
 it, `--watch` rebuilds on every change, and `--dry-run` reports what would
@@ -106,6 +107,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, grain, dots and rules")
 - [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")
 - [Configuration](./docs/configuration/ "Every option, and what happens to an unknown one")
+- [Output formats](./docs/configuration/formats/ "WebP, JPEG and AVIF, quality, size caps and the SVG source")
 - [File size](./docs/configuration/compression/ "How hard the rendered PNGs are compressed, and what it costs")
 - [Rebuilds](./docs/rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./docs/programmatic-use/ "The API behind the CLI")

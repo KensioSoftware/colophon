@@ -1,6 +1,6 @@
 import { themeNames } from "../theme/index.js";
 import { isRecord } from "./check.js";
-import { slugStrategies } from "./keys.js";
+import { outputFormats, slugStrategies } from "./keys.js";
 import { nearestName } from "./suggest.js";
 
 /**
@@ -42,6 +42,21 @@ export function checkSlugStrategy(content: unknown, problems: string[]): void {
       strategy,
       slugStrategies,
     ),
+  );
+}
+
+/**
+ * Check the output format names one the encoder has. `jpg` is the spelling
+ * people reach for, and the suggestion is what turns it into `jpeg` rather than
+ * into a list to read.
+ */
+export function checkFormat(format: unknown, problems: string[]): void {
+  if (typeof format !== "string" || outputFormats.includes(format)) {
+    return;
+  }
+
+  problems.push(
+    describeUnknownValue("output format", "formats", format, outputFormats),
   );
 }
 

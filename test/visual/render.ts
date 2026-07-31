@@ -13,7 +13,7 @@
 import path from "node:path";
 
 import { resolveConfigForSize } from "../../src/config/size.js";
-import { buildSvg, renderSvgToPng } from "../../src/render/index.js";
+import { buildSvg, renderSvgToImage } from "../../src/render/index.js";
 import type {
   ColophonConfig,
   Dimensions,
@@ -70,5 +70,5 @@ export async function renderSample(sample: Sample): Promise<Buffer> {
   const config = resolveConfigForSize(baselineConfig(sample), size);
   const svg = await buildSvg(sample.props, config, sample.dimensions);
 
-  return renderSvgToPng(svg, reviewDimensions(sample), config);
+  return renderSvgToImage(svg, reviewDimensions(sample), config);
 }

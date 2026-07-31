@@ -63,9 +63,11 @@ upgrading re-renders the tree once. Two things are deliberately left out:
 [Per-size overrides](../configuration/per-size-config/) are part of the stamp, so
 changing one re-renders that size and leaves the others alone.
 
-The one thing in the stamp that cannot change a pixel is
-[`compressionLevel`](../configuration/compression/). It changes every byte of
-every file instead, and leaving it out would mean turning compression up did
+The things in the stamp that cannot change a pixel are
+[`compressionLevel`](../configuration/compression/) and the
+[output format settings](../configuration/formats/): `format`, `quality`,
+`maxBytes` and `emitSvg`. They change every byte of every file instead, and
+leaving them out would mean turning compression up, or dropping the quality, did
 nothing to the images already on disk.
 
 ## The gap, and the way out

@@ -1,5 +1,10 @@
 # File size
 
+This page is about PNG, which is what a build writes unless
+[`format`](../formats/) says otherwise. Under WebP, JPEG or AVIF none of it
+applies: those have `quality` instead, and they are a good deal smaller than
+anything here can make a PNG.
+
 Colophon compresses each rendered PNG again before handing it over, at a level
 you can set:
 

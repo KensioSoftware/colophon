@@ -89,11 +89,11 @@ See [Rebuilds](../../rebuilds/#where-the-stamp-goes) for where the stamp lands
 in each of them. What a decoder gives back is unchanged in every case: the same
 pixels, at the same size, with the same colour information.
 
-Two things are not configurable yet. Colophon has no `format` setting, so
-producing WebP means a rasteriser that produces WebP; and the filenames a build
-writes still end in `.png`, whatever the bytes are, so a project going this way
-is naming its own output through
-[`placement: "custom"`](../placement/#custom-placements).
+A backend does not have to produce the format a build writes:
+[`format`](../formats/) is what decides that, and whatever the rasteriser
+returns is encoded into it afterwards. Bytes already in the configured format
+are passed straight through, so a WebP backend under `format: "webp"` means one
+encoding rather than two.
 
 `renderMetaImages` has no limit at all here, since nothing stamps there and the
 bytes are handed straight back to you.

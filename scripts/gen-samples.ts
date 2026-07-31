@@ -42,7 +42,7 @@ const written = await Promise.all(
     }
 
     const file = path.join(outputDir, `${sample.name}.png`);
-    await writeFile(file, image.png);
+    await writeFile(file, image.bytes);
     return path.relative(process.cwd(), file);
   }),
 );

@@ -20,6 +20,7 @@ export type {
   MeasureText,
   MetaTag,
   MetaTagOptions,
+  OutputFormat,
   OutputSize,
   Placement,
   PropsFromFrontmatter,
@@ -53,9 +54,12 @@ export { textureSvg } from "./texture/index.js";
 export {
   buildSvg,
   renderMetaImages,
-  renderSvgToPng,
+  renderSvgToImage,
   resvgRasteriser,
 } from "./render/index.js";
+// For a script placing images itself: the extension has to follow the format,
+// and this is what a build names its own files with.
+export { extensionFor } from "./encode/index.js";
 // Exported for a rasteriser that takes file paths: a font may be configured as
 // bytes, and this is what writes those somewhere a backend can open them.
 export { fontFilePaths } from "./fonts/index.js";
