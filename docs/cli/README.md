@@ -75,9 +75,9 @@ colophon init essays
 colophon preview content/posts/hello.md --config colophon.config.ts
 ```
 
-Renders that one post and opens the image, which is what tuning a template, a
-palette or a code snippet wants: the alternative is running the whole build and
-picking the one image out of it that was the point.
+Renders that one post and opens the image, which is what tuning a template or a
+palette wants, since the alternative is running the whole build and then picking
+the one image out of it that was being worked on.
 
 The image goes to a temporary directory rather than into the content tree.
 Written beside the post it would land on the real image, which the next build
@@ -96,7 +96,7 @@ colophon preview content/posts/hello.md --size og
 ```
 
 A post that declares no image props is an error here, because the run named that
-file: in a build the same post is simply skipped.
+file, whereas in a build the same post is skipped.
 
 ## colophon eject
 
@@ -127,10 +127,10 @@ social meta tags. Call it from your head:
 and point `manifest` at `data/colophon.json`, which is where Hugo reads site
 data from.
 
-Without it a Hugo site does this part itself, globbing for `*-og.png` to find
-the landscape variant and hardcoding 1200 and 630 into the tags, because nothing
-told it what was generated. The two sites this partial was taken from spent 50
-and 58 lines on it.
+Without it a Hugo site has to do this part itself, globbing for `*-og.png` to
+find the landscape variant and hardcoding 1200 and 630 into the tags, because
+nothing has told it what was generated. The partial was taken from two sites
+that were each doing this by hand, in 50 and 58 lines respectively.
 
 ### What it emits
 
@@ -160,10 +160,11 @@ has no `urlBase`, which records dimensions and no address.
 
 ### It is yours after that
 
-Ejecting rather than importing is the point. Colophon writes the file and then
-leaves it alone, so a site that wants a different fallback chain, or one more
-tag, edits it. `colophon eject hugo --force` replaces it, which is worth
-remembering before running that.
+The file is ejected rather than imported so that the site can change it.
+Colophon writes it once and then leaves it alone, so a site that wants a
+different fallback chain, or one more tag, edits the file itself.
+`colophon eject hugo --force` replaces it, which is worth remembering before
+running that.
 
 It needs Hugo 0.156 or newer for `hugo.Data`. On an older Hugo, change the two
 references in the file to `site.Data`, which the file itself says.

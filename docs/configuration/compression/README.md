@@ -21,10 +21,10 @@ about 400KB to about 115KB, and the whole sample gallery in this repository from
 
 ## Nothing about the picture changes
 
-This is lossless in the strongest sense there is. The image data is inflated and
-deflated again with the pixels and the row filters untouched, so the file
-decodes to exactly the bytes it did before. Only how hard the deflater looked
-for matches is different.
+This is lossless in the strictest sense. The image data is inflated and deflated
+again with the pixels and the row filters untouched, so the file decodes to
+exactly the bytes it did before, and the only difference is how hard the
+deflater looked for matches.
 
 There is no quality setting because there is nothing to trade away. The tests
 decode an image before and after and compare the pixels, and compare the

@@ -1,9 +1,9 @@
 # The browser-safe core
 
-`buildSvg` is string building: props, a config and a size go in, an SVG document
-comes out. Everything in this package that needs Node is on one side of it or
-the other, so the middle can run in a browser, in a worker, or in a request
-handler.
+`buildSvg` builds a string: it takes props, a config and a size, and returns an
+SVG document. Everything in this package that needs Node sits on one side of it
+or the other, so the middle of it will run in a browser or anywhere else without
+a filesystem, such as a worker or a request handler.
 
 ```js
 import { buildSvg, resolveConfig } from "@kensio/colophon/core";
@@ -20,8 +20,8 @@ const svg = await buildSvg(
 );
 ```
 
-It is the same code the root entry point runs. Imported from Node it behaves
-identically; imported into a bundle it swaps two modules, through
+It is the same code the root entry point runs, and imported from Node it behaves
+identically. Imported into a bundle it swaps two modules, through
 `package.json`'s `browser` field, for versions that cannot touch a filesystem or
 a native binary.
 
@@ -40,7 +40,7 @@ const props = extractProps(frontmatter, { defaultTemplate: "card" });
 
 It returns `undefined` for a post that should not have an image, which is the
 same signal the [`props` mapper](../configuration/frontmatter/) gives. The rest
-of the content layer — walking a tree, reading files, deriving slugs — is on
+of the content layer, which walks a tree, reads files and derives slugs, is on
 `@kensio/colophon/content` and stays in Node.
 
 ## Problems, rather than an exception
@@ -74,11 +74,11 @@ filesystem. Supply the bytes as "data" instead.
 **There is no rasteriser.** resvg is a native module, so a browser build does
 not include it, and nothing here turns the SVG into pixels. Two ways on:
 
-- Take the SVG. Browsers draw it, and it is often what you wanted anyway.
+- Take the SVG as it is, since browsers draw it, and it is often what was wanted
+  anyway.
 - Set [`config.rasteriser`](../configuration/rasteriser/) to something that runs
-  where you are. A wasm build of resvg is the obvious one, and that seam already
-  exists. It returns a `Uint8Array`, so a backend with no `Buffer` to hand back
-  is not a problem.
+  where you are, such as a wasm build of resvg. It returns a `Uint8Array`, so a
+  backend with no `Buffer` to hand back still works.
 
 Asking for pixels without one is an error rather than a blank image.
 
@@ -108,7 +108,7 @@ the same build, which is what Colophon is on a site rendering images in the
 browser, was left with no themes at all and rejected every theme name, the
 default included.
 
-Owning the registry is what makes that irrelevant, and there is nothing to
+Colophon's own registry is not affected by that rewrite, and there is nothing to
 configure. Languages are still Shiki's, so a site that has narrowed those the
 same way through `shiki.bundledLangs` will find a language Colophon does not
 have falls back to plain text, which is what an unrecognised language has always
@@ -119,9 +119,9 @@ Emitting [meta tags](../configuration/meta-tags/) needs none of this: the
 
 ## Rendering on demand
 
-An endpoint that turns a query string into an image is an open image generator
-for anyone who finds it: they pick the words, your domain serves them, and your
-bill pays for it. Sign the parameters.
+An endpoint that turns a query string into an image will render whatever anyone
+who finds it asks for, on your domain and at your expense, so the parameters
+need signing.
 
 ```js
 import { signedQuery } from "@kensio/colophon/core";
@@ -162,17 +162,17 @@ export default async function handler(request) {
 ```
 
 The signature covers the parameters and nothing else, so anything that must not
-be tampered with has to be one of them: a template name or a size left outside
-is a template name or a size anyone can change. It is HMAC-SHA256 over the
-parameters sorted by name, so the order they arrive in does not matter, and the
-check is `crypto.subtle.verify` rather than a string comparison that would stop
-at the first wrong byte.
+be tampered with has to be one of them. A template name or a size left outside
+the parameters is one that anyone can change. The signature is HMAC-SHA256 over
+the parameters sorted by name, so the order they arrive in does not matter, and
+the check is `crypto.subtle.verify` rather than a string comparison that would
+stop at the first wrong byte.
 
 A query string that repeats a parameter is refused rather than resolved.
 `URLSearchParams.get` takes the first value of a repeated key and building an
 object from the pairs takes the last, so appending a second copy of a key to a
-signed URL is how a check like this is got round. No honest signed URL repeats
-one.
+signed URL is how a check like this is usually got round. A legitimate signed
+URL has no reason to repeat one.
 
 `signParams` and `verifyParams` are there for a URL shape of your own.
 
@@ -209,7 +209,7 @@ rather than once per request.
 ## Building images at build time
 
 None of this replaces the [CLI](../cli/) or
-[`generate`](../programmatic-use/). Rendering at build time is cheaper, cached
-by the [rebuild stamps](../rebuilds/), and produces files a CDN serves without
-running anything. On-demand rendering is for pages that do not exist until
-somebody asks for them.
+[`generate`](../programmatic-use/). Rendering at build time is cheaper, since
+the [rebuild stamps](../rebuilds/) mean most images are not rendered again at
+all, and it produces files a CDN can serve without running anything. On-demand
+rendering is for pages that do not exist until somebody asks for them.

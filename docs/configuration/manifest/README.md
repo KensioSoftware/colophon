@@ -1,12 +1,10 @@
 # Manifest
 
-Colophon writes PNGs and then goes quiet, so the site works out for itself what
-was generated, where it lives and how big it is. That usually means globbing for
+A build that only writes images leaves the site to work out for itself what was
+generated, where it lives and how big it is, which usually means globbing for
 `*-og.png` to find the landscape variant, or hardcoding 1200 and 630 into the
-meta tags.
-
-All of it is known while generating. Point `manifest` at a file and it is
-written down:
+meta tags. All of that is known while the images are being generated, so
+pointing `manifest` at a file writes it down:
 
 ```ts
 export default defineConfig({

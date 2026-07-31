@@ -9,12 +9,12 @@ output size you have configured.
 pnpm add @kensio/colophon
 ```
 
-Two dependencies come with it. `@resvg/resvg-js` rasterises the SVG to PNG, and
-`shiki` provides the grammars and themes for the
-[code template](../code-template/). No headless browser is involved.
+Two dependencies come with it: `@resvg/resvg-js`, which rasterises the SVG to
+PNG, and `shiki`, which provides the grammars and themes for the
+[code template](../code-template/). There is no headless browser to install.
 
 You can hand the renderer font files rather than relying on what the machine has
-installed, which is what makes a build render the same image everywhere. See
+installed, so that a build renders the same image wherever it runs. See
 [Fonts](../configuration/fonts/).
 
 ## Describe the image in frontmatter
@@ -100,14 +100,14 @@ colophon preview <file> [options]  Render one post and open it
   --size                defaults to the first configured size
 ```
 
-Images are rendered a few at a time rather than all at once, so a tree of a few
-hundred posts does not start a few hundred rasterisations and thrash. The
-default of one per available CPU suits a build machine with nothing else to do.
-Lower it with `--concurrency` to leave room for whatever else is running.
+Images are rendered a few at a time rather than all at once, so that a tree of a
+few hundred posts does not start a few hundred rasterisations. The
+default of one per available CPU suits a build machine with nothing else to do,
+and `--concurrency` lowers it to leave room for whatever else is running.
 
 While tuning a template, `colophon preview <file>` renders one post and opens
 it, and `--watch` rebuilds the tree on every change. [The command
-line](../cli/) covers all of it.
+line](../cli/) covers both.
 
 ## Where to go next
 

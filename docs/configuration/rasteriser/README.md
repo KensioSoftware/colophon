@@ -14,10 +14,10 @@ const myRasteriser: Rasteriser = async (svg, dimensions, config) => {
 export default defineConfig({ rasteriser: myRasteriser });
 ```
 
-Most projects should not need this. resvg is the default because it is what
-makes the output reproducible: it takes explicit font files and can be told to
-ignore whatever is installed on the machine, which is what
-[Fonts](../fonts/) is built around.
+Most projects should not need this. resvg is the default because it keeps the
+output reproducible: it takes explicit font files and can be told to ignore
+whatever is installed on the machine, which is what [Fonts](../fonts/) is built
+around.
 
 ## When you would want another
 

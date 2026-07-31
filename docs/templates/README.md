@@ -30,8 +30,8 @@ would go, and the third is a quotation with nothing else on the image. See
 [Logos, avatars and photographs](../configuration/images/) for where each one
 puts them.
 
-Anything a template reads and the post does not carry is simply left out, and
-the rest of the layout takes the room back.
+Anything a template reads and the post does not carry is left out, and the rest
+of the layout takes the room back.
 
 ## Choosing a template
 
@@ -101,8 +101,8 @@ leaves the post with the image it would have had if it had said nothing.
 
 ### `article`
 
-The default blog card: tags along the top, the headline and its standfirst in
-the middle, and who wrote it and when along the bottom.
+The usual blog card, with tags along the top, the headline and its standfirst
+in the middle, and the author and date along the bottom.
 
 ```yaml
 ---
@@ -130,8 +130,8 @@ wanted.
 
 ### `quote`
 
-A pull quote: an oversized quotation mark in the accent colour, the words, and
-who said them.
+A pull quote, with an oversized quotation mark in the accent colour above the
+words and the speaker below them.
 
 ```yaml
 ---
@@ -149,8 +149,9 @@ the quotation is the whole image.
 
 ### `terminal`
 
-A command and what it printed, in a terminal window. The same text on a plain
-panel is a snippet; in a window it is something somebody ran.
+A command and what it printed, drawn in a terminal window. The same text on a
+plain panel reads as a snippet, whereas in a window it reads as something
+somebody ran.
 
 ```yaml
 ---
@@ -182,8 +183,8 @@ ellipsis and [reported](../configuration/warnings/), exactly as a snippet is.
 
 ### `release`
 
-A changelog post: the version as the headline, what the release is, then its
-headline changes.
+A changelog post, with the version as the headline, what the release is below
+it, and then the headline changes.
 
 ```yaml
 ---
@@ -234,9 +235,9 @@ meta_img_props:
 
 `image` is a path or a `data:` URI, loaded the way
 [`avatar`](../configuration/images/) is. It comes from the post rather than
-from config because config is the same for every post, and a different
-photograph on each one is the whole point of this template. A post with no
-`image` still renders, over whatever background is configured.
+from config because config is the same for every post, whereas this template
+exists to put a different photograph on each one. A post with no `image` still
+renders, over whatever background is configured.
 
 The wash over the picture is not optional and is heavier than the one a
 [configured background image](../configuration/images/) gets, because here the
@@ -246,8 +247,8 @@ at it.
 
 ### `wordmark`
 
-The logo above a name and a tagline, for a homepage or a repository preview:
-the image for when the thing being shared is the project rather than a post.
+The logo above a name and a tagline, for a homepage or a repository preview,
+where the thing being shared is the project rather than a post.
 
 ```yaml
 ---
@@ -265,7 +266,8 @@ breaks it mid-word.
 
 ### `docs`
 
-A reference page: the trail that leads to it, a rule, then its title.
+A reference page, with the trail that leads to it above a rule and its title
+below.
 
 ```yaml
 ---
@@ -284,7 +286,7 @@ which are the ones that say where the page sits.
 
 ### `event`
 
-A talk, a meetup or a workshop.
+An image for a talk, a meetup or a workshop.
 
 ```yaml
 ---

@@ -81,9 +81,8 @@ export default defineConfig({
 });
 ```
 
-Point it at your content directory and the site gets its images without a single
-post being edited. The title needs no mapping, since a post's own is used where
-nothing else sets one.
+A site set up this way gets its images without any post being edited. The title
+needs no mapping, since a post's own is used where nothing else sets one.
 
 ### Returning `undefined` skips a post
 

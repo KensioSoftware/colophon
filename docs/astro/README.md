@@ -1,7 +1,7 @@
 # Astro
 
-Two halves: an integration that renders the images during the build, and a
-component that emits the tags for the route being rendered.
+There are two halves to this: an integration that renders the images during the
+build, and a component that emits the tags for the route being rendered.
 
 ## The integration
 
@@ -42,7 +42,7 @@ well as `astro build`, and which runs before anything is rendered. Both matter:
 the manifest has to exist before a page that reads it is built, and a dev server
 should show the images the build will produce rather than the last build's.
 
-Running on every dev start sounds expensive and is not. The
+Running on every dev start is cheaper than it sounds, because the
 [rebuild stamps](../rebuilds/) mean a second run reads the content tree,
 compares digests and renders no images. It does rewrite the manifest, which is
 a small JSON file describing what is already there.
@@ -71,9 +71,9 @@ import ColophonMeta from "../components/ColophonMeta.astro";
 ```
 
 It is written into your site rather than imported from the package, because a
-`<head>` is something a site owns: adding `og:title`, changing the fallback, or
-dropping a tag should be an edit rather than a feature request. `colophon eject
-astro --force` replaces it.
+`<head>` is something a site owns, so adding a tag such as `og:title` or
+changing the fallback should be an edit to the site rather than a change to this
+package. `colophon eject astro --force` replaces it.
 
 The component is thin, because the part worth testing is in the package:
 
