@@ -27,18 +27,22 @@ import type { ColophonConfig, OutputFormat } from "./types.js";
  * A gradient with a few shapes over it, which is what a meta image mostly is
  * and what the lossy encoders have real work to do on. A flat fill would come
  * out the same size at every quality and so say nothing about any of them.
+ *
+ * It is the same picture, at the same size, as `png.test.ts` recompresses. Each
+ * case here rasterises it for real and then encodes it, sometimes several times
+ * over, so the pixel count is what these tests cost.
  */
 const busySvg =
-  '<svg width="400" height="240" xmlns="http://www.w3.org/2000/svg">' +
+  '<svg width="200" height="120" xmlns="http://www.w3.org/2000/svg">' +
   '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
   '<stop offset="0%" stop-color="#3730a3"/>' +
   '<stop offset="100%" stop-color="#db2777"/></linearGradient></defs>' +
-  '<rect width="400" height="240" fill="url(#g)"/>' +
-  '<circle cx="140" cy="100" r="68" fill="#f59e0b" opacity="0.7"/>' +
-  '<path d="M240 240 L340 40 L400 240 Z" fill="#065f46"/>' +
+  '<rect width="200" height="120" fill="url(#g)"/>' +
+  '<circle cx="70" cy="50" r="34" fill="#f59e0b" opacity="0.7"/>' +
+  '<path d="M120 120 L170 20 L200 120 Z" fill="#065f46"/>' +
   "</svg>";
 
-const dimensions = { width: 400, height: 240 };
+const dimensions = { width: 200, height: 120 };
 
 /** One rendering, through the whole rasterise-and-encode path a build takes. */
 async function render(config: ColophonConfig): Promise<Buffer> {
@@ -52,7 +56,7 @@ describe("output format", () => {
     const { mediaType } = await sharp(await render({})).metadata();
 
     assertIdentical(mediaType, "image/png");
-  });
+  }, 5000);
 
   for (const format of lossy) {
     it(`writes the rendered picture as ${format}`, async () => {
@@ -65,7 +69,7 @@ describe("output format", () => {
       assertIdentical(mediaType, mediaTypeFor(format));
       assertIdentical(width, dimensions.width);
       assertIdentical(height, dimensions.height);
-    });
+    }, 5000);
   }
 
   it("is smaller than the PNG it was encoded from", async () => {
@@ -76,7 +80,7 @@ describe("output format", () => {
       webp.length < png.length,
       `expected webp to beat png; ${String(webp.length)} vs ${String(png.length)}`,
     );
-  });
+  }, 5000);
 });
 
 describe("quality", () => {
@@ -88,7 +92,7 @@ describe("quality", () => {
       low.length < high.length,
       `expected 20 to beat 95; ${String(low.length)} vs ${String(high.length)}`,
     );
-  });
+  }, 5000);
 
   it("is rejected outside 1 to 100", () => {
     const error = assertThrowsError(() => resolveConfig({ quality: 101 }));
@@ -108,7 +112,7 @@ describe("maxBytes", () => {
       capped.length <= cap,
       `expected ${String(capped.length)} under the ${String(cap)} cap`,
     );
-  });
+  }, 5000);
 
   it("leaves an image that already fits alone", async () => {
     const settings: ColophonConfig = { format: "webp", quality: 90 };
@@ -116,7 +120,7 @@ describe("maxBytes", () => {
     const capped = await render({ ...settings, maxBytes: 1_000_000 });
 
     assertBufferEqual(capped, full);
-  });
+  }, 5000);
 
   it("writes the image anyway when it will not fit, and says so", async () => {
     const warnings: string[] = [];
@@ -134,7 +138,7 @@ describe("maxBytes", () => {
     assertArrayLength(warnings, 1);
     assertStringIncludes(warnings[0], "over the 0KB maxBytes cap");
     assertStringIncludes(warnings[0], "Quality was stepped down to 30");
-  });
+  }, 10_000);
 
   it("says PNG has nothing to step down", async () => {
     const warnings: string[] = [];
@@ -148,7 +152,7 @@ describe("maxBytes", () => {
 
     assertArrayLength(warnings, 1);
     assertStringIncludes(warnings[0], "PNG is lossless");
-  });
+  }, 5000);
 
   it("is rejected at zero, which nothing could ever meet", () => {
     const error = assertThrowsError(() => resolveConfig({ maxBytes: 0 }));
@@ -170,7 +174,7 @@ describe("bytes already in the configured format", () => {
     );
 
     assertBufferEqual(image, webp);
-  });
+  }, 5000);
 });
 
 describe("bytes no encoder reads", () => {
