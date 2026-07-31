@@ -4,10 +4,27 @@
 
 Text is measured against the fonts a build actually renders with, instead of
 being estimated from a per-template fudge factor. Wrapping and fitting change as
-a result, and so do three pieces of the API.
+a result, and so do four pieces of the API.
 
 Every image re-renders on the first build after the upgrade, as it does on any
 upgrade: the package version is part of the [rebuild stamp](../rebuilds/).
+
+### `stampPng` and `readPngStamp` are `stampImage` and `readImageStamp`
+
+The rebuild stamp goes into JPEG, WebP and AVIF as well as PNG now, so the two
+functions that write and read it are named for images rather than for one
+format. See [Rebuilds](../rebuilds/#where-the-stamp-goes).
+
+```ts
+// Before
+import { readPngStamp, stampPng } from "@kensio/colophon";
+
+// After
+import { readImageStamp, stampImage } from "@kensio/colophon";
+```
+
+Nothing else changes: the arguments, the return values and the stamps themselves
+are the same, so images already on disk are still recognised.
 
 ### Text is fitted to the space it has
 

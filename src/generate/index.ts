@@ -1,6 +1,6 @@
 import { writeManifest } from "../manifest/index.js";
 import { mapConcurrent } from "../pool.js";
-import { readPngStamp } from "../stamp/index.js";
+import { readImageStamp } from "../stamp/index.js";
 import type { GeneratedImage, GenerateOptions } from "./options.js";
 import { resolveConcurrency } from "./options.js";
 import { planBuild } from "./plan.js";
@@ -36,7 +36,7 @@ export async function generate(
   const results = await mapConcurrent(plan.jobs, concurrency, async (job) => {
     const isSkipped =
       options.overwrite !== true &&
-      (await readPngStamp(job.outputPath)) === job.stamp;
+      (await readImageStamp(job.outputPath)) === job.stamp;
 
     if (!isSkipped && options.dryRun !== true) {
       await renderImage(job, job.stamp);

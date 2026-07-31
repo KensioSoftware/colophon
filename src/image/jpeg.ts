@@ -1,7 +1,5 @@
+import { jpegSegments } from "../jpeg/segments.js";
 import type { Extent } from "./size.js";
-
-/** Markers that carry no payload, so nothing follows them to skip over. */
-const standalone = new Set([0xd8, 0xd9, 0x01]);
 
 /** The frame headers, which are the segments that state the image size. */
 function isFrameHeader(marker: number): boolean {
@@ -17,52 +15,25 @@ function isFrameHeader(marker: number): boolean {
 }
 
 /**
- * The dimensions of a JPEG, by walking its segments to the frame header.
+ * The dimensions of a JPEG, from the first frame header among its segments.
  *
- * Unlike every other format here, a JPEG does not state its size at a fixed
- * offset: the frame header comes after however many comment, quantisation and
- * application segments the encoder felt like writing.
+ * A frame header opens with one byte of sample precision and then the height
+ * and the width, each big-endian, in that order. One declaring less than that
+ * is a file cut off inside its own frame, and is unmeasurable rather than a
+ * read past the end of the buffer.
  */
 export function jpegExtent(bytes: Uint8Array): Extent | undefined {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  let offset = 2;
 
-  while (offset + 4 < bytes.length) {
-    if (bytes[offset] !== 0xff) {
-      // Anything between segments is skipped a byte at a time rather than
-      // read as a length, since a length taken from the middle of one would
-      // jump somewhere arbitrary.
-      offset += 1;
-      continue;
-    }
-
-    const marker = bytes[offset + 1] ?? 0;
-
-    if (marker === 0xff) {
-      // A marker may be preceded by any number of `0xff` fill bytes, so this
-      // is the first of them rather than a marker of its own.
-      offset += 1;
-      continue;
-    }
-
-    if (standalone.has(marker)) {
-      offset += 2;
-      continue;
-    }
-
+  for (const { marker, start, end } of jpegSegments(bytes)) {
     if (isFrameHeader(marker)) {
-      // The dimensions run to offset + 8, further than the loop guarantees, so
-      // a file truncated inside its own frame header is unmeasurable rather
-      // than a read past the end of the buffer.
-      return offset + 8 < bytes.length
-        ? {
-            width: view.getUint16(offset + 7),
-            height: view.getUint16(offset + 5),
-          }
-        : undefined;
+      return end - start < 5
+        ? undefined
+        : {
+            width: view.getUint16(start + 3),
+            height: view.getUint16(start + 1),
+          };
     }
-
-    offset += 2 + view.getUint16(offset + 2);
   }
 
   return undefined;

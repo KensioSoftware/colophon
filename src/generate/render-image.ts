@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import { buildSvg, renderSvgToPng } from "../render/index.js";
-import { stampPng } from "../stamp/index.js";
+import { stampImage } from "../stamp/index.js";
 import type { ResolvedConfig } from "../types.js";
 import type { RenderJob } from "./job.js";
 
@@ -31,5 +31,5 @@ export async function renderImage(
   const png = await renderSvgToPng(svg, dimensions, config);
 
   await mkdir(path.dirname(job.outputPath), { recursive: true });
-  await writeFile(job.outputPath, stampPng(png, stamp));
+  await writeFile(job.outputPath, stampImage(png, stamp));
 }

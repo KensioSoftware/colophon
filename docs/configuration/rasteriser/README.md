@@ -23,10 +23,11 @@ ignore whatever is installed on the machine, which is what
 
 - **A wasm build**, so the same code runs at the edge or in a browser rather
   than needing a native binary.
-- **Another PNG encoder**, for something the default cannot do. Note that
-  whatever a rasteriser returns is compressed again afterwards, so the
-  compression resvg does not expose is already handled: see
-  [File size](../compression/). Other formats are not this yet: see below.
+- **Another encoder**, for something the default cannot do, including another
+  output format: see [what can be stamped](#it-has-to-produce-something-that-can-be-stamped)
+  below. Note that a PNG a rasteriser returns is compressed again afterwards, so
+  the compression resvg does not expose is already handled: see
+  [File size](../compression/).
 - **Post-processing**, where you want the default output and something done to
   it, or the document changed before it is drawn.
 
@@ -71,22 +72,31 @@ export default defineConfig({
 });
 ```
 
-## It has to produce PNG, for now
+## It has to produce something that can be stamped
 
-A build records a rebuild stamp inside each image it writes, as a PNG `tEXt`
-chunk, which is how it knows next time whether anything changed. Bytes it cannot
-stamp are bytes it cannot write, so a rasteriser returning WebP or AVIF fails
-with:
+A build records a rebuild stamp inside each image it writes, which is how it
+knows next time whether anything changed. Bytes it cannot stamp are bytes it
+cannot write, so a rasteriser has to return one of the four containers a stamp
+goes into: PNG, JPEG, WebP or AVIF. Anything else fails with:
 
 ```text
-Cannot stamp: not a PNG image. The rebuild stamp is a PNG chunk, so a
-rasteriser has to produce PNG for a build to be able to skip it.
+Cannot stamp: unrecognised image format. The rebuild stamp goes inside the
+image, so a rasteriser has to produce one of PNG, JPEG, WebP, AVIF for a build
+to be able to skip it.
 ```
 
-Other output formats are their own piece of work, and the stamp is the part of
-it that has to be solved. Until then this seam is for changing _how_ the PNG is
-produced, not _what_ is produced. `renderMetaImages` has no such limit, since
-nothing stamps there and the bytes are handed straight back to you.
+See [Rebuilds](../../rebuilds/#where-the-stamp-goes) for where the stamp lands
+in each of them. Nothing about the picture changes, and nothing about the file
+changes that a decoder reads.
+
+Two things this does not yet make a config option. Colophon has no `format`
+setting, so producing WebP means a rasteriser that produces WebP; and the
+filenames a build writes still end in `.png`, whatever the bytes are, so a
+project going this way is naming its own output through
+[`placement: "custom"`](../placement/#custom-placements).
+
+`renderMetaImages` has no limit at all here, since nothing stamps there and the
+bytes are handed straight back to you.
 
 ## It changes every image
 

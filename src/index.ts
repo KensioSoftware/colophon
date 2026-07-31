@@ -81,7 +81,7 @@ export type {
 export { defaultOutputPath, generate } from "./generate/index.js";
 export type { GeneratedImage, GenerateOptions } from "./generate/index.js";
 
-export { createStamper, readPngStamp, stampPng } from "./stamp/index.js";
+export { createStamper, readImageStamp, stampImage } from "./stamp/index.js";
 export type { Stamper } from "./stamp/index.js";
 
 export { createMeasurer } from "./measure/index.js";

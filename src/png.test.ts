@@ -22,7 +22,7 @@ import { decodePng } from "../test/visual/png.js";
 import { resolveConfig } from "./config/index.js";
 import { readChunks, recompressPng } from "./png/index.js";
 import { renderSvgToPng } from "./render/index.js";
-import { stampPng } from "./stamp/index.js";
+import { stampImage } from "./stamp/index.js";
 
 /**
  * Something with enough going on in it that the encoder has real choices to
@@ -121,7 +121,7 @@ describe("recompressPng", () => {
   it("keeps every other chunk, the stamp included", async () => {
     // The stamp goes in after this runs in a build, but a chunk that survives
     // a round trip here is what says a `pHYs` or a `gAMA` would survive too.
-    const stamped = stampPng(await original(), "abc123");
+    const stamped = stampImage(await original(), "abc123");
     const smaller = await recompressPng(stamped, 9);
 
     assertArrayEquals(chunkTypes(smaller), ["IHDR", "tEXt", "IDAT", "IEND"]);
