@@ -35,6 +35,7 @@ export type {
   MeasureText,
   MetaImageProps,
   MeshBlob,
+  OutputFormat,
   OutputSize,
   Rasteriser,
   RenderedMetaImage,

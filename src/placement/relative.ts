@@ -1,6 +1,7 @@
 import path from "node:path";
 
-import type { ContentFile, OutputSize } from "../types.js";
+import { extensionFor } from "../encode/format.js";
+import type { ContentFile, OutputFormat, OutputSize } from "../types.js";
 
 /**
  * How much of an image's digest goes in its filename.
@@ -17,6 +18,11 @@ const hashLength = 8;
  * carries the post's keywords, and the size name keeps every image of a post
  * distinct (`my-post-og.png`, `my-post-square.png`).
  *
+ * The extension follows `config.format`, so a build writing WebP writes
+ * `my-post-og.webp`. Changing the format therefore renames every image, and
+ * leaves the ones already written where they are: nothing here knows whether
+ * something is still serving them.
+ *
  * A slug carrying directories of its own puts them in the name, so the image's
  * path mirrors the route wherever it is placed. That is what the `route`
  * strategy produces, and what a frontmatter `slug` of `docs/intro` means.
@@ -30,12 +36,14 @@ export function imageName(
   file: ContentFile,
   size: OutputSize,
   hash: string | undefined,
+  format: OutputFormat,
 ): string {
   const stem = `${file.slug}-${size.name}`;
+  const extension = extensionFor(format);
 
   return hash === undefined
-    ? `${stem}.png`
-    : `${stem}.${hash.slice(0, hashLength)}.png`;
+    ? `${stem}${extension}`
+    : `${stem}.${hash.slice(0, hashLength)}${extension}`;
 }
 
 /**
@@ -54,8 +62,9 @@ export function besideContent(
   file: ContentFile,
   size: OutputSize,
   hash: string | undefined,
+  format: OutputFormat,
 ): string {
-  const name = imageName(file, size, hash);
+  const name = imageName(file, size, hash, format);
 
   if (file.slug.includes("/")) {
     return name;

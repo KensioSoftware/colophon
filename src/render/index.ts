@@ -5,12 +5,12 @@ import type {
   MetaImageProps,
   RenderedMetaImage,
 } from "../types.js";
-import { renderSvgToPng } from "./png.js";
+import { renderSvgToImage } from "./image.js";
 import { buildSvg } from "./svg.js";
 import { selectTemplate } from "./template.js";
 
 export { buildSvg } from "./svg.js";
-export { renderSvgToPng } from "./png.js";
+export { renderSvgToImage } from "./image.js";
 export { resvgRasteriser } from "./rasterise.js";
 
 /**
@@ -34,8 +34,8 @@ export async function renderMetaImages(
       const sizeConfig = resolveConfigForSize(config, size);
       const dimensions = { width: size.width, height: size.height };
       const svg = await buildSvg(props, sizeConfig, dimensions);
-      const png = await renderSvgToPng(svg, dimensions, sizeConfig);
-      return { name: size.name, dimensions, svg, png };
+      const bytes = await renderSvgToImage(svg, dimensions, sizeConfig);
+      return { name: size.name, dimensions, svg, bytes };
     }),
   );
 }

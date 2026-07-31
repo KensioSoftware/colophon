@@ -9,6 +9,7 @@ import {
   assertBufferEqual,
   assertFalse,
   assertFileExists,
+  assertFileIncludes,
   assertIdentical,
   assertNonNullable,
   assertNumberBetween,
@@ -60,6 +61,22 @@ function fakeWebp(): Buffer {
   file.write("VP8 ", 12, "latin1");
   file.writeUInt32LE(8, 16);
   return file;
+}
+
+/**
+ * Whether a build at this JPEG quality skipped its one image. The filename does
+ * not carry the quality, so the stamp is the only thing that can say.
+ */
+async function isSkippedAtQuality(
+  dir: string,
+  quality: number,
+): Promise<boolean> {
+  const results = await generate(
+    options(dir, { config: { sizes: [tinyOg], format: "jpeg", quality } }),
+  );
+
+  assertArrayLength(results, 1);
+  return results[0].skipped;
 }
 
 /** An extra image rendering at the og size with a brand colour of its own. */
@@ -910,5 +927,56 @@ describe("generate", () => {
     // The callback won, so the placement's URL would name the wrong file.
     assertIdentical(results[0].outputPath, path.join(dir, "guide.png"));
     assertUndefined(results[0].url);
+  }, 5000);
+
+  it("names the files after the configured format", async () => {
+    const results = await generate(
+      options(dir, {
+        config: {
+          sizes: [tinyOg],
+          format: "webp",
+          placement: { strategy: "public-dir", dir, urlBase: "/og" },
+        },
+      }),
+    );
+
+    assertArrayLength(results, 1);
+    assertIdentical(results[0].outputPath, path.join(dir, "guide-og.webp"));
+    assertIdentical(results[0].url, "/og/guide-og.webp");
+    assertFileExists(path.join(dir, "guide-og.webp"));
+  }, 5000);
+
+  it("stamps a format other than PNG and skips it next time", async () => {
+    const webp = options(dir, {
+      config: { sizes: [tinyOg], format: "webp" },
+    });
+
+    await generate(webp);
+    const again = await generate(webp);
+
+    assertArrayLength(again, 1);
+    assertTrue(again[0].skipped);
+  }, 10_000);
+
+  it("re-renders when the quality changes, though no filename does", async () => {
+    assertFalse(await isSkippedAtQuality(dir, 80));
+    assertTrue(await isSkippedAtQuality(dir, 80));
+    // Same path, different bytes: only the stamp can tell a build to redo it.
+    assertFalse(await isSkippedAtQuality(dir, 40));
+  }, 10_000);
+
+  it("writes the SVG beside each image under emitSvg", async () => {
+    await generate(
+      options(dir, { config: { sizes: [tinyOg], emitSvg: true } }),
+    );
+
+    assertFileExists(path.join(dir, "guide", "guide-og.png"));
+    await assertFileIncludes(path.join(dir, "guide", "guide-og.svg"), "<svg");
+  }, 5000);
+
+  it("writes no SVG when nothing asks for one", async () => {
+    await generate(options(dir, { config: { sizes: [tinyOg] } }));
+
+    assertPathNotExists(path.join(dir, "guide", "guide-og.svg"));
   }, 5000);
 });

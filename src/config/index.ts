@@ -13,7 +13,8 @@ import type {
   ResolvedConfig,
 } from "../types.js";
 import { validateConfig } from "../validate/index.js";
-import { DEFAULT_FONT_FAMILY } from "./defaults.js";
+import { DEFAULT_FONT_FAMILY, DEFAULT_FORMAT } from "./defaults.js";
+import { resolveMaxBytes, resolveQuality } from "./output.js";
 import {
   defaultBackground,
   resolveBackground,
@@ -30,6 +31,8 @@ export {
   DEFAULT_COLORS,
   DEFAULT_COMPRESSION_LEVEL,
   DEFAULT_FONT_FAMILY,
+  DEFAULT_FORMAT,
+  DEFAULT_QUALITY,
   DEFAULT_SIZES,
   SIZE_PRESETS,
 } from "./defaults.js";
@@ -107,5 +110,9 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
     // config, including one for a browser.
     rasteriser: config.rasteriser ?? defaultRasteriser,
     compressionLevel: resolveCompressionLevel(config.compressionLevel),
+    format: config.format ?? DEFAULT_FORMAT,
+    quality: resolveQuality(config.quality),
+    maxBytes: resolveMaxBytes(config.maxBytes),
+    emitSvg: config.emitSvg ?? false,
   };
 }

@@ -64,6 +64,11 @@ async function backgroundDigest(background: Background): Promise<unknown> {
  * without this the setting would appear to do nothing until each post next
  * changed, which is the sort of gap that gets reported as a bug.
  *
+ * `format`, `quality` and `maxBytes` are in for the same reason, and `emitSvg`
+ * for a version of it: turning it on has to write the documents for images that
+ * are already on disk, and without this it would write them only for the posts
+ * that happened to change next.
+ *
  * The rasteriser is in, by its source, since swapping the backend is one of the
  * few config changes that alters every pixel of every image. It is hashed the
  * way a custom template is, with the same gap: source text cannot see a value
@@ -93,6 +98,10 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
       code: config.code,
       rasteriser: config.rasteriser.toString(),
       compressionLevel: config.compressionLevel,
+      format: config.format,
+      quality: config.quality,
+      maxBytes: config.maxBytes,
+      emitSvg: config.emitSvg,
     }),
   );
 }

@@ -7,6 +7,7 @@ import type { Stamper } from "../stamp/index.js";
 import { createStamper } from "../stamp/index.js";
 import type { Placer } from "../placement/index.js";
 import { createPlacer } from "../placement/index.js";
+import type { OutputFormat } from "../types.js";
 import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
@@ -35,11 +36,11 @@ export interface BuildPlan {
  * nowhere: the placement no longer describes where the file went, and the one
  * it would have named is not where the image is.
  */
-function placer(options: GenerateOptions): Placer {
+function placer(options: GenerateOptions, format: OutputFormat): Placer {
   const override = options.outputPath;
 
   if (override === undefined) {
-    return createPlacer(options.config?.placement, options.contentDir);
+    return createPlacer(options.config?.placement, options.contentDir, format);
   }
 
   return (file, size) => ({ path: override(file, size), url: undefined });
@@ -52,7 +53,7 @@ function placer(options: GenerateOptions): Placer {
  */
 export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   const resolved = resolveConfig(options.config);
-  const place = placer(options);
+  const place = placer(options, resolved.format);
 
   const configBySize = new Map(
     resolved.sizes.map((size) => [

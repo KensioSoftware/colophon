@@ -14,7 +14,7 @@ import {
 import { afterEach, beforeEach, describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
-import { renderSvgToPng } from "./render/index.js";
+import { renderSvgToImage } from "./render/index.js";
 import { createStamper, readImageStamp, stampImage } from "./stamp/index.js";
 import type { ColophonConfig, MetaImageProps, OutputSize } from "./types.js";
 
@@ -30,7 +30,7 @@ const sansFont = path.join(
 );
 
 async function tinyPng(): Promise<Buffer> {
-  return renderSvgToPng(
+  return renderSvgToImage(
     '<svg width="4" height="4" xmlns="http://www.w3.org/2000/svg">' +
       '<rect width="4" height="4" fill="#123456"/></svg>',
     { width: 4, height: 4 },
