@@ -1,12 +1,12 @@
 import { codeToTokens } from "shiki";
 
 import { gridLine } from "./grid.js";
-import { resolveLanguage, resolveTheme } from "./language.js";
+import { loadTheme, resolveLanguage } from "./language.js";
 import { normaliseSnippet } from "./normalise.js";
 import type { HighlightedCode, HighlightOptions } from "./types.js";
 
 export { dedent, expandTabs } from "./normalise.js";
-export { resolveLanguage, resolveTheme } from "./language.js";
+export { loadTheme, resolveLanguage, resolveTheme } from "./language.js";
 export type { CodeToken, HighlightedCode, HighlightOptions } from "./types.js";
 
 /**
@@ -21,7 +21,7 @@ export async function highlightCode(
 ): Promise<HighlightedCode> {
   const result = await codeToTokens(normaliseSnippet(code, options.tabSize), {
     lang: resolveLanguage(options.language),
-    theme: resolveTheme(options.theme),
+    theme: await loadTheme(options.theme),
   });
 
   let longestLine = 0;

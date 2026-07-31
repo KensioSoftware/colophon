@@ -1,19 +1,24 @@
 import {
+  assertArrayEquals,
   assertArrayLength,
   assertFalse,
   assertIdentical,
   assertStringIncludes,
   assertThrowsError,
+  assertThrowsErrorAsync,
 } from "@kensio/smartass";
+import { themeNames } from "@shikijs/themes";
 import { describe, it } from "vitest";
 
 import {
   dedent,
   expandTabs,
   highlightCode,
+  loadTheme,
   resolveLanguage,
   resolveTheme,
 } from "./highlight/index.js";
+import { codeThemes } from "./highlight/themes.js";
 
 describe("resolveLanguage", () => {
   it("passes through names Shiki already knows", () => {
@@ -41,6 +46,33 @@ describe("resolveTheme", () => {
 
   it("throws for an unknown theme rather than guessing", () => {
     const error = assertThrowsError(() => resolveTheme("nope-dark"));
+    assertStringIncludes(error.message, 'Unknown code theme "nope-dark"');
+  });
+});
+
+describe("codeThemes", () => {
+  it("holds every theme Shiki ships", () => {
+    // The registry is Colophon's own, for the reason `themes.ts` gives, so
+    // something has to say it still matches the one it stands in for. The
+    // types say so at compile time; this says so against the list the theme
+    // package itself publishes, which is what a Shiki upgrade changes.
+    assertArrayEquals(
+      Object.keys(codeThemes).toSorted((a, b) => a.localeCompare(b)),
+      [...themeNames].toSorted((a, b) => a.localeCompare(b)),
+    );
+  });
+});
+
+describe("loadTheme", () => {
+  it("loads the theme itself rather than returning its name", async () => {
+    const theme = await loadTheme("vitesse-light");
+
+    assertIdentical(theme.name, "vitesse-light");
+  });
+
+  it("refuses an unknown theme before loading anything", async () => {
+    const error = await assertThrowsErrorAsync(() => loadTheme("nope-dark"));
+
     assertStringIncludes(error.message, 'Unknown code theme "nope-dark"');
   });
 });
@@ -101,5 +133,17 @@ describe("highlightCode", () => {
   it("trims surrounding blank lines and normalises line endings", async () => {
     const result = await highlightCode("\n\r\na\r\nb\n\n\n", options);
     assertArrayLength(result.lines, 2);
+  }, 5000);
+
+  it("takes its colours from whichever theme was configured", async () => {
+    // A second theme, so what is being read is the configured one rather than
+    // a default that happens to be loaded either way.
+    const result = await highlightCode("echo 'hi'\n", {
+      ...options,
+      theme: "vitesse-light",
+    });
+
+    assertIdentical(result.background, "#ffffff");
+    assertIdentical(result.foreground, "#393a34");
   }, 5000);
 });

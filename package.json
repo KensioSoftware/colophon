@@ -108,6 +108,7 @@
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
+    "@shikijs/themes": "^4.3.1",
     "fontkit": "^2.0.4",
     "gray-matter": "^4.0.3",
     "sharp": "^0.35.3",

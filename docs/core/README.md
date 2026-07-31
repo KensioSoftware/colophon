@@ -92,6 +92,28 @@ That is the price of the `code` template rendering any language in any theme. A
 build that does not need it, or needs two languages rather than every language,
 should use Shiki's own fine-grained bundle to narrow what is included.
 
+## Themes on a site that already highlights code
+
+Colophon resolves `code.theme` through a registry of its own rather than through
+Shiki's. That looks like duplication, so it is worth saying why it is there.
+
+A tool that highlights a site's own code blocks may narrow what Shiki bundles by
+rewriting Shiki's modules during the build. [Expressive
+Code](https://expressive-code.com), which a
+[Starlight](https://starlight.astro.build) site runs by default, does that under
+an option called `removeUnusedThemes`: it strips every theme from Shiki's theme
+module except the ones its own configuration names. The rewrite applies to the
+file rather than to whichever importer asked for it, so a second Shiki caller in
+the same build, which is what Colophon is on a site rendering images in the
+browser, was left with no themes at all and rejected every theme name, the
+default included.
+
+Owning the registry is what makes that irrelevant, and there is nothing to
+configure. Languages are still Shiki's, so a site that has narrowed those the
+same way through `shiki.bundledLangs` will find a language Colophon does not
+have falls back to plain text, which is what an unrecognised language has always
+done.
+
 Emitting [meta tags](../configuration/meta-tags/) needs none of this: the
 `@kensio/colophon/meta` subpath bundles to about 4 KB and depends on nothing.
 

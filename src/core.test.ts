@@ -19,7 +19,7 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { importGraph } from "../test/graph.js";
+import { importGraph, packageNames } from "../test/graph.js";
 import type { ColophonConfig } from "./types.js";
 
 /** Anything that only exists in Node, which is what the core must not reach. */
@@ -44,7 +44,11 @@ describe("the core entry point", () => {
     // be highlighted, and both of those are libraries that run anywhere.
     const { external, modules } = importGraph("dist/core/index.js", true);
 
-    assertArrayEquals(external, ["fontkit", "shiki"]);
+    assertArrayEquals(packageNames(external), [
+      "@shikijs/themes",
+      "fontkit",
+      "shiki",
+    ]);
     assertArrayNotEmpty(modules);
   });
 
