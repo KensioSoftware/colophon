@@ -58,6 +58,12 @@ async function backgroundDigest(background: Background): Promise<unknown> {
  * its own stamp, so adding a third size or an unrelated custom template does
  * not invalidate everything already on disk.
  *
+ * `compressionLevel` is in even though it cannot change a pixel, which is the
+ * rule `onWarning` is left out under. What it changes is every byte of every
+ * file, and a project turning it up wants the images it already has rewritten:
+ * without this the setting would appear to do nothing until each post next
+ * changed, which is the sort of gap that gets reported as a bug.
+ *
  * The rasteriser is in, by its source, since swapping the backend is one of the
  * few config changes that alters every pixel of every image. It is hashed the
  * way a custom template is, with the same gap: source text cannot see a value
@@ -86,6 +92,7 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
       badge: config.badge,
       code: config.code,
       rasteriser: config.rasteriser.toString(),
+      compressionLevel: config.compressionLevel,
     }),
   );
 }

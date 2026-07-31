@@ -19,6 +19,7 @@ import {
   resolveBackground,
   resolveCode,
   resolveColors,
+  resolveCompressionLevel,
   resolveSizes,
   shouldLoadSystemFonts,
 } from "./resolve.js";
@@ -27,6 +28,7 @@ export {
   DEFAULT_CODE_FONT_FAMILY,
   DEFAULT_CODE_STYLE,
   DEFAULT_COLORS,
+  DEFAULT_COMPRESSION_LEVEL,
   DEFAULT_FONT_FAMILY,
   DEFAULT_SIZES,
   SIZE_PRESETS,
@@ -104,5 +106,6 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
     // would put a native binary in the graph of every build that resolves a
     // config, including one for a browser.
     rasteriser: config.rasteriser ?? defaultRasteriser,
+    compressionLevel: resolveCompressionLevel(config.compressionLevel),
   };
 }

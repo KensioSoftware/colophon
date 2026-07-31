@@ -23,8 +23,10 @@ ignore whatever is installed on the machine, which is what
 
 - **A wasm build**, so the same code runs at the edge or in a browser rather
   than needing a native binary.
-- **Another PNG encoder**, for the compression settings resvg does not expose.
-  Other formats are not this yet: see below.
+- **Another PNG encoder**, for something the default cannot do. Note that
+  whatever a rasteriser returns is compressed again afterwards, so the
+  compression resvg does not expose is already handled: see
+  [File size](../compression/). Other formats are not this yet: see below.
 - **Post-processing**, where you want the default output and something done to
   it, or the document changed before it is drawn.
 

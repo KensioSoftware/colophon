@@ -17,7 +17,7 @@
  */
 import { inflateSync } from "node:zlib";
 
-import { pngSignature } from "../../src/stamp/chunk.js";
+import { pngSignature } from "../../src/png/chunk.js";
 import { unfilterRow } from "./unfilter.js";
 
 /** An image as raw RGBA bytes, four per pixel, row by row from the top. */

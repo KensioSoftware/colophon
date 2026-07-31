@@ -1,4 +1,5 @@
 import { resolveConfig } from "../config/index.js";
+import { recompressPng } from "../png/recompress.js";
 import type { Dimensions, ResolvedConfig } from "../types.js";
 
 /**
@@ -8,6 +9,11 @@ import type { Dimensions, ResolvedConfig } from "../types.js";
  * the configured rasteriser has to be chosen. A project that supplies its own
  * gets it used by `renderMetaImages`, by `generate` and by `colophon preview`
  * alike, none of which knows there was a choice to make.
+ *
+ * It is also where the bytes are compressed again, for the same reason and on
+ * the same terms: an image is worth shrinking whoever asked for it, and a
+ * caller taking the bytes away to write itself should not have to know that the
+ * rasteriser left three quarters of the saving on the table.
  *
  * The name is what it was before the backend became configurable. PNG is still
  * what comes back by default, and renaming this would break every caller to say
@@ -24,5 +30,7 @@ export async function renderSvgToPng(
   // return. Everything downstream of here is Node, and the stamp reads the PNG
   // with `Buffer`'s own methods, so this is where the two meet. A `Buffer`
   // arrives as itself rather than being copied.
-  return Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+  const png = Buffer.isBuffer(bytes) ? bytes : Buffer.from(bytes);
+
+  return recompressPng(png, config.compressionLevel);
 }

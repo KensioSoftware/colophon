@@ -138,6 +138,16 @@ describe("createStamper", () => {
     );
   });
 
+  it("changes the stamp when the compression level changes", async () => {
+    // Not a pixel moves, which is the rule `onWarning` is left out under, but
+    // every byte of every file does. Without this, turning compression up
+    // would appear to do nothing until each post next changed.
+    assertRestamped(
+      await stampFor({ compressionLevel: 9 }),
+      await stampFor({ compressionLevel: 6 }),
+    );
+  });
+
   it("changes the stamp when a size's own overrides change", async () => {
     // The whole point of #19 meeting the stamp: an override is config, so
     // changing one has to re-render that image and not the others.
