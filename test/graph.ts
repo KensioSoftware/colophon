@@ -45,6 +45,25 @@ function specifiersIn(file: string): readonly string[] {
   );
 }
 
+/**
+ * The packages a set of bare specifiers comes from, deduplicated.
+ *
+ * A registry of one module per theme reaches dozens of specifiers that are all
+ * a single dependency, and what an entry point costs to import is a question
+ * about the dependency rather than about the modules inside it.
+ */
+export function packageNames(external: readonly string[]): readonly string[] {
+  const names = external.map((specifier) => {
+    const parts = specifier.split("/");
+
+    return specifier.startsWith("@")
+      ? parts.slice(0, 2).join("/")
+      : (parts[0] ?? specifier);
+  });
+
+  return [...new Set(names)].toSorted((a, b) => a.localeCompare(b));
+}
+
 export interface Graph {
   /** Every built module reachable from the entry point. */
   readonly modules: readonly string[];

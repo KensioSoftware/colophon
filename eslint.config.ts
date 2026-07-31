@@ -181,6 +181,17 @@ export default defineConfig(
     },
   },
 
+  // ── The Shiki theme registry (Shiki's names, not ours) ──
+  {
+    files: ["src/highlight/themes.ts"],
+    rules: {
+      // Every key is a Shiki theme id, and those are kebab-case. They have to
+      // be spelled the way Shiki spells them, since that is what a config
+      // names and what the registry is looked up by.
+      "@typescript-eslint/naming-convention": "off",
+    },
+  },
+
   // ── Config files (allow default exports) ────────────────
   {
     files: ["*.config.ts", "*.config.js"],
