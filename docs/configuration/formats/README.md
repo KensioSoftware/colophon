@@ -1,7 +1,7 @@
 # Output formats
 
-Colophon writes PNG unless you say otherwise. WebP, JPEG and AVIF are one
-setting away:
+Colophon writes PNG unless you say otherwise. WebP, JPEG and AVIF are each one
+setting:
 
 ```ts
 export default defineConfig({
@@ -26,10 +26,11 @@ default quality:
 | `webp` | 112KB       | 18KB                 |
 | `avif` | 92KB        | 16KB                 |
 
-WebP is the one to reach for. Every browser and every crawler that matters reads
-it, it is a quarter of the PNG, and it is no slower to write, because a lossy
-encoding is cheaper than the level-9 zlib pass a PNG gets. AVIF is smaller again
-and slower to encode, and it is the least widely read of the four.
+WebP is the usual choice. It is read by current browsers and by the crawlers
+these images are for, it comes out at about a quarter of the size of the PNG,
+and it is no slower to write, because a lossy encoding is cheaper than the
+level-9 zlib pass a PNG gets. AVIF is smaller again but slower to encode, and it
+is the least widely read of the four.
 
 The pictures are the same to look at. At `80` the gradients these templates are
 mostly made of hold up; below about `50` they start to band.
@@ -54,8 +55,8 @@ step.
 
 ## Capping the size
 
-X refuses an upload over 5MB, and a large AVIF is not what a card is for. A cap
-says so:
+Some platforms have a ceiling of their own, such as X, which refuses an upload
+over 5MB. `maxBytes` records that ceiling:
 
 ```ts
 export default defineConfig({
@@ -100,10 +101,10 @@ Each image gets its source document beside it, under the same name with an
 [hashed placement](../placement/#content-hashed-filenames) the hash is kept, so
 `my-post-og.ecd0aab2.svg` sits next to its own image.
 
-It is what to hand to a vector editor, what to diff when a template changes, and
-what to serve to anything that would rather have vectors. It is not in the
-[manifest](../manifest/) and it carries no
-[rebuild stamp](../../rebuilds/): the image is what a build tracks, and the
+That is the document to hand to a vector editor, to diff when a template
+changes, or to serve to anything that would rather have vectors. It is not in
+the [manifest](../manifest/) and it carries no
+[rebuild stamp](../../rebuilds/), since the image is what a build tracks and the
 document follows it.
 
 ## They all change every image's stamp

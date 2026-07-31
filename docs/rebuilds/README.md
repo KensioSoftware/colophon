@@ -32,9 +32,9 @@ PNG is what the default rasteriser writes, and the other three are here for a
 | AVIF   | A `uuid` box appended to the file.                     |
 
 What a decoder gives back is unchanged in every case: the same pixels, at the
-same size, with the same colour information. Two of the four are appended rather
-than tucked in near the front,
-which is not a preference: a plain WebP declares no room for a chunk before its
+same size, with the same colour information. Two of the four are appended to the
+end of the file rather than tucked in near the front, which those formats give
+no choice about: a plain WebP declares no room for a chunk before its
 bitstream, and an AVIF locates its picture by an offset from the start of the
 file that inserting anything earlier would move.
 

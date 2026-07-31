@@ -1,7 +1,7 @@
 # The layout toolkit
 
-Writing a template means returning a string of SVG. That is fine for a heading
-and a rectangle, and it stops being fine at about the point you want a photo
+Writing a template means returning a string of SVG, which is manageable by hand
+for a heading and a rectangle, and much less so once the layout has a photo
 behind the text with a gradient over it and a row of chips along the top.
 
 The toolkit is the set of small functions the built-in templates are made from.
@@ -130,15 +130,16 @@ name are left out.
 box(rect, { radius: 20, fill: "#ffffff", fillOpacity: 0.16 });
 ```
 
-`panel` is a box that casts a shadow, which is what makes something read as
-sitting on top of the image rather than being part of it:
+`panel` is a box that casts a shadow, so that it reads as sitting on top of the
+image rather than as part of it:
 
 ```ts
 panel(rect, { radius: 24, fill: "#0d1117", shadow: 12 });
 ```
 
-The shadow is a second rectangle offset downwards rather than a blur filter. It
-costs the rasteriser nothing and reads as depth just as well at these sizes.
+The shadow is a second rectangle offset downwards rather than a blur filter,
+which is much cheaper for the rasteriser and reads as depth just as well at
+these sizes.
 
 ## Images
 

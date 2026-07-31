@@ -1,8 +1,8 @@
 # Logos, avatars and photographs
 
-Four places an image can go into a generated one: a logo in the corner, an
-author's photo beside the footer, the post's own photograph, and a picture
-behind everything.
+There are four places an image can go into a generated one: a logo in the
+corner, an author's photo beside the footer, the post's own photograph, and a
+picture behind everything else.
 
 ```ts
 export default defineConfig({
@@ -115,8 +115,8 @@ background: {
 
 A photograph is light and dark wherever it likes, and white text over a bright
 sky cannot be read. The scrim is the wash of colour between the picture and the
-text, and it is the difference between a designed image and text sitting on a
-photo.
+text, which is what keeps the text legible whatever the photograph is doing
+behind it.
 
 It defaults to a quarter of black at the top and about two thirds at the
 bottom. It starts at a quarter rather than at nothing because a template is
@@ -129,8 +129,8 @@ Turn it down for a picture that is already dark, or off entirely:
 scrim: { from: 0, to: 0 }
 ```
 
-Set `color` to tint rather than shade: a brand colour at a low opacity over a
-photograph is what makes a set of images look like they belong together.
+Set `color` to tint rather than shade, since a brand colour at a low opacity
+over a photograph will tie a set of images together.
 
 ## Per size
 

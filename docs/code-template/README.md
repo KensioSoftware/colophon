@@ -58,20 +58,20 @@ were fractions of the height, a landscape image would render the same snippet at
 around half the size of its square counterpart.
 
 Code that will not fit at the floor is truncated with an ellipsis rather than
-shrunk into unreadability. The panel then shrinks onto what is left, so the
-remaining code is not marooned in a larger box.
+shrunk to a size nobody can read. The panel then shrinks onto what is left, so
+the remaining code is not sitting in a box built for more of it.
 
 That trade matters most on the landscape sizes, which have around half the
 vertical room of the square. At the default floor an Open Graph image fits
 roughly nine lines of about sixty characters. A snippet written to that budget
-renders identically at every size. A longer one keeps its opening lines and
-loses the tail. Lower `minFontScale` if you would rather show the whole snippet
-small, or set it per size so only the landscape shrinks; see
+renders identically at every size, whereas a longer one keeps its opening lines
+and loses the tail. Lower `minFontScale` if you would rather show the whole
+snippet small, or set it per size so that only the landscape shrinks; see
 [Per-size config](../configuration/per-size-config/).
 
-Nothing in a finished image says the sample continued, so Colophon says it
-instead. A snippet that had to lose lines is reported through
-[`onWarning`](../configuration/warnings/):
+A finished image gives no sign that the sample continued, so a snippet that had
+to lose lines is reported through [`onWarning`](../configuration/warnings/)
+instead:
 
 ```text
 colophon: content/post/index.md: code snippet does not fit the 1200x630 image at
@@ -111,8 +111,8 @@ assuming `0.6` of the font size per character. That suits most monospace faces,
 including Source Code Pro, Menlo and DejaVu Sans Mono, but Consolas is nearer
 `0.55`, and a mismatch shows up as columns drifting across the line.
 
-The default stack ends in the generic `monospace` family, which resolves to
-something everywhere but not to the same thing everywhere.
+The default stack ends in the generic `monospace` family, which will resolve to
+a face on any machine, but not to the same face on every machine.
 
 This used to be a `code.charWidthRatio` setting. It has gone: see
 [Upgrading](../upgrading/).

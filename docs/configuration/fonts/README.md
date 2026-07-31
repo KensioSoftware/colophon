@@ -1,11 +1,9 @@
 # Fonts
 
-By default Colophon names font families and hopes the machine has them. That is
-how the same post ends up rendering differently on a laptop, in CI and in a
-container.
+By default Colophon names font families and leaves the machine to supply them,
+which is how the same post can render differently on a laptop and in CI.
 
-Point `fonts` at font files instead and the output stops depending on the
-machine:
+Pointing `fonts` at font files instead takes the machine out of it:
 
 ```ts
 export default defineConfig({
@@ -48,16 +46,16 @@ pass `{ data }` with its bytes instead of a path.
 ## System fonts switch off
 
 As soon as you configure any font, installed fonts stop being loaded. That is
-the point: a family you did not supply cannot then quietly resolve to something
-that happens to be on the machine.
+deliberate, since it means a family you did not supply cannot quietly resolve to
+something that happens to be on the machine.
 
-Set `systemFonts: true` to have both, at the cost of the determinism you came
-for.
+Set `systemFonts: true` to have both, at the cost of the reproducibility that
+configuring fonts was for.
 
 An unknown family falls back to a configured font rather than rendering nothing,
 so a mismatched name shows up as the wrong typeface rather than a blank image.
 
-## Measuring, not guessing
+## Measuring rather than guessing
 
 A configured font is also the font Colophon measures against when it decides
 where a line of text breaks and how large it can be drawn. Glyph advances come

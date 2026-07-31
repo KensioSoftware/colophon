@@ -1,10 +1,9 @@
 # One-off images
 
-Not every image belongs to a post. A package card, a repository social preview
-and a home page share image all want the same brand and the same templates, and
-none of them has a markdown file behind it.
-
-List them under `extra` and the build renders them alongside the tree:
+Not every image belongs to a post. A package card or a repository social preview
+wants the same brand and the same templates as the rest of the site, without
+having a markdown file behind it. Listing them under `extra` has the build
+render them alongside the tree:
 
 ```ts
 export default defineConfig({

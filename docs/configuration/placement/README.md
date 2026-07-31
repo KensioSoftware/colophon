@@ -1,10 +1,9 @@
 # Placement
 
 An output path says where the bytes go and nothing about how anyone reaches
-them, so every site ends up rebuilding that mapping in its own templates, from
-information Colophon had while generating and then threw away.
-
-A placement says both:
+them, which leaves a site to rebuild that mapping in its own templates from
+information the build already had. A placement records both the path and the
+URL:
 
 ```ts
 export default defineConfig({
@@ -37,9 +36,10 @@ The URL comes from `urlBase`, prefixed to the image's path under whatever root
 placed it. It can be site-relative, such as `/og`, or absolute for images served
 from a CDN.
 
-**No `urlBase`, no URL.** A directory on disk does not say how, or whether, it
-is served, and a URL Colophon invented would be worse than the gap it fills. The
-point of writing a URL down is that a site can trust it.
+**Without a `urlBase` there is no URL.** A directory on disk does not say how,
+or whether, it is served, so a URL Colophon invented would be worse than leaving
+the field empty. The reason for writing a URL down is that a site can rely on
+it.
 
 Each result carries the URL as `result.url`, which is `undefined` where nothing
 says. That covers three cases: no `urlBase`, an image placed by `generate`'s
@@ -62,9 +62,9 @@ placement: {
 
 ## Content hashed filenames
 
-Social platforms cache share images hard, and they cache by URL. Correct a
-post's image and the old one can keep turning up in feeds for a long time
-afterwards. A hash in the filename is the reliable way round it:
+Social platforms cache share images aggressively, and they cache by URL, so a
+corrected image can keep turning up in feeds for a long time afterwards. Putting
+a hash in the filename avoids that:
 
 ```ts
 placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og", hash: true }
@@ -90,11 +90,11 @@ It follows that anything the stamp covers moves the name, including a Colophon
 upgrade. Those images are re-rendered by the upgrade anyway, and a fresh URL is
 the right answer for an image that may have changed.
 
-Hashing is opt-in for two reasons. The filename then moves whenever the image
-does, which not every setup wants. And it leaves the old files behind.
+Hashing is opt-in for two reasons: the filename then moves whenever the image
+does, which not every setup wants, and it leaves the old files behind.
 
-**Nothing deletes them.** That is the point under a `public-dir` you can rebuild
-from scratch, since a crawler holding the old URL still gets an image. It does
+**Nothing deletes them.** That suits a `public-dir` you can rebuild from
+scratch, since a crawler holding the old URL still gets an image, but it does
 mean a `beside-content` tree slowly accumulates them in your content directory.
 The [manifest](../manifest/) always names the current one, so a site never has to
 work out which is which.

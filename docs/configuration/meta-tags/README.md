@@ -1,9 +1,7 @@
 # Social meta tags
 
-Generating the image is half the job. The site still has to write the tags, and
-every site ends up with slightly different results.
-
-Given [a manifest](../manifest/), that is a lookup:
+Generating the image is only half the job, since the site still has to write the
+tags that point at it. Given [a manifest](../manifest/), that is a lookup:
 
 ```ts
 import { metaTags, metaTagsHtml } from "@kensio/colophon/meta";

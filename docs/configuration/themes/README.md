@@ -1,7 +1,7 @@
 # Themes and background treatments
 
-A theme is a named look: a palette, a background and, for some of them, a
-texture over it. It is the shortest config there is.
+A theme is a named look, made up of a palette, a background and, for some of
+them, a texture over it. Naming one is the shortest config a project can write.
 
 ```ts
 export default defineConfig({
@@ -41,11 +41,11 @@ export default defineConfig({
 Six are dark, because white text on a deep background is what a share image is
 usually asked to be, and two are light for a site whose own pages are.
 
-## What a theme actually sets
+## What a theme sets
 
-`colors`, `background` and sometimes `texture`, and nothing else. They are
-ordinary config options, so a theme is a set of defaults rather than a look
-that cannot be argued with: name any of those three yourself and yours is used.
+`colors`, `background` and sometimes `texture`, and nothing else. Those are
+ordinary config options, so a theme is a set of defaults rather than a fixed
+look, and any of the three you name yourself is the one that is used.
 
 ```ts
 export default defineConfig({
@@ -79,8 +79,8 @@ export default defineConfig({
 ```
 
 A texture is drawn over the background and under everything the template draws,
-so it never comes between a headline and the reader. All three are meant to be
-felt rather than seen, and the defaults are faint.
+so it never comes between a headline and the reader. All three are intended to
+be noticed only in passing, and the defaults are faint.
 
 | Texture   | Options                                     |
 | --------- | ------------------------------------------- |
@@ -94,19 +94,19 @@ being rendered.
 
 ### Grain costs bytes
 
-`grain` is one turbulence filter, and it looks the part, but per-pixel noise is
-the one thing PNG cannot compress. It takes a 1200×1200 image from around 600KB
-to a little over 2MB, and adds roughly 150ms to rendering it.
+`grain` is one turbulence filter, and per-pixel noise is the one thing PNG
+cannot compress. It takes a 1200×1200 image from around 600KB to a little over
+2MB, and adds roughly 150ms to rendering it.
 
-That is well inside what the social platforms accept, and it is a lot to commit
-next to a post. It is why no theme turns grain on for you: it is worth choosing
-on purpose, and worth a look at what lands on disk afterwards.
+That is well inside what the social platforms accept, but it is a lot to commit
+next to a post, which is why no theme turns grain on by itself. Choose it
+deliberately, and look at what lands on disk afterwards.
 
 ## Meshes
 
-A mesh is soft blobs of colour over a flat base, which is the look a linear
-gradient cannot give: colour that moves in more than one direction. Each blob
-is a radial fade, so it costs no more than a gradient does.
+A mesh is soft blobs of colour over a flat base, which gives colour that moves
+in more than one direction, unlike a linear gradient. Each blob is a radial
+fade, so it costs no more to render than a gradient does.
 
 ```ts
 export default defineConfig({

@@ -7,8 +7,8 @@ Colophon is configured with a module whose default export is a
 colophon content --config colophon.config.ts
 ```
 
-Every field is optional, and sensible defaults apply. A project that only wants
-its own brand colours can stop after `colors`.
+Every field is optional and every one has a default, so a project that only
+wants its own brand colours can stop after `colors`.
 
 ```ts
 // colophon.config.ts
