@@ -140,6 +140,7 @@ export default defineConfig(
       // `prevent-abbreviations` — added by unicorn v68's recommended config.
       "unicorn/name-replacements": "off",
       "unicorn/prevent-abbreviations": "off",
+      "unicorn/consistent-boolean-name": "warn",
     },
   },
 

@@ -24,7 +24,7 @@ import {
 } from "@kensio/smartass";
 import { afterEach, beforeEach, describe, it } from "vitest";
 
-import type { ContentFile } from "./content/index.js";
+import type { ContentFile } from "./types.js";
 import { readImageStamp } from "./stamp/index.js";
 import { defaultOutputPath, generate } from "./generate/index.js";
 import type { GenerateOptions } from "./generate/index.js";
