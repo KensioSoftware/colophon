@@ -110,6 +110,7 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
     // config, including one for a browser.
     rasteriser: config.rasteriser ?? defaultRasteriser,
     compressionLevel: resolveCompressionLevel(config.compressionLevel),
+    quantise: config.quantise ?? false,
     format: config.format ?? DEFAULT_FORMAT,
     quality: resolveQuality(config.quality),
     maxBytes: resolveMaxBytes(config.maxBytes),

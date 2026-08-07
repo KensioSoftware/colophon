@@ -2,6 +2,7 @@ import { recompressPng } from "../png/recompress.js";
 import type { ResolvedConfig } from "../types.js";
 import { fitToBytes } from "./fit.js";
 import { mediaTypeFor } from "./format.js";
+import { quantisePng } from "./quantise.js";
 import type { LossyFormat } from "./sharp.js";
 import { openRaster } from "./sharp.js";
 import { warnIfOverCap } from "./warn.js";
@@ -12,10 +13,12 @@ export { extensionFor, mediaTypeFor, withExtension } from "./format.js";
  * The rendered bytes as the configured format, before the cap is considered.
  *
  * PNG is what the rasteriser already produces, so there is nothing to convert
- * and the lossless recompression is the whole of the work. The other three are
- * encoded from whatever came back, which is a decode and an encode per image,
- * paid once because an image whose rebuild stamp still matches is not rendered
- * again.
+ * and the encoding is the whole of the work: the lossless recompression, or the
+ * palette where `quantise` asks for one, which is the same file made much
+ * smaller by changing the picture rather than by looking harder for matches.
+ * The other three formats are encoded from whatever came back, which is a
+ * decode and an encode per image, paid once because an image whose rebuild
+ * stamp still matches is not rendered again.
  *
  * Bytes that are already in the configured format are handed straight on. A
  * project whose rasteriser produces WebP and whose config asks for WebP means
@@ -27,7 +30,9 @@ async function toFormat(
   config: ResolvedConfig,
 ): Promise<Buffer> {
   if (config.format === "png") {
-    return recompressPng(raster, config.compressionLevel);
+    return config.quantise
+      ? quantisePng(raster, config.compressionLevel)
+      : recompressPng(raster, config.compressionLevel);
   }
 
   // Read off the config once, so the narrowing above survives into the closure

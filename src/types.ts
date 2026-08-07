@@ -759,6 +759,28 @@ export interface ColophonConfig {
    */
   readonly compressionLevel?: number;
   /**
+   * Reduce the rendered PNG to a palette of at most 256 colours. Defaults to
+   * `false`.
+   *
+   * This is the one setting here that changes the picture, and it is much the
+   * larger saving: across the sample gallery in this repository it takes 1.7MB
+   * down to 0.7MB, where {@link ColophonConfig.compressionLevel} on its own is
+   * what got it to 1.7MB from 4.4MB. It is off by default because what it
+   * costs is banding, and a meta image is mostly a smooth wash of two or three
+   * brand colours, which 256 shades cannot always hold. The flat backgrounds in
+   * the gallery come through with no pixel changed at all; the mesh and
+   * gradient ones move a channel by up to about 17 levels out of 255, which on
+   * a long fade is visible if you look for it.
+   *
+   * So look at an image before turning this on for a whole site. Where a
+   * template draws translucent pixels they survive quantisation, since a PNG
+   * palette carries alpha of its own.
+   *
+   * PNG only, like `compressionLevel`. The other three formats trade the same
+   * way through {@link ColophonConfig.quality}.
+   */
+  readonly quantise?: boolean;
+  /**
    * What to write: `png` (the default), `jpeg`, `webp` or `avif`.
    *
    * PNG is lossless and the format every platform has always taken, which is
@@ -854,9 +876,9 @@ export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
  *
  * Only what a template reads while drawing is overridable. `fonts`,
  * `systemFonts` and `templates` are shared build inputs rather than part of the
- * picture, and `rasteriser`, `compressionLevel`, `format`, `quality`,
- * `maxBytes` and `emitSvg` are about how the picture is encoded rather than
- * what it shows. `onWarning` is where messages go rather than what they say,
+ * picture, and `rasteriser`, `compressionLevel`, `quantise`, `format`,
+ * `quality`, `maxBytes` and `emitSvg` are about how the picture is encoded
+ * rather than what it shows. `onWarning` is where messages go rather than what they say,
  * and `sizes` inside a size would be nonsense.
  */
 export interface SizeOverrides {
@@ -937,6 +959,7 @@ export interface ResolvedConfig {
   readonly templates: Readonly<Record<string, Template>>;
   readonly rasteriser: Rasteriser;
   readonly compressionLevel: number;
+  readonly quantise: boolean;
   readonly format: OutputFormat;
   readonly quality: number;
   /** The cap on each image, or `undefined` where the config sets none. */

@@ -7,6 +7,7 @@
  * the failure a signature check cannot see.
  */
 import {
+  assertArrayIncludes,
   assertArrayLength,
   assertBufferEqual,
   assertIdentical,
@@ -20,7 +21,10 @@ import { describe, it } from "vitest";
 
 import { resolveConfig } from "./config/index.js";
 import { extensionFor, mediaTypeFor, withExtension } from "./encode/index.js";
+import { chunkBytes, pngSignature, readChunks } from "./png/index.js";
 import { renderSvgToImage } from "./render/index.js";
+import { carrierFor } from "./stamp/carrier/index.js";
+import { stampImage } from "./stamp/index.js";
 import type { ColophonConfig, OutputFormat } from "./types.js";
 
 /**
@@ -50,6 +54,37 @@ async function render(config: ColophonConfig): Promise<Buffer> {
 }
 
 const lossy: readonly OutputFormat[] = ["jpeg", "webp", "avif"];
+
+/** The two PNG colour types these tests tell apart, from the spec's table. */
+const truecolourAlpha = 6;
+const palettedColour = 3;
+
+/** A PNG's colour type, which sits at a fixed offset inside `IHDR`. */
+function colourTypeOf(png: Buffer): number {
+  return png[25] ?? -1;
+}
+
+/** Every chunk type in a PNG, in the order the file declares them. */
+function chunkTypesOf(png: Buffer): string[] {
+  return (readChunks(png) ?? []).map(({ type }) => type);
+}
+
+/** The stamp a PNG is carrying, read the way a build reads one back. */
+function stampIn(png: Buffer): string | undefined {
+  return carrierFor(png)?.read(png);
+}
+
+/** A PNG with one more chunk in it, straight after the header. */
+function insertChunk(png: Buffer, type: string, data: Buffer): Buffer {
+  // Signature, then `IHDR`'s length, type, thirteen bytes of data and CRC.
+  const afterHeader = pngSignature.length + 4 + 4 + 13 + 4;
+
+  return Buffer.concat([
+    png.subarray(0, afterHeader),
+    chunkBytes(type, data),
+    png.subarray(afterHeader),
+  ]);
+}
 
 describe("output format", () => {
   it("writes PNG when nothing asks otherwise", async () => {
@@ -158,6 +193,106 @@ describe("maxBytes", () => {
     const error = assertThrowsError(() => resolveConfig({ maxBytes: 0 }));
 
     assertStringIncludes(error.message, "Invalid maxBytes 0");
+  });
+});
+
+describe("quantise", () => {
+  it("leaves the picture at full colour by default", async () => {
+    assertIdentical(colourTypeOf(await render({})), truecolourAlpha);
+  }, 5000);
+
+  it("writes a palette PNG when a config asks for one", async () => {
+    assertIdentical(
+      colourTypeOf(await render({ quantise: true })),
+      palettedColour,
+    );
+  }, 5000);
+
+  it("is smaller than the lossless PNG", async () => {
+    // Only a direction, not a ratio. `PLTE` and its alpha table are a fixed
+    // cost of about a kilobyte, which a 200x120 test image pays as large a
+    // share of its file as a real meta image never would: this one comes out
+    // around 70% of the lossless encoding, where the 1200x630 samples in the
+    // gallery come out between 28% and 61%.
+    const lossless = await render({});
+    const quantised = await render({ quantise: true });
+    const sizes = `${String(quantised.length)} vs ${String(lossless.length)}`;
+
+    assertTrue(
+      quantised.length < lossless.length,
+      `expected a saving; ${sizes}`,
+    );
+  }, 5000);
+
+  it("keeps the rebuild stamp the container was carrying", async () => {
+    // The one failure here that nothing else would report: an encoder that
+    // rewrites the file drops the `tEXt` chunk the stamp lives in, and an
+    // image with no stamp is an image every later build renders again, without
+    // a word to say why it never settles down.
+    const stamped = stampImage(await render({}), "sha256-of-something");
+
+    const quantised = await renderSvgToImage(
+      busySvg,
+      dimensions,
+      resolveConfig({ quantise: true, rasteriser: () => stamped }),
+    );
+
+    assertIdentical(stampIn(quantised), "sha256-of-something");
+  }, 5000);
+
+  it("keeps a rasteriser's own chunks too", async () => {
+    // The same promise `recompressPng` makes: what a file says about how it is
+    // meant to be shown is part of the image. `gAMA` rather than `pHYs`,
+    // because the palette encoder writes a `pHYs` of its own and that one is
+    // its answer for the file it just produced.
+    const withGamma = insertChunk(
+      await render({}),
+      "gAMA",
+      Buffer.from([0, 1, 134, 160]),
+    );
+
+    const quantised = await renderSvgToImage(
+      busySvg,
+      dimensions,
+      resolveConfig({ quantise: true, rasteriser: () => withGamma }),
+    );
+
+    assertArrayIncludes(chunkTypesOf(quantised), "gAMA");
+  }, 5000);
+
+  it("keeps the alpha a template drew", async () => {
+    // A palette carries its own alpha, so a translucent pixel stays
+    // translucent. Templates draw plenty of them, and one flattened onto
+    // black would be a visible failure rather than a smaller file.
+    const translucent =
+      '<svg width="200" height="120" xmlns="http://www.w3.org/2000/svg">' +
+      '<circle cx="70" cy="50" r="34" fill="#f59e0b"/>' +
+      '<rect x="100" y="10" width="80" height="80" fill="#3730a3"' +
+      ' opacity="0.4"/></svg>';
+
+    const quantised = await renderSvgToImage(
+      translucent,
+      dimensions,
+      resolveConfig({ quantise: true }),
+    );
+
+    const { hasAlpha } = await sharp(quantised).metadata();
+    assertTrue(hasAlpha, "expected the palette to carry alpha");
+  }, 5000);
+
+  it("hands back bytes that are not a PNG to quantise", async () => {
+    // What `compressionLevel` does with them, for the same reason: a backend
+    // producing another format has already settled how its bytes are encoded.
+    const bytes = Buffer.from("not an image at all", "latin1");
+    const config = resolveConfig({
+      quantise: true,
+      rasteriser: () => Uint8Array.from(bytes),
+    });
+
+    assertBufferEqual(
+      await renderSvgToImage(busySvg, dimensions, config),
+      bytes,
+    );
   });
 });
 

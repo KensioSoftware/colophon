@@ -20,8 +20,16 @@ import { describe, it } from "vitest";
 
 import { decodePng } from "../test/visual/png.js";
 import { resolveConfig } from "./config/index.js";
-import { readChunks, recompressPng } from "./png/index.js";
+import type { PngChunk } from "./png/index.js";
+import {
+  carryAncillaryChunks,
+  chunkBytes,
+  pngSignature,
+  readChunks,
+  recompressPng,
+} from "./png/index.js";
 import { renderSvgToImage } from "./render/index.js";
+import { pngCarrier } from "./stamp/carrier/png.js";
 import { stampImage } from "./stamp/index.js";
 
 /**
@@ -90,6 +98,90 @@ function chunkTypes(png: Buffer): string[] {
 
   return types;
 }
+
+/** A PNG with one more chunk in it, straight after the header. */
+function insertChunk(png: Buffer, type: string, data: Buffer): Buffer {
+  // Signature, then `IHDR`'s length, type, thirteen bytes of data and CRC.
+  const afterHeader = pngSignature.length + 4 + 4 + 13 + 4;
+
+  return Buffer.concat([
+    png.subarray(0, afterHeader),
+    chunkBytes(type, data),
+    png.subarray(afterHeader),
+  ]);
+}
+
+/** The chunks of a PNG written back out as a file, in the order they came. */
+function rebuild(chunks: readonly PngChunk[]): Buffer {
+  return Buffer.concat([
+    pngSignature,
+    ...chunks.map(({ type, data }) => chunkBytes(type, data)),
+  ]);
+}
+
+/**
+ * Standing in for what an outside encoder gives back: the same picture in a
+ * file of its own, with nothing the container had been carrying.
+ */
+async function stripped(): Promise<Buffer> {
+  return rebuild(readChunks(await original()) ?? []);
+}
+
+describe("carryAncillaryChunks", () => {
+  it("puts the stamp back into a file that lost it", async () => {
+    const source = stampImage(await original(), "abc123");
+    const carried = carryAncillaryChunks(source, await stripped());
+
+    assertArrayEquals(chunkTypes(carried), ["IHDR", "tEXt", "IDAT", "IEND"]);
+    assertIdentical(pngCarrier.read(carried), "abc123");
+  });
+
+  it("puts back what a rasteriser said about the image", async () => {
+    const source = insertChunk(
+      await original(),
+      "gAMA",
+      Buffer.from([0, 1, 134, 160]),
+    );
+    const carried = carryAncillaryChunks(source, await stripped());
+
+    assertArrayEquals(chunkTypes(carried), ["IHDR", "gAMA", "IDAT", "IEND"]);
+  });
+
+  it("leaves a chunk the encoder wrote for itself alone", async () => {
+    // The encoder's `pHYs` is its answer for the file it just wrote, and the
+    // one it read is not a second opinion worth keeping.
+    const mine = Buffer.from([0, 0, 11, 19, 0, 0, 11, 19, 1]);
+    const theirs = Buffer.from([0, 0, 0, 1, 0, 0, 0, 1, 0]);
+    const png = await original();
+
+    const carried = carryAncillaryChunks(
+      insertChunk(png, "pHYs", mine),
+      insertChunk(await stripped(), "pHYs", theirs),
+    );
+
+    assertArrayEquals(chunkTypes(carried), ["IHDR", "pHYs", "IDAT", "IEND"]);
+    assertBufferEqual(
+      (readChunks(carried) ?? [])[1]?.data ?? Buffer.alloc(0),
+      theirs,
+    );
+  });
+
+  it("carries nothing critical, since the encoder wrote the picture", async () => {
+    // An `IDAT` from the file that was read would be the old image data over
+    // the new, which is the one thing here that could produce a broken file.
+    const carried = carryAncillaryChunks(await original(), await stripped());
+
+    assertArrayEquals(chunkTypes(carried), ["IHDR", "IDAT", "IEND"]);
+  });
+
+  it("hands back bytes it cannot take apart", async () => {
+    const notPng = Buffer.from("GIF89a and then some", "latin1");
+    const png = await original();
+
+    assertBufferEqual(carryAncillaryChunks(png, notPng), notPng);
+    assertBufferEqual(carryAncillaryChunks(notPng, png), png);
+  });
+});
 
 describe("recompressPng", () => {
   it("makes the file smaller without moving a pixel", async () => {

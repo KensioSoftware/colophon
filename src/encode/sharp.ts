@@ -57,6 +57,31 @@ async function encodeWith(
 }
 
 /**
+ * The same picture as a palette PNG of at most 256 colours, compressed at
+ * `level`.
+ *
+ * `effort` is sharp's own dial for how long the encoder spends, and this asks
+ * for all of it: these are images a site commits once and then serves to
+ * everyone who shares a link, and the whole point of quantising is the bytes.
+ * It costs about 150ms on a 1200x1200 image, which is what the zlib pass it
+ * replaces costs anyway.
+ *
+ * What comes back is not the picture that went in, which is the setting's whole
+ * trade and is `config.quantise`'s to explain. What does survive is alpha,
+ * since a PNG palette carries its own.
+ */
+export async function encodePalettePng(
+  raster: Buffer,
+  level: number,
+): Promise<Buffer> {
+  const image = await openSharp(raster);
+
+  return image
+    .png({ compressionLevel: level, effort: 10, palette: true })
+    .toBuffer();
+}
+
+/**
  * What the bytes already are.
  *
  * Bytes sharp cannot read are a rasteriser returning something no encoder here

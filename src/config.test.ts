@@ -334,6 +334,11 @@ describe("resolveConfig", () => {
     assertIdentical(resolveConfig({ compressionLevel: 6 }).compressionLevel, 6);
   });
 
+  it("leaves the picture alone unless a config asks for a palette", () => {
+    assertFalse(resolveConfig().quantise);
+    assertTrue(resolveConfig({ quantise: true }).quantise);
+  });
+
   it("rejects a compression level zlib has no meaning for", () => {
     // Rejected rather than clamped: 10 is a number somebody had in mind, and
     // rendering at 9 without a word would leave them believing they got it.
