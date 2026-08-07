@@ -116,7 +116,6 @@ function decodeUri(uri: string): string {
 describe("bytesFromDataUri", () => {
   it("decodes base64 and percent-encoded bodies alike", () => {
     const svg = "<svg/>";
-    // eslint-disable-next-line unicorn/prefer-uint8array-base64
     const encoded = Buffer.from(svg).toString("base64");
 
     assertIdentical(decodeUri(`data:image/svg+xml;base64,${encoded}`), svg);
@@ -194,10 +193,9 @@ describe("loadImage", () => {
 describe("loadImages", () => {
   it("takes an avatar prop as a path or as a data URI", async () => {
     const config = resolveConfig();
-    const encoded = `data:image/gif;base64,${
-      // eslint-disable-next-line unicorn/prefer-uint8array-base64
-      Buffer.from(gif).toString("base64")
-    }`;
+    const encoded = `data:image/gif;base64,${Buffer.from(gif).toString(
+      "base64",
+    )}`;
 
     const fromPath = await loadImages(config, {
       template: "card",

@@ -24,7 +24,6 @@ export function toBase64(bytes: Uint8Array): string {
   }
 
   // `Uint8Array#toBase64` is not on the oldest Node this package supports.
-  // eslint-disable-next-line unicorn/prefer-uint8array-base64
   return btoa(binary);
 }
 
@@ -33,7 +32,6 @@ export function toBase64(bytes: Uint8Array): string {
 // Crypto will not take a possibly-shared buffer, and a signature is decoded
 // straight into it.
 export function fromBase64(text: string): Uint8Array<ArrayBuffer> {
-  // eslint-disable-next-line unicorn/prefer-uint8array-base64
   const binary = atob(text);
 
   return Uint8Array.from(binary, (character) => character.codePointAt(0) ?? 0);

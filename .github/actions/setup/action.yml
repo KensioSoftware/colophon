@@ -1,0 +1,42 @@
+---
+name: Setup
+description: Node, pnpm and an installed node_modules, from cache where it can.
+
+# Every job here starts the same way, and the install is the largest part of
+# each one. The node_modules cache is keyed on the lockfile and the Node
+# version, so the install only actually runs when one of those moved.
+#
+# That cache is looked up first because the answer decides whether the pnpm
+# store is worth restoring: the store is what makes an install cheap, and on a
+# hit there is no install to make cheap. It is 140MB, so fetching it anyway
+# costs more than the install it is not being used for.
+#
+# Hence the two node steps rather than one with a computed `cache`. An empty
+# string is falsy to a GitHub expression, so `hit && '' || 'pnpm'` returns
+# `pnpm` either way and the store gets fetched regardless.
+
+runs:
+  using: composite
+  steps:
+    - id: modules
+      uses: actions/cache@v6
+      with:
+        path: node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml') }}
+
+    - uses: pnpm/action-setup@v6
+
+    - if: steps.modules.outputs.cache-hit == 'true'
+      uses: actions/setup-node@v7.0.0
+      with:
+        node-version-file: .nvmrc
+
+    - if: steps.modules.outputs.cache-hit != 'true'
+      uses: actions/setup-node@v7.0.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+
+    - if: steps.modules.outputs.cache-hit != 'true'
+      run: pnpm install --frozen-lockfile
+      shell: bash

@@ -10,6 +10,16 @@ on:
   push:
     branches:
       - main
+    # Coverage can only have moved if the code, the tests or the thresholds
+    # moved with it. A README or docs push leaves the gist already correct, so
+    # there is nothing to run.
+    paths:
+      - "src/**"
+      - "test/**"
+      - "vitest.config.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/coverage-badge.yml"
 
 defaults:
   run:
@@ -29,12 +39,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
       - run: pnpm test:coverage
 
       - name: Read coverage

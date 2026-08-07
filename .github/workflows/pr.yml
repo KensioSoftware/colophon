@@ -10,35 +10,37 @@ defaults:
   run:
     shell: bash
 
+# A push to a branch that already has a run in flight makes that run pointless:
+# only the newest commit is going to be merged. Cancelling it frees the runner
+# for the run that matters, which is what a force-push during review mostly
+# costs.
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 env:
   CI: true
 
 jobs:
+  # The typecheck used to be a job of its own. It is under a second of work, and
+  # a job to itself meant paying a whole runner start and install to get at it,
+  # so it sits here behind the same install as the linting.
   lint:
     name: Lint
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
       - run: pnpm lint
       - run: pnpm fta
+      - run: pnpm build:check
 
   test:
     name: Test
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
       # The import-graph test walks `dist/`, since what a consumer resolves is
       # the built package rather than the source. Nothing else here needs it.
       - run: pnpm build
@@ -55,16 +57,3 @@ jobs:
           name: visual-regression
           path: test/.visual/
           if-no-files-found: ignore
-
-  build:
-    name: Build
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build:check

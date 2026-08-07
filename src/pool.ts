@@ -45,7 +45,7 @@ export async function mapConcurrent<Item, Result>(
       }
       // Awaiting in the loop is the whole point: a worker takes one item at a
       // time, and the parallelism comes from there being several of them.
-      // eslint-disable-next-line no-await-in-loop
+      // oxlint-disable-next-line no-await-in-loop
       results[index] = await worker(item, index);
     }
   }

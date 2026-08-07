@@ -251,7 +251,7 @@ theme sets and how to override part of one.
 | --------------------------------- | ---------------------------------------------------------------------------- |
 | `pnpm build`                      | Compile to `dist/`.                                                          |
 | `pnpm test`, `pnpm test:coverage` | Run Vitest.                                                                  |
-| `pnpm lint`                       | ESLint and Prettier check.                                                   |
+| `pnpm lint`                       | Oxlint, ESLint and oxfmt check, run together.                                |
 | `pnpm fmt`                        | Auto-fix.                                                                    |
 | `pnpm samples`                    | Regenerate the sample images into `docs/samples/`.                           |
 | `pnpm baselines`                  | Re-record the visual regression baselines in `test/baselines/`.              |

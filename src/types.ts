@@ -860,7 +860,8 @@ export interface ColophonConfig {
  * command line or a decision the config itself is making.
  */
 export type ColophonConfigFactory = () =>
-  ColophonConfig | Promise<ColophonConfig>;
+  | ColophonConfig
+  | Promise<ColophonConfig>;
 
 /** What a config module's default export may be. */
 export type ColophonConfigInput = ColophonConfig | ColophonConfigFactory;
