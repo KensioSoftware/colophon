@@ -63,6 +63,9 @@ upgrading re-renders the tree once. Two things are deliberately left out:
 [Per-size overrides](../configuration/per-size-config/) are part of the stamp, so
 changing one re-renders that size and leaves the others alone.
 
+[`quantise`](../configuration/compression/) is in the stamp under the ordinary
+rule, since reducing an image to a palette changes what it looks like.
+
 The things in the stamp that cannot change a pixel are
 [`compressionLevel`](../configuration/compression/) and the
 [output format settings](../configuration/formats/): `format`, `quality`,

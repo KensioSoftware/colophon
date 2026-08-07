@@ -86,7 +86,10 @@ something too big and says which post it was.
 
 PNG is lossless and has no quality to trade, so under `format: "png"` a cap only
 ever reports. [`compressionLevel`](../compression/) is the PNG equivalent, and it
-is already at its strongest by default.
+is already at its strongest by default. The setting that will actually bring a
+PNG down is [`quantise`](../compression/), which reduces it to a palette, though
+it is a decision to take once for a site rather than a step an encoder can take
+on its own when an image comes out over the cap.
 
 ## Writing the SVG too
 

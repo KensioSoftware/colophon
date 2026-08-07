@@ -5,6 +5,10 @@ This page is about PNG, which is what a build writes unless
 applies: those have `quality` instead, and they are a good deal smaller than
 anything here can make a PNG.
 
+There are two settings here. `compressionLevel` makes the file smaller without
+touching the picture, and `quantise` makes it smaller again by reducing the
+colours in it.
+
 Colophon compresses each rendered PNG again before handing it over, at a level
 you can set:
 
@@ -53,25 +57,74 @@ bytes are not a PNG that can be taken apart and put back together, which covers
 both another format entirely and a PNG whose chunks do not read. Anything
 outside 0 to 9 is a config error rather than a value clamped into range.
 
-## It changes every image's stamp
+## Going further, with a palette
 
-The level is part of each image's rebuild stamp, so turning it up re-renders
-the tree once. That is against the rule the stamp otherwise follows, which is
-that only what changes a pixel belongs in it: this changes no pixel but every
-byte, and without it the setting would appear to do nothing until each post
-next changed.
+Lossless is where a PNG runs out of room. The larger saving is to reduce the
+image to a palette of at most 256 colours, which is off by default:
 
-## It applies wherever an image is produced
+```ts
+export default defineConfig({
+  quantise: true,
+});
+```
+
+That takes the sample gallery from 1.7MB to 0.7MB, each image landing between
+28% and 61% of the size zlib alone got it to. It costs less time than the pass
+it replaces rather than more, around 46ms per image against 151ms, because
+indexing the colours leaves a great deal less data to compress.
+
+### What it trades away is the gradients
+
+This is the one setting on this page that changes the picture. A meta image is
+mostly a smooth wash of two or three brand colours, and 256 shades cannot always
+hold one. The flat backgrounds in the gallery come through with no pixel changed
+at all, while the mesh and gradient ones move a channel by up to about 17 levels
+out of 255, which on a long fade is visible if you go looking for it.
+
+So look at an image before turning this on across a site. It is a trade, and
+which way it should go depends on the picture rather than on the number. Where a
+template draws translucent pixels they survive quantisation, since a PNG palette
+carries alpha of its own.
+
+Quantising uses [sharp](https://sharp.pixelplumbing.com/), which is already
+installed as a dependency for the [other formats](../formats/). The lossless
+path does not, so a machine sharp has no binary for can still write PNGs at any
+`compressionLevel`.
+
+### The rebuild stamp survives it
+
+An encoder that reads a picture and writes a new file around it drops what the
+old file said about itself, which here would mean the `tEXt` chunk holding the
+[rebuild stamp](../../rebuilds/). An image that came back without one would be
+an image every later build rendered again, quietly and for ever, so Colophon
+moves those chunks into the file it gets back. A `gAMA` from a custom
+[rasteriser](../rasteriser/) is kept for the same reason: what a file says about
+how it is meant to be shown is part of the image. Where the palette encoder
+wrote a chunk of its own it keeps that one, since it describes the file it has
+just produced rather than the one it read.
+
+## Both settings change every image's stamp
+
+They are part of each image's rebuild stamp, so changing either re-renders the
+tree once.
+
+For `quantise` that is the ordinary rule, since it changes the pixels. For
+`compressionLevel` it is against the rule the stamp otherwise follows, which is
+that only what changes a pixel belongs in it: that one changes no pixel but
+every byte, and without it turning compression up would appear to do nothing
+until each post next changed.
+
+## They apply wherever an image is produced
 
 `generate`, the CLI, `colophon preview` and `renderMetaImages` all go through
 the same step, so a script taking the bytes away to write them itself gets the
 same file a build would have written.
 
-It applies to a custom [rasteriser](../rasteriser/) too, as long as what that
+They apply to a custom [rasteriser](../rasteriser/) too, as long as what it
 returns is a PNG. Anything else is handed back untouched.
 
-## It is not per-size
+## They are not per-size
 
-Like `fonts`, this is a shared build input rather than something an individual
-output size can override: it is about how an image is encoded rather than what
-it shows. See [Per-size config](../per-size-config/).
+Like `fonts`, these are shared build inputs rather than something an individual
+output size can override: they are about how an image is encoded rather than
+what it shows. See [Per-size config](../per-size-config/).

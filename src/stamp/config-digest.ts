@@ -64,6 +64,10 @@ async function backgroundDigest(background: Background): Promise<unknown> {
  * without this the setting would appear to do nothing until each post next
  * changed, which is the sort of gap that gets reported as a bug.
  *
+ * `quantise` is in for a stronger version of that reason again, since it does
+ * change the pixels, and a project turning it off wants its gradients back
+ * rather than only on the posts it happens to edit next.
+ *
  * `format`, `quality` and `maxBytes` are in for the same reason, and `emitSvg`
  * for a version of it: turning it on has to write the documents for images that
  * are already on disk, and without this it would write them only for the posts
@@ -98,6 +102,7 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
       code: config.code,
       rasteriser: config.rasteriser.toString(),
       compressionLevel: config.compressionLevel,
+      quantise: config.quantise,
       format: config.format,
       quality: config.quality,
       maxBytes: config.maxBytes,

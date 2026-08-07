@@ -163,6 +163,16 @@ describe("createStamper", () => {
     );
   });
 
+  it("changes the stamp when quantising is turned on or off", async () => {
+    // Stronger than the compression level, which changes no pixel: this one
+    // does, so a project turning it off has to get its gradients back rather
+    // than only on the posts it happens to edit next.
+    assertRestamped(
+      await stampFor({ quantise: false }),
+      await stampFor({ quantise: true }),
+    );
+  });
+
   it("changes the stamp when a size's own overrides change", async () => {
     // The whole point of #19 meeting the stamp: an override is config, so
     // changing one has to re-render that image and not the others.

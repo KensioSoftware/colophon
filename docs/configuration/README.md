@@ -44,6 +44,7 @@ yourself.
 | `templates`        | the twelve built-ins                          | Merged over the built-ins. See [Templates](../templates/).          |
 | `rasteriser`       | resvg                                         | What turns SVG into bytes. See [Rasteriser](./rasteriser/).         |
 | `compressionLevel` | `9`                                           | How hard to compress the PNG. See [File size](./compression/).      |
+| `quantise`         | `false`                                       | Reduce the PNG to a palette. See [File size](./compression/).       |
 | `format`           | `png`                                         | Or `jpeg`, `webp`, `avif`. See [Output formats](./formats/).        |
 | `quality`          | `80`                                          | For the lossy formats. See [Output formats](./formats/).            |
 | `maxBytes`         | none                                          | A ceiling per image. See [Output formats](./formats/).              |
