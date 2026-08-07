@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+
+  // Migrated from .prettierrc. The first two were set there; the other two are
+  // Prettier's defaults rather than oxfmt's, and are spelled out so the swap
+  // did not quietly reformat the tree. oxfmt would otherwise wrap at 100 and
+  // sort package.json.
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "printWidth": 80,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "dist/",
+    "coverage/",
+    "test/.coverage/",
+    "node_modules/",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml"
+  ]
+}

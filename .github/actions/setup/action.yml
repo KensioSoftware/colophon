@@ -1,0 +1,28 @@
+---
+name: Setup
+description: Node, pnpm and an installed node_modules, from cache where it can.
+
+# Every job here starts the same way, and the install is the largest part of
+# each one. The node_modules cache is keyed on the lockfile and the Node
+# version, so the install only actually runs when one of those moved. The pnpm
+# store cache is what makes that install cheap when it does.
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v6
+
+    - uses: actions/setup-node@v7.0.0
+      with:
+        node-version-file: .nvmrc
+        cache: pnpm
+
+    - id: modules
+      uses: actions/cache@v6
+      with:
+        path: node_modules
+        key: node-modules-${{ runner.os }}-${{ hashFiles('.nvmrc', 'pnpm-lock.yaml') }}
+
+    - if: steps.modules.outputs.cache-hit != 'true'
+      run: pnpm install --frozen-lockfile
+      shell: bash

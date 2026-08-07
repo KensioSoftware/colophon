@@ -1,0 +1,121 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+
+  // Oxlint carries the bulk of the linting: everything it has a rule for. What
+  // is left in eslint.config.ts is only what oxlint has no equivalent of.
+  //
+  // Categories replace the "recommended" presets the ESLint config used to
+  // extend. `pedantic` is the closest thing oxlint has to
+  // typescript-eslint's strictTypeChecked, so it is on, and the handful of
+  // rules inside it that this project does not want are turned off below.
+  "plugins": ["typescript", "unicorn", "oxc", "vitest", "promise", "node"],
+
+  // The type-aware rules are the ones the ESLint config leaned on hardest
+  // (no-unnecessary-condition, no-floating-promises, prefer-nullish-coalescing
+  // and the rest of strictTypeChecked). They need the oxlint-tsgolint package,
+  // which is a devDependency. Set here rather than as a CLI flag so an editor
+  // running oxlint sees the same rules CI does.
+  "options": { "typeAware": true },
+
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error"
+  },
+
+  "ignorePatterns": [
+    "dist/",
+    "coverage/",
+    "test/.coverage/",
+    "node_modules/",
+    "scripts/",
+    "**/*.config.ts"
+  ],
+
+  "rules": {
+    // ── Additions the recommended sets do not cover ──────────
+    "typescript/explicit-function-return-type": "error",
+    "typescript/explicit-module-boundary-types": "error",
+    "typescript/consistent-type-imports": [
+      "error",
+      { "prefer": "type-imports", "fixStyle": "inline-type-imports" }
+    ],
+    "typescript/consistent-type-exports": [
+      "error",
+      { "fixMixedExportsWithInlineTypeSpecifier": true }
+    ],
+    "typescript/no-import-type-side-effects": "error",
+    "typescript/switch-exhaustiveness-check": "error",
+    "typescript/no-unnecessary-condition": "error",
+    "typescript/prefer-nullish-coalescing": "error",
+    "typescript/strict-boolean-expressions": "error",
+    "typescript/prefer-readonly": "error",
+    "typescript/require-array-sort-compare": "error",
+    "typescript/only-throw-error": "error",
+
+    "no-await-in-loop": "error", // catches sequential awaits that should be Promise.all()
+    "no-template-curly-in-string": "error", // catches '${name}' in regular strings (missing backticks)
+    "no-promise-executor-return": "error", // catches accidental return in new Promise((resolve) => return ...)
+    "no-unreachable-loop": "error", // catches loops that only ever run once
+    "no-param-reassign": "error", // prevents mutating function parameters (major bug source)
+    "prefer-const": "error", // const over let when never reassigned
+    "object-shorthand": ["error", "always"], // { foo: foo } → { foo }
+    "prefer-template": "error", // template literals over string concatenation
+    "no-console": "warn",
+    "eqeqeq": ["error", "always"],
+    "curly": ["error", "all"],
+
+    // ── Pedantic rules this project does not enforce ─────────
+    // Each of these is in `pedantic` but was not in the ESLint ruleset, so it
+    // stays off rather than being adopted as part of the linter swap.
+    "typescript/prefer-readonly-parameter-types": "off", // every props object would have to be Readonly<>
+    "typescript/no-unsafe-type-assertion": "off", // the config layer asserts parsed JSON into its own types
+    "typescript/consistent-return": "off", // void-returning early exits read fine
+    "require-await": "off", // typescript/require-await is the type-aware version and stays on
+    "require-unicode-regexp": "off",
+    "no-inline-comments": "off", // this codebase explains itself at the end of lines
+    "no-shadow": "off",
+    "no-loop-func": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off", // template functions are long by nature
+    "max-dependencies": "off",
+    "oxc/no-map-spread": "off",
+    "oxc/no-accumulating-spread": "off",
+    "unicorn/prefer-import-meta-properties": "off",
+
+    // ── Vitest ──────────────────────────────────────────────
+    "vitest/consistent-test-it": ["error", { "fn": "it" }],
+    "vitest/no-focused-tests": "error",
+    "vitest/no-disabled-tests": "warn",
+    "vitest/no-duplicate-hooks": "error",
+    "vitest/prefer-to-be": "error",
+    "vitest/prefer-to-have-length": "error",
+    "vitest/prefer-strict-equal": "error",
+    "vitest/require-top-level-describe": "error",
+    "vitest/expect-expect": "off", // using @kensio/smartass
+    "vitest/no-conditional-in-test": "off"
+  },
+
+  "overrides": [
+    {
+      // ── Test files ────────────────────────────────────────
+      "files": ["**/*.test.ts", "test/**/*.ts"],
+      "rules": {
+        "typescript/no-explicit-any": "off",
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/explicit-function-return-type": "off",
+        "unicorn/no-null": "off",
+        "unicorn/no-useless-undefined": "off"
+      }
+    },
+    {
+      // ── CLI entry point (stdout is the interface) ─────────
+      "files": ["src/cli/**/*.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ]
+}

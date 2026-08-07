@@ -1,6 +1,10 @@
 /** The image formats a build can draw with. */
 export type MediaType =
-  "image/png" | "image/jpeg" | "image/gif" | "image/webp" | "image/svg+xml";
+  | "image/png"
+  | "image/jpeg"
+  | "image/gif"
+  | "image/webp"
+  | "image/svg+xml";
 
 function hasSignature(
   bytes: Uint8Array,

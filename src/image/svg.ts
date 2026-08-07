@@ -33,7 +33,7 @@ function length(value: string | undefined): number | undefined {
 
   // Deliberately parseFloat rather than Number: a length may carry a unit,
   // and `6em` is six of something rather than not a number.
-  // eslint-disable-next-line unicorn/prefer-number-coercion
+  // oxlint-disable-next-line unicorn/prefer-number-coercion
   const number = Number.parseFloat(value ?? "");
   return Number.isFinite(number) && number > 0 ? number : undefined;
 }

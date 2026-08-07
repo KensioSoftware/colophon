@@ -26,6 +26,13 @@ export default defineConfig({
         lines: 75,
       },
     },
+    // No test file here mutates anything another one could see: there are no
+    // module mocks, no global stubs and no environment writes, and every
+    // fixture is a fresh temp directory. So a worker can keep one module graph
+    // and reuse it across the files it runs, which is worth roughly half the
+    // import time — the heavy imports here (shiki, sharp, resvg) are paid once
+    // per worker rather than once per file.
+    isolate: false,
     restoreMocks: true,
     testTimeout: 500,
   },
