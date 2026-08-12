@@ -55,7 +55,7 @@ describe("runInit", () => {
     // `.mjs` because nothing says the project is ESM, and a `.js` config would
     // then be CommonJS and fail the import `--config` does.
     assertFileExists(config);
-    await assertFileIncludes(config, "defineConfig");
+    assertFileIncludes(config, "defineConfig");
   });
 
   it("writes a .js config where the project is already ESM", async () => {
@@ -107,7 +107,7 @@ describe("runInit", () => {
 
     await runInit(args({ overwrite: true }), dir);
 
-    await assertFileIncludes(mine, "defineConfig");
+    assertFileIncludes(mine, "defineConfig");
     // A project that settled on a TypeScript config does not end up with two.
     assertPathNotExists(path.join(dir, "colophon.config.mjs"));
   });

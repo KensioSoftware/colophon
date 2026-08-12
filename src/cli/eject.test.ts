@@ -106,9 +106,9 @@ describe("runEject", () => {
 
     const target = path.join(dir, partial);
     assertFileExists(target);
-    await assertFileIncludes(target, "og:image");
+    assertFileIncludes(target, "og:image");
     // The lookup the partial exists for: a build's manifest, read as site data.
-    await assertFileIncludes(target, "hugo.Data.colophon");
+    assertFileIncludes(target, "hugo.Data.colophon");
   });
 
   it("says how to use what it wrote", async () => {
@@ -140,7 +140,7 @@ describe("runEject", () => {
 
     await runEject(args({ overwrite: true }), dir);
 
-    await assertFileIncludes(path.join(dir, partial), "og:image");
+    assertFileIncludes(path.join(dir, partial), "og:image");
   });
 
   it("names the generators it knows when asked for none", async () => {
