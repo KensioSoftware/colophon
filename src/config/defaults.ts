@@ -116,4 +116,9 @@ export const DEFAULT_CODE_STYLE: Required<CodeStyle> = {
   cornerScale: 0.025,
   maxFontScale: 0.075,
   minFontScale: 0.025,
+  lineNumbers: false,
+  chrome: "none",
+  panelOpacity: 1,
+  borderColor: "#ffffff",
+  borderOpacity: 0.12,
 };

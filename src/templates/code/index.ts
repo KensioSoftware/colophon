@@ -2,8 +2,10 @@ import { highlightCode } from "../../highlight/index.js";
 import type { Template } from "../../types.js";
 import { hasFooter } from "../footer.js";
 import { optionalString } from "../../props.js";
+import { barRoom, windowBar } from "./bar.js";
 import { codeFooter, codeHeading } from "./chrome.js";
 import { blockColumns } from "./fit.js";
+import { gutterColumns, numberLines } from "./gutter.js";
 import { fitSnippet } from "./layout.js";
 import { layoutPanel, titleBand } from "./panel.js";
 import { hugPanel, panelSvg } from "./plate.js";
@@ -45,37 +47,43 @@ export const codeTemplate: Template = {
       title !== undefined && title !== "",
       hasFooter(config),
     );
+    const bar = barRoom(config, available.width);
+    const gutter = gutterColumns(config, highlighted.lines.length);
+
     const fitted = fitSnippet(
       highlighted,
-      available,
+      { ...available, y: available.y + bar, height: available.height - bar },
       width,
       config,
       charWidthRatio(measure, config.code.fontFamily),
+      gutter,
     );
+
+    const dropped = highlighted.lines.length - fitted.lines.length;
 
     warnIfTruncated(
       config,
       dimensions,
-      {
-        dropped: highlighted.lines.length - fitted.lines.length,
-        clipped: fitted.clipped,
-      },
+      { dropped, clipped: fitted.clipped },
       highlighted.lines.length,
     );
+
+    const lines = numberLines(fitted.lines, gutter, dropped);
 
     // Shrink the panel down onto the snippet so it isn't left floating in dead
     // space. On a landscape image especially, a wide panel holding a narrow
     // block leaves the code marooned off to one side.
+    const bodyHeight = fitted.lines.length * fitted.step;
     const panel = hugPanel(available, {
-      width: blockColumns(fitted.lines) * fitted.charWidth + fitted.padding * 2,
-      height: fitted.lines.length * fitted.step + fitted.padding * 2,
+      width: blockColumns(lines) * fitted.charWidth + fitted.padding * 2,
+      height: bar + bodyHeight + fitted.padding * 2,
     });
 
-    const body = codeBody(fitted.lines, {
+    const body = codeBody(lines, {
       // Code reads from the left edge, as it does in an editor. Indentation is
       // carried by each token's column, so the snippet keeps its shape.
       originX: panel.x + fitted.padding,
-      originY: panel.y + (panel.height - fitted.lines.length * fitted.step) / 2,
+      originY: panel.y + bar + (panel.height - bar - bodyHeight) / 2,
       fontSize: fitted.fontSize,
       charWidth: fitted.charWidth,
       step: fitted.step,
@@ -88,6 +96,7 @@ export const codeTemplate: Template = {
       panel,
       highlighted.background,
       Math.max(1, shadowOffset),
+      config,
     );
 
     return (
@@ -98,6 +107,7 @@ export const codeTemplate: Template = {
         config,
       ) +
       plate +
+      windowBar(panel, bar, props, config, measure) +
       body +
       codeFooter(dimensions, footerFs, config)
     );

@@ -261,6 +261,16 @@ export interface Badge {
 }
 
 /**
+ * Window chrome across the top of a code panel: a bar with the buttons every
+ * reader has seen on a window, and room for a filename.
+ *
+ * `mono` draws them in one neutral tone, which says window without borrowing
+ * an operating system's colours. `macos` is the traffic lights, which is what
+ * the `terminal` template draws and what most tools of this kind do.
+ */
+export type CodeChrome = "none" | "mono" | "macos";
+
+/**
  * Styling for the `code` template. Every field is optional; defaults are
  * applied by `resolveConfig`.
  */
@@ -288,6 +298,37 @@ export interface CodeStyle {
    * lowering it does the reverse.
    */
   readonly minFontScale?: number;
+  /**
+   * Number every line down the left of the snippet. Defaults to `false`.
+   *
+   * The gutter is columns of the same monospace grid the code is on, so it
+   * takes width from the snippet: a long line has that much less room before
+   * it is truncated. A snippet cut short is numbered as far as it goes, and
+   * the line that marks the truncation is not numbered, since it stands for
+   * lines that are not shown.
+   */
+  readonly lineNumbers?: boolean;
+  /**
+   * Window chrome across the top of the panel. Defaults to `"none"`.
+   *
+   * With chrome on, a post's `filename` prop is drawn in the bar. The `title`
+   * prop is unaffected and still sits above the panel.
+   */
+  readonly chrome?: CodeChrome;
+  /**
+   * Opacity of the panel's surface, letting the background through. Defaults
+   * to `1`. Anything less turns the panel's drop shadow off, since a shadow
+   * seen through the thing casting it reads as a smudge rather than as depth.
+   */
+  readonly panelOpacity?: number;
+  /** Colour of the panel's edge. Defaults to white. */
+  readonly borderColor?: string;
+  /**
+   * Opacity of the panel's edge. Defaults to `0.12`, which is enough to hold a
+   * dark panel off a dark background without being seen as a line. Set `0` for
+   * no edge at all.
+   */
+  readonly borderOpacity?: number;
 }
 
 /**

@@ -13,7 +13,12 @@ import {
 import { checkExtras, checkSizes } from "./overrides.js";
 import { checkPlacement } from "./placement.js";
 import { checkTexture } from "./texture.js";
-import { checkFormat, checkSlugStrategy, checkTheme } from "./values.js";
+import {
+  checkCodeChrome,
+  checkFormat,
+  checkSlugStrategy,
+  checkTheme,
+} from "./values.js";
 
 /**
  * Everything wrong with a config, in the order the config declares it.
@@ -50,6 +55,7 @@ export function configProblems(config: ColophonConfig): string[] {
   checkKeys(raw.badge, "badge", badgeKeys, problems);
   checkKeys(raw.logo, "logo", imageSourceKeys, problems);
   checkKeys(raw.code, "code", codeKeys, problems);
+  checkCodeChrome(raw.code, problems);
   checkKeys(raw.content, "content", contentKeys, problems);
   checkSlugStrategy(raw.content, problems);
   checkSizes(raw.sizes, problems);
