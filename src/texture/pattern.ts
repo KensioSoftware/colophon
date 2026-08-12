@@ -1,7 +1,5 @@
 import type { Dimensions, Texture } from "../types.js";
-
-/** Used where the palette did not supply one, so a texture always draws. */
-const fallbackColor = "#ffffff";
+import { fallbackColor } from "./color.js";
 
 const dotDefaults = { opacity: 0.08, size: 5, gap: 44 };
 const ruleDefaults = { opacity: 0.06, width: 2, gap: 28, angle: 45 };

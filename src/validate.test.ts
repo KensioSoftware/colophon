@@ -277,10 +277,24 @@ describe("validateConfig", () => {
     );
   });
 
+  it("checks rings against their own keys", () => {
+    assertIdentical(
+      messageFor({ texture: { type: "waves", widht: 3 } }),
+      'Unknown option "texture.widht". Did you mean "width"?',
+    );
+    // Rings are drawn from the side edges, so there is no angle to set, and
+    // the one that ruled lines take is an unknown option here.
+    assertIdentical(
+      messageFor({ texture: { type: "waves", angle: 30 } }),
+      'Unknown option "texture.angle".' +
+        " Valid options here: type, color, opacity, width, gap.",
+    );
+  });
+
   it("rejects a texture type it would otherwise draw as ruled lines", () => {
     assertIdentical(
       messageFor({ texture: { type: "noise" } }),
-      'Unknown texture type "noise". Valid types: grain, dots, rules.',
+      'Unknown texture type "noise". Valid types: grain, dots, rules, waves.',
     );
   });
 

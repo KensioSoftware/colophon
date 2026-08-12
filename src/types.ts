@@ -134,10 +134,10 @@ export type Background =
  * A treatment laid over the background, under everything a template draws.
  *
  * A flat fill or a gradient is clean but a little bare, and these are the
- * cheap ways to give one some surface: film grain, a dot grid, or ruled
- * lines. All three are a few elements of SVG rather than an image to load,
- * and all three are meant to be felt rather than seen, so the defaults are
- * faint.
+ * cheap ways to give one some surface: film grain, a dot grid, ruled lines, or
+ * rings drawn in from either side. Each of them is a few elements of SVG
+ * rather than an image to load, and each is meant to be felt rather than seen,
+ * so the defaults are faint.
  *
  * Lengths are in pixels at the size being rendered, so a texture is a little
  * finer on a large image than on a small one, which is what keeps a dot grid
@@ -178,6 +178,28 @@ export type Texture =
       readonly gap?: number;
       /** Degrees clockwise from vertical. Defaults to `45`. */
       readonly angle?: number;
+    }
+  | {
+      /**
+       * Concentric rings centred on the middle of each side edge, so that the
+       * two sets cross each other. What is seen is the interference between
+       * them, which reads as curves flowing across the image rather than as
+       * the circles it is drawn from, and which never repeats the way a tiled
+       * pattern does.
+       */
+      readonly type: "waves";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /**
+       * Opacity of the set drawn from the left. The set from the right is
+       * drawn fainter, which is what makes the crossings read as one surface.
+       * Defaults to `0.14`.
+       */
+      readonly opacity?: number;
+      /** Ring thickness. Defaults to `2`. */
+      readonly width?: number;
+      /** Distance between one ring and the next. Defaults to `24`. */
+      readonly gap?: number;
     };
 
 /**

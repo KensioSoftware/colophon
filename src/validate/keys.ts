@@ -46,6 +46,7 @@ type MeshBackground = Extract<Background, { readonly type: "mesh" }>;
 type GrainTexture = Extract<Texture, { readonly type: "grain" }>;
 type DotsTexture = Extract<Texture, { readonly type: "dots" }>;
 type RulesTexture = Extract<Texture, { readonly type: "rules" }>;
+type WavesTexture = Extract<Texture, { readonly type: "waves" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
 type ImageByPath = Extract<ImageSource, { readonly path: string }>;
 type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
@@ -313,15 +314,25 @@ export const rulesTextureKeys = knownKeys<RulesTexture>({
   angle: true,
 });
 
+/** Keys of the rings drawn in from either side. */
+export const wavesTextureKeys = knownKeys<WavesTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  gap: true,
+});
+
 /**
  * The texture variants, as values, for the reason {@link backgroundTypes} are:
- * the three have different keys, so a mistyped `type` has to be reported as
- * itself rather than as a list of keys that do not apply.
+ * they have different keys, so a mistyped `type` has to be reported as itself
+ * rather than as a list of keys that do not apply.
  */
 export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
   grain: true,
   dots: true,
   rules: true,
+  waves: true,
 });
 
 /**

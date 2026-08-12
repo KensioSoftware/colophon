@@ -4,6 +4,7 @@ import {
   grainTextureKeys,
   rulesTextureKeys,
   textureTypes,
+  wavesTextureKeys,
 } from "./keys.js";
 import { describeUnknownValue } from "./values.js";
 
@@ -39,6 +40,11 @@ export function checkTexture(
 
   if (type === "rules") {
     checkKeys(texture, path, rulesTextureKeys, problems);
+    return;
+  }
+
+  if (type === "waves") {
+    checkKeys(texture, path, wavesTextureKeys, problems);
     return;
   }
 

@@ -2,6 +2,7 @@ import {
   assertIdentical,
   assertObjectEquals,
   assertStringIncludes,
+  assertStringNotIncludes,
   assertUndefined,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
@@ -59,9 +60,10 @@ describe("textureSvg", () => {
     assertStringIncludes(svg, 'fill="url(#tx)" opacity="0.08"');
   });
 
-  it("draws both patterns from their defaults alone", () => {
+  it("draws every pattern from its defaults alone", () => {
     const dots = textureSvg({ type: "dots" }, dimensions, "tx");
     const rules = textureSvg({ type: "rules" }, dimensions, "tx");
+    const waves = textureSvg({ type: "waves" }, dimensions, "tx");
 
     assertStringIncludes(dots, 'width="44" height="44"');
     assertStringIncludes(dots, '<circle cx="22" cy="22" r="2.5"');
@@ -70,10 +72,49 @@ describe("textureSvg", () => {
     assertStringIncludes(rules, 'patternTransform="rotate(45)"');
     assertStringIncludes(rules, 'stroke-width="2"');
     assertStringIncludes(rules, 'opacity="0.06"');
+    assertStringIncludes(waves, 'stroke-width="2"');
+    assertStringIncludes(waves, 'opacity="0.14"');
+    assertStringIncludes(waves, '<circle cx="0" cy="200" r="24"/>');
     // A texture resolved from config carries a colour; one built by hand may
     // not, and it still has to draw.
     assertStringIncludes(dots, 'fill="#ffffff"');
     assertStringIncludes(rules, 'stroke="#ffffff"');
+    assertStringIncludes(waves, 'stroke="#ffffff"');
+  });
+
+  it("renders waves as two sets of rings from the side edges", () => {
+    const svg = textureSvg(
+      { type: "waves", color: "#ffffff", gap: 100, width: 3 },
+      dimensions,
+      "tx",
+    );
+
+    // The set from the right is drawn fainter than the set from the left, so
+    // that the crossings read as one surface rather than as two sets of rings.
+    assertStringIncludes(
+      svg,
+      '<g fill="none" stroke="#ffffff" stroke-width="3" opacity="0.14">',
+    );
+    assertStringIncludes(svg, 'opacity="0.091">');
+    // Centred on the middle of each side edge, which is what makes the two
+    // sets cross.
+    assertStringIncludes(svg, '<circle cx="0" cy="200" r="100"/>');
+    assertStringIncludes(svg, '<circle cx="800" cy="200" r="100"/>');
+    // Nothing is named in defs, so nothing takes the id.
+    assertStringNotIncludes(svg, "tx");
+  });
+
+  it("draws rings out to the furthest corner and no further", () => {
+    const svg = textureSvg(
+      { type: "waves", color: "#ffffff", gap: 100 },
+      dimensions,
+      "tx",
+    );
+
+    // From (0, 200) the furthest corner of an 800x400 image is 824 away, so
+    // the last ring that can cover anything is the eighth.
+    assertStringIncludes(svg, 'r="800"/>');
+    assertStringNotIncludes(svg, 'r="900"/>');
   });
 
   it("renders rules as one rotated line to a tile", () => {
@@ -113,6 +154,13 @@ describe("resolveTexture", () => {
       resolved?.type === "rules" ? resolved.color : undefined,
       "#123456",
     );
+  });
+
+  it("colours rings with the foreground as well", () => {
+    assertObjectEquals(resolveTexture({ type: "waves" }, colors), {
+      type: "waves",
+      color: "#f1f5f9",
+    });
   });
 
   it("leaves grain alone, having no colour to fill in", () => {

@@ -116,9 +116,31 @@ const scene = svgUri(
   512,
 );
 
+/**
+ * The one texture worth a picture in the docs, since it is the only one that
+ * is not a tile and so the only one whose shape follows the proportions of the
+ * image. It is a swatch for the reason the themes are, and because a texture
+ * of curves is expensive to store at full size.
+ */
+const wavesSample: Sample = {
+  name: "texture-waves",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Waves",
+    subtitle: 'texture: { type: "waves" }',
+  },
+  config: {
+    colors: { brand: "#16a34a", brandDark: "#115e59" },
+    texture: { type: "waves" },
+    footer: "example.com",
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
+  wavesSample,
   {
     name: "banner-square",
     dimensions: square,
