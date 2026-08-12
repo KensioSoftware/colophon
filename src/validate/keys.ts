@@ -118,9 +118,7 @@ export const customPlacementKeys = knownKeys<CustomPlacement>({
 export const placementStrategies = knownKeys<
   Record<Placement["strategy"], unknown>
 >({
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   "beside-content": true,
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   "public-dir": true,
   custom: true,
 });

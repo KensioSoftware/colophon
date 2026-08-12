@@ -14,7 +14,6 @@ export interface AstroIntegration {
   readonly name: string;
   readonly hooks: {
     // Astro's name for its own hook, so it is not this project's to camelCase.
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     readonly "astro:config:setup": () => Promise<void>;
   };
 }
@@ -57,7 +56,6 @@ export default function colophon(
   return {
     name: "@kensio/colophon",
     hooks: {
-      // eslint-disable-next-line @typescript-eslint/naming-convention
       "astro:config:setup": async (): Promise<void> => {
         await generate(options);
       },
