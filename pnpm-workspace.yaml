@@ -2,3 +2,12 @@ allowBuilds:
   sharp: true
 onlyBuiltDependencies:
   - sharp
+# pnpm refuses a dependency published within the last day, so that a
+# compromised release has time to be found and pulled before it reaches a
+# build. That is worth having for the registry at large, and it buys nothing
+# for our own packages, where a bad release is one we published ourselves and
+# already know about. What it costs is a build that cannot install at all, on
+# every Dependabot PR raised within a day of a release. Dependabot's own
+# cooldown excludes the same scope, in .github/dependabot.yml.
+minimumReleaseAgeExclude:
+  - "@kensio/*"

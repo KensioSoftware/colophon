@@ -971,7 +971,7 @@ describe("generate", () => {
     );
 
     assertFileExists(path.join(dir, "guide", "guide-og.png"));
-    await assertFileIncludes(path.join(dir, "guide", "guide-og.svg"), "<svg");
+    assertFileIncludes(path.join(dir, "guide", "guide-og.svg"), "<svg");
   }, 5000);
 
   it("writes no SVG when nothing asks for one", async () => {
