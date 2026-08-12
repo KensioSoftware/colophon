@@ -1,4 +1,5 @@
 import {
+  assertArrayLength,
   assertIdentical,
   assertObjectEquals,
   assertStringIncludes,
@@ -115,6 +116,39 @@ describe("textureSvg", () => {
     // the last ring that can cover anything is the eighth.
     assertStringIncludes(svg, 'r="800"/>');
     assertStringNotIncludes(svg, 'r="900"/>');
+  });
+
+  it("fans rays around the whole circle from one origin", () => {
+    const svg = textureSvg(
+      { type: "rays", color: "#ffffff", count: 8, width: 3 },
+      dimensions,
+      "tx",
+    );
+
+    assertStringIncludes(
+      svg,
+      '<g stroke="#ffffff" stroke-width="3" opacity="0.07">',
+    );
+    // Eight rays, not the four that reach the image: counting the full circle
+    // is what keeps the spacing the same when the origin moves.
+    assertArrayLength(svg.match(/<line /g), 8);
+    // The default origin is below the bottom edge, so what crosses the image
+    // is a fan rather than a star.
+    assertStringIncludes(svg, '<line x1="400" y1="460"');
+    assertStringNotIncludes(svg, "tx");
+  });
+
+  it("takes the origin as a fraction of the image", () => {
+    const svg = textureSvg(
+      { type: "rays", color: "#ffffff", count: 4, x: 0, y: 0 },
+      dimensions,
+      "tx",
+    );
+
+    assertStringIncludes(svg, '<line x1="0" y1="0"');
+    // The furthest corner from this one is the far corner, so a ray reaching
+    // it runs the diagonal.
+    assertStringIncludes(svg, 'x2="894" y2="0"');
   });
 
   it("renders rules as one rotated line to a tile", () => {

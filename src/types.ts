@@ -200,6 +200,35 @@ export type Texture =
       readonly width?: number;
       /** Distance between one ring and the next. Defaults to `24`. */
       readonly gap?: number;
+    }
+  | {
+      /**
+       * Straight lines fanning out from one point, which by default sits just
+       * below the bottom edge, so what reaches the image is a fan rather than
+       * a star. It is the cheapest of the treatments that cover the whole
+       * image, having no curves in it and only a few dozen elements.
+       */
+      readonly type: "rays";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.07`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `2`. */
+      readonly width?: number;
+      /**
+       * Rays around the whole circle, of which only those pointing into the
+       * image are seen. Counting the full circle is what keeps the spacing the
+       * same when the origin moves. Defaults to `36`, a ray every ten degrees.
+       */
+      readonly count?: number;
+      /** Origin across, as a fraction of the image. Defaults to `0.5`. */
+      readonly x?: number;
+      /**
+       * Origin down, as a fraction of the image. Defaults to `1.15`, which is
+       * outside it: a fan opening across the picture reads as a texture, and
+       * the point every line meets at reads as a graphic.
+       */
+      readonly y?: number;
     };
 
 /**

@@ -194,10 +194,30 @@ const codeMarkSample: Sample = {
   },
 };
 
+/**
+ * The fan, which like the rings is not a tile and so wants a picture of its
+ * own. A swatch for the reason the themes are.
+ */
+const raysSample: Sample = {
+  name: "texture-rays",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Rays",
+    subtitle: 'texture: { type: "rays" }',
+  },
+  config: {
+    colors: { brand: "#4f46e5", brandDark: "#3730a3" },
+    texture: { type: "rays" },
+    footer: "example.com",
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
   wavesSample,
+  raysSample,
   codeWindowSample,
   codeMarkSample,
   {

@@ -301,7 +301,8 @@ describe("validateConfig", () => {
   it("rejects a texture type it would otherwise draw as ruled lines", () => {
     assertIdentical(
       messageFor({ texture: { type: "noise" } }),
-      'Unknown texture type "noise". Valid types: grain, dots, rules, waves.',
+      'Unknown texture type "noise".' +
+        " Valid types: grain, dots, rules, waves, rays.",
     );
   });
 
