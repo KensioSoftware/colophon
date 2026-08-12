@@ -1,6 +1,6 @@
 import { themeNames } from "../theme/index.js";
 import { isRecord } from "./check.js";
-import { outputFormats, slugStrategies } from "./keys.js";
+import { codeChromeStyles, outputFormats, slugStrategies } from "./keys.js";
 import { nearestName } from "./suggest.js";
 
 /**
@@ -42,6 +42,27 @@ export function checkSlugStrategy(content: unknown, problems: string[]): void {
       strategy,
       slugStrategies,
     ),
+  );
+}
+
+/**
+ * Check the window chrome names one of the three there are. A name the
+ * template does not know draws the neutral bar, so `macOS` would silently be
+ * the wrong window rather than a build that says so.
+ */
+export function checkCodeChrome(code: unknown, problems: string[]): void {
+  if (!isRecord(code)) {
+    return;
+  }
+
+  const chrome = code["chrome"];
+
+  if (typeof chrome !== "string" || codeChromeStyles.includes(chrome)) {
+    return;
+  }
+
+  problems.push(
+    describeUnknownValue("window chrome", "styles", chrome, codeChromeStyles),
   );
 }
 

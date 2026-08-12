@@ -20,6 +20,11 @@ export interface FittedCode {
 /**
  * Fit a highlighted snippet into the panel it has been allotted: choose the
  * font size, then drop and clip whatever still does not fit.
+ *
+ * `gutter` is columns reserved to the left of the code, for line numbers. It
+ * is counted in characters rather than pixels because that is what it is: the
+ * numbers sit on the same monospace grid, so the space they take follows
+ * whatever font size the fitting settles on.
  */
 export function fitSnippet(
   highlighted: HighlightedCode,
@@ -27,13 +32,14 @@ export function fitSnippet(
   imageWidth: number,
   config: ResolvedConfig,
   charWidthRatio: number,
+  gutter = 0,
 ): FittedCode {
   const inner = Math.round(Math.min(available.width, available.height) * 0.07);
   const codeWidth = Math.max(1, available.width - inner * 2);
   const codeHeight = Math.max(1, available.height - inner * 2);
 
   const fontSize = fitFontSize(
-    highlighted,
+    { ...highlighted, longestLine: highlighted.longestLine + gutter },
     { width: codeWidth, height: codeHeight },
     imageWidth,
     config,
@@ -44,7 +50,7 @@ export function fitSnippet(
 
   const { lines, clipped } = clipLines(
     fitLines(highlighted.lines, codeHeight, step),
-    Math.max(1, Math.floor(codeWidth / charWidth)),
+    Math.max(1, Math.floor(codeWidth / charWidth) - gutter),
   );
 
   // Padding reads best proportional to the text rather than the panel, since a

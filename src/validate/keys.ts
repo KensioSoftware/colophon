@@ -2,6 +2,7 @@ import type {
   Background,
   Badge,
   BrandColors,
+  CodeChrome,
   CodeStyle,
   ColophonConfig,
   ContentOptions,
@@ -166,6 +167,22 @@ export const codeKeys = knownKeys<CodeStyle>({
   cornerScale: true,
   maxFontScale: true,
   minFontScale: true,
+  lineNumbers: true,
+  chrome: true,
+  panelOpacity: true,
+  borderColor: true,
+  borderOpacity: true,
+});
+
+/**
+ * The window chrome styles, as values, for the reason {@link backgroundTypes}
+ * are: the template draws anything it does not recognise as a bar with the
+ * neutral buttons, so a mistyped `macOS` would quietly lose the traffic lights.
+ */
+export const codeChromeStyles = knownKeys<Record<CodeChrome, unknown>>({
+  none: true,
+  mono: true,
+  macos: true,
 });
 
 /** One output size, including the overrides it may carry. */

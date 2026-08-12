@@ -137,10 +137,40 @@ const wavesSample: Sample = {
   },
 };
 
+/**
+ * The `code` template with everything it can put around a snippet: the window
+ * bar, a filename in it, and numbered lines. It is one image rather than three
+ * because they are one look, and because the docs page for the template shows
+ * it as the thing they add up to.
+ */
+const codeWindowSample: Sample = {
+  name: "code-window",
+  dimensions: wide,
+  props: {
+    template: "code",
+    language: "javascript",
+    filename: "search.js",
+    code: `fetch('/search', {
+  method: 'QUERY',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    filters: { status: 'active', price: { max: 100 } }
+  })
+})`,
+  },
+  config: {
+    colors: { brand: "#16a34a", brandDark: "#115e59" },
+    texture: { type: "waves" },
+    footer: "example.com",
+    code: { chrome: "mono", lineNumbers: true },
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
   wavesSample,
+  codeWindowSample,
   {
     name: "banner-square",
     dimensions: square,

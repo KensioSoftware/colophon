@@ -9,8 +9,8 @@ import { codeBody } from "../code/spans.js";
 import { warnIfTruncated } from "../code/warn.js";
 import { charWidthRatio } from "../code/width.js";
 import { hasFooter } from "../footer.js";
+import { barHeight, titleBar } from "../window/index.js";
 import { terminalSession } from "./session.js";
-import { barHeight, titleBar } from "./window.js";
 
 /**
  * A command and what it printed, in a terminal window.
@@ -73,7 +73,7 @@ export const terminalTemplate: Template = {
     const shadow = Math.max(1, Math.round(Math.min(width, height) * 0.01));
 
     return (
-      panelSvg(window, session.background, shadow) +
+      panelSvg(window, session.background, shadow, config) +
       titleBar(
         window,
         bar,
