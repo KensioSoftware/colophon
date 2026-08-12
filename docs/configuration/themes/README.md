@@ -79,18 +79,65 @@ export default defineConfig({
 ```
 
 A texture is drawn over the background and under everything the template draws,
-so it never comes between a headline and the reader. All three are intended to
-be noticed only in passing, and the defaults are faint.
+so it never comes between a headline and the reader. All of them are intended
+to be noticed only in passing, and the defaults are faint.
 
 | Texture   | Options                                     |
 | --------- | ------------------------------------------- |
 | `"grain"` | `opacity`, `scale`                          |
 | `"dots"`  | `color`, `opacity`, `size`, `gap`           |
 | `"rules"` | `color`, `opacity`, `width`, `gap`, `angle` |
+| `"waves"` | `color`, `opacity`, `width`, `gap`          |
 
-`dots` and `rules` default to the foreground colour, so they show up on a light
-theme as readily as on a dark one. Their lengths are in pixels at the size
+Everything but `grain` defaults to the foreground colour, so a texture shows up
+on a light theme as readily as on a dark one. Lengths are in pixels at the size
 being rendered.
+
+### Waves
+
+`waves` is two sets of concentric rings, one centred on the middle of each side
+edge:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#16a34a" },
+  texture: { type: "waves" },
+});
+```
+
+<img src="../../samples/texture-waves.png" alt="waves texture" width="50%" />
+
+What you see is not the rings but the interference between the two sets, which
+reads as curves flowing across the image. Unlike the dot grid and the ruled
+lines it is not a tile, so it does not repeat, and its shape follows the
+proportions of the image: a landscape gets flatter curves than a square.
+
+`opacity` is the set drawn from the left, and the set from the right is drawn
+fainter than that. `gap` is the distance from one ring to the next, and it is
+the setting worth playing with, since it decides how tight the curves are.
+Above about 40 the two sets stop blurring into each other and the image reads
+as what it is, which is a lot of circles.
+
+#### Waves costs bytes as well
+
+Not as many as grain, and for a different reason. There are only a few dozen
+circles to draw, but their antialiased edges put a different set of colours in
+every row of the image, which is most of what PNG compresses by. Measured on a
+1200×1200 card over a gradient:
+
+| Texture           | PNG   |
+| ----------------- | ----- |
+| none              | 81KB  |
+| `dots`            | 100KB |
+| `rules`           | 93KB  |
+| `waves`           | 624KB |
+| `waves`, `gap` 44 | 415KB |
+| `grain`           | 1.7MB |
+
+Rendering is around 500ms against 270ms with no texture. If the size matters
+more than the format does, [`format: "webp"`](../formats/) takes the same
+image to 91KB, since a lossy encoding does not care how many colours a row
+holds.
 
 ### Grain costs bytes
 
