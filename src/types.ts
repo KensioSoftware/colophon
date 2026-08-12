@@ -229,6 +229,32 @@ export type Texture =
        * the point every line meets at reads as a graphic.
        */
       readonly y?: number;
+    }
+  | {
+      /**
+       * Two square grids, one turned a few degrees against the other. What is
+       * seen is the interference between them, which reads as broad bands
+       * sweeping across the image. It is `waves` drawn with straight edges,
+       * and much cheaper to store for that reason.
+       */
+      readonly type: "moire";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /**
+       * Opacity of the square grid. The turned one is drawn fainter, which is
+       * what makes the crossings read as one surface. Defaults to `0.1`.
+       */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `1`. */
+      readonly width?: number;
+      /** Spacing between one line and the next. Defaults to `16`. */
+      readonly gap?: number;
+      /**
+       * Degrees the second grid is turned by, which is the whole texture.
+       * Defaults to `4`. Below about one the bands are wider than the image;
+       * above about ten they tighten into a weave.
+       */
+      readonly angle?: number;
     };
 
 /**

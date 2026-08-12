@@ -151,6 +151,30 @@ describe("textureSvg", () => {
     assertStringIncludes(svg, 'x2="894" y2="0"');
   });
 
+  it("renders moire as one grid turned against another", () => {
+    const svg = textureSvg(
+      { type: "moire", color: "#ffffff", gap: 20, width: 2, angle: 6 },
+      dimensions,
+      "tx",
+    );
+
+    // Two patterns, not one: the second is the same grid turned, and what is
+    // seen is where the two cross.
+    assertStringIncludes(svg, '<pattern id="txa" width="20" height="20"');
+    assertStringIncludes(
+      svg,
+      '<pattern id="txb" width="20" height="20" patternUnits="userSpaceOnUse"' +
+        ' patternTransform="rotate(6)">',
+    );
+    // Lines through the middle of the tile on both axes, so the whole of each
+    // stroke is inside the tile it repeats in.
+    assertStringIncludes(svg, '<path d="M0 10H20M10 0V20"');
+    // The turned grid is drawn fainter, which is what makes the crossings read
+    // as one surface rather than as two grids.
+    assertStringIncludes(svg, 'fill="url(#txa)" opacity="0.1"');
+    assertStringIncludes(svg, 'fill="url(#txb)" opacity="0.065"');
+  });
+
   it("renders rules as one rotated line to a tile", () => {
     const svg = textureSvg(
       { type: "rules", color: "#000000", gap: 20, width: 3, angle: 30 },

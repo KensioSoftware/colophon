@@ -89,6 +89,7 @@ to be noticed only in passing, and the defaults are faint.
 | `"rules"` | `color`, `opacity`, `width`, `gap`, `angle`    |
 | `"waves"` | `color`, `opacity`, `width`, `gap`             |
 | `"rays"`  | `color`, `opacity`, `width`, `count`, `x`, `y` |
+| `"moire"` | `color`, `opacity`, `width`, `gap`, `angle`    |
 
 Everything but `grain` defaults to the foreground colour, so a texture shows up
 on a light theme as readily as on a dark one. Lengths are in pixels at the size
@@ -132,6 +133,7 @@ every row of the image, which is most of what PNG compresses by. Measured on a
 | `dots`            | 100KB |
 | `rules`           | 93KB  |
 | `rays`            | 151KB |
+| `moire`           | 540KB |
 | `waves`           | 624KB |
 | `waves`, `gap` 44 | 415KB |
 | `grain`           | 1.7MB |
@@ -165,6 +167,34 @@ Of the treatments that cover the whole image rather than repeating a tile, this
 is the cheap one: there are no curves in it and only a few dozen lines, so a
 1200×1200 image goes from 81KB to around 150KB. That is nearer the dot grid
 than `waves`.
+
+### Moiré
+
+`moire` is two square grids, one turned a few degrees against the other:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#0f766e" },
+  texture: { type: "moire" },
+});
+```
+
+<img src="../../samples/texture-moire.png" alt="moire texture" width="50%" />
+
+What is seen is the interference between them rather than either grid: the
+lines cross at a different offset in every part of the image, which reads as
+broad bands sweeping across it.
+
+`angle` is the whole texture. Below about one degree the bands are wider than
+the image, and it looks like one grid slightly out of true; above about ten
+they tighten into a weave. `gap` is the second lever, and the one that decides
+what the image costs.
+
+It is nearly as expensive as `waves`, at around 540KB for a 1200×1200 image,
+which is worth knowing because the reason is not obvious. Being drawn from a
+tile makes the SVG small, but the tile is what repeats, not the picture: a
+turned grid crosses the lines at a different place in every row, so there is
+nothing for the compression to fold up. Raising `gap` is what brings it down.
 
 ### Grain costs bytes
 
