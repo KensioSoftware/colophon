@@ -39,7 +39,6 @@ function toFace(font: Font): Face {
   const declared = font as {
     readonly familyName?: string;
     // The table is named by the format, not by us.
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     readonly "OS/2"?: { readonly usWeightClass?: number };
   };
 

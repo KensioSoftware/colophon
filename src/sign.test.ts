@@ -139,7 +139,6 @@ describe("key ordering", () => {
       await signParams({ z: "1", "\u{E4}": "2" }, secret),
       // A test vector rather than a secret: the signature of two known
       // parameters under the secret at the top of this file.
-      // eslint-disable-next-line no-secrets/no-secrets
       "_Bmn_XwjwMZL8muQqvcgoHAzVnY055a7g6TWQ1NerEw",
     );
   });

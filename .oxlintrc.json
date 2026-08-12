@@ -1,14 +1,18 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
 
-  // Oxlint carries the bulk of the linting: everything it has a rule for. What
-  // is left in eslint.config.ts is only what oxlint has no equivalent of.
-  //
-  // Categories replace the "recommended" presets the ESLint config used to
-  // extend. `pedantic` is the closest thing oxlint has to
-  // typescript-eslint's strictTypeChecked, so it is on, and the handful of
-  // rules inside it that this project does not want are turned off below.
+  // Oxlint is the only linter this project runs. Categories replace the
+  // "recommended" presets the ESLint config used to extend. `pedantic` is the
+  // closest thing oxlint has to typescript-eslint's strictTypeChecked, so it is
+  // on, and the handful of rules inside it that this project does not want are
+  // turned off below.
   "plugins": ["typescript", "unicorn", "oxc", "vitest", "promise", "node"],
+
+  // The one rule here that is not oxlint's own. Assertions in this project go
+  // through @kensio/smartass, and this steers them towards the most specific
+  // one available: assertIdentical(foo.length, 2) → assertArrayLength(foo, 2).
+  // It is the same rule the ESLint pass used to carry, as a JS plugin instead.
+  "jsPlugins": [{ "name": "smartass", "specifier": "@kensio/smartass/oxlint" }],
 
   // The type-aware rules are the ones the ESLint config leaned on hardest
   // (no-unnecessary-condition, no-floating-promises, prefer-nullish-coalescing
@@ -94,7 +98,10 @@
     "vitest/prefer-strict-equal": "error",
     "vitest/require-top-level-describe": "error",
     "vitest/expect-expect": "off", // using @kensio/smartass
-    "vitest/no-conditional-in-test": "off"
+    "vitest/no-conditional-in-test": "off",
+
+    // ── Smartass ────────────────────────────────────────────
+    "smartass/prefer-specific-assertions": "error"
   },
 
   "overrides": [
