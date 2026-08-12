@@ -1,0 +1,164 @@
+---
+# How the commits on main become a published version. Run by
+# .github/workflows/release.yml, which holds the account-side setup this
+# depends on.
+#
+# YAML rather than JSON so the reasoning below can live next to the settings.
+
+branches:
+  - main
+
+plugins:
+  # Reads the commit subjects on main and works out the bump.
+  #
+  # Anything that ships is a patch. A minor is not something a commit subject
+  # can ask for: it is the checkbox on the workflow, below. The reasoning is
+  # that "is this significant enough to be a minor" is a judgement about the
+  # release as a whole, made once, by a person looking at the whole batch,
+  # rather than a judgement each commit subject should be trusted to make.
+  # Reserving it that way is also what keeps the minor number meaning
+  # something, and a run that adds a template is exactly the case for ticking
+  # the box.
+  #
+  # So the ladder is: patch automatically, minor by checkbox, major by hand
+  # with scripts/publish.sh and never from this workflow at all.
+  #
+  # The breaking rule has to come first and has to be here. Without it the
+  # feat rule below matches "feat!: …" too, and a breaking change would go out
+  # as a patch, which is worse than any of this because it would be silent.
+  # With it, both "feat!: …" and a BREAKING CHANGE: footer reach the guard
+  # further down and fail the run.
+  #
+  # docs, test, chore, ci and style are absent on purpose: they change nothing
+  # a consumer installs, so they release nothing. That matters more here than
+  # it does for most packages, because the package version is part of the
+  # rebuild stamp: every version published re-renders every image on every
+  # site that upgrades, so a release with nothing in it for consumers is not
+  # free to them. build is present because the dependency bumps land under it
+  # and resvg, sharp and shiki are what draw the images.
+  - - "@semantic-release/commit-analyzer"
+    - preset: conventionalcommits
+      releaseRules:
+        - breaking: true
+          release: major
+        - type: feat
+          release: patch
+        - type: fix
+          release: patch
+        - type: perf
+          release: patch
+        - type: refactor
+          release: patch
+        - type: build
+          release: patch
+
+  # Turns those same commits into the GitHub Release notes, which is where the
+  # notes live: there is no CHANGELOG.md in the repository and none in the
+  # tarball. A committed file is one every open pull request edits in the same
+  # place, at the top, so merging any one of them puts every other one into
+  # conflict, and notes assembled at release time out of history cannot
+  # conflict with anything.
+  #
+  # Everything lands on main as a squash, so a subject is the title someone
+  # wrote on a pull request with the number GitHub appended to it, and both
+  # halves become links: the number back to the pull request, the hash to the
+  # commit.
+  #
+  # `types` is the whole list rather than an addition to the preset's, because
+  # a type not named here is left out of the notes entirely. The stock preset
+  # shows features and fixes and hides the rest, so without this a release
+  # triggered by a `build:` or a `refactor:` would go out with a version number
+  # and nothing written under it. So this is the list from the analyzer above,
+  # given section headings.
+  #
+  # conventional-changelog-conventionalcommits is pinned to 9.3.1 in
+  # package.json and cannot be taken to 10 while semantic-release is on 25.
+  # Both plugins here reach for that package by name from the project root, but
+  # the notes are rendered through conventional-changelog-writer 8, which is
+  # Handlebars and reads `mainTemplate` and the partials as strings; the
+  # preset's 10 line returns functions instead. Nothing errors when they are
+  # mismatched. The header renders, every commit is dropped, and the release
+  # goes out with a version number and no notes under it. Checked by running
+  # `semantic-release --dry-run` against both, which is the only way to see it.
+  - - "@semantic-release/release-notes-generator"
+    - preset: conventionalcommits
+      presetConfig:
+        types:
+          - type: feat
+            section: Added
+          - type: fix
+            section: Fixed
+          - type: perf
+            section: Faster
+          - type: refactor
+            section: Changed
+          - type: build
+            section: Packaging
+
+  # The two ends of the ladder the analyzer above deliberately cannot reach.
+  #
+  # analyzeCommitsCmd raises the release to a minor when the workflow was
+  # started with its checkbox ticked. semantic-release takes the highest
+  # result across every analyzer, so this can only ever raise a patch to a
+  # minor: it cannot lower anything, and it leaves a major alone. Printing
+  # nothing, which is what happens when the box is unticked, is read as "no
+  # opinion" rather than "no release".
+  #
+  # Ticking the box with nothing releasable on main would publish a minor with
+  # empty notes. That is a deliberate act with an obvious result, so it is left
+  # possible rather than guarded against.
+  #
+  # verifyReleaseCmd refuses majors. A breaking change to a package sites build
+  # their images with is a decision about what consumers have to rewrite, so it
+  # is made by a person publishing by hand rather than by a marker in a subject
+  # line. This runs after the version is worked out and before anything is
+  # published, so "feat!: …" or a BREAKING CHANGE: footer fails the run rather
+  # than shipping 3.0.0. Mapping breaking changes down to a minor was rejected,
+  # since it would put a false version number against a genuinely breaking
+  # change.
+  - - "@semantic-release/exec"
+    - analyzeCommitsCmd: >-
+        if [ "$RELEASE_MINOR" = "true" ]; then echo minor; fi
+      verifyReleaseCmd: >-
+        if [ "${nextRelease.type}" = "major" ]; then
+        echo "Refusing to publish ${nextRelease.version} automatically:
+        major releases are published by hand." >&2;
+        exit 1;
+        fi
+      # Read by the workflow, which needs the version to open the pull request
+      # that catches package.json up. Guarded because this file is also
+      # runnable outside Actions, where the variable is unset and the redirect
+      # would be an error.
+      successCmd: >-
+        if [ -n "$GITHUB_OUTPUT" ]; then
+        echo "version=${nextRelease.version}" >> "$GITHUB_OUTPUT";
+        fi
+
+  # Publishes to npm. No NPM_TOKEN anywhere: the npm CLI detects the OIDC
+  # token the workflow requests and exchanges it for a credential that lasts
+  # the length of this one publish, which is also what makes npm attach a
+  # provenance attestation. Needs npm >= 11.5.1, which the Node in .nvmrc
+  # carries. The tarball's dist/ is built by the prepack script this triggers,
+  # from this checkout, so what is published is compiled from the commit being
+  # released rather than from anything an earlier job left behind.
+  - "@semantic-release/npm"
+
+  # Creates the git tag and the GitHub Release, with the generated notes as its
+  # body.
+  #
+  # Note there is no @semantic-release/git plugin: nothing here pushes the
+  # bumped version back to main directly. The main ruleset requires the Lint
+  # and Test checks on whatever lands there, and a commit made inside this run
+  # has none, so the version job in .github/workflows/release.yml opens a pull
+  # request instead, off the version successCmd above.
+  #
+  # Which leaves the version field in package.json trailing until that pull
+  # request merges, and that is fine: the tag and the registry are the version
+  # of record, and the next release reads the tags rather than this file. Tags
+  # are unaffected by the ruleset either way, because it only covers the
+  # default branch.
+  - - "@semantic-release/github"
+    # The released-in comments this would otherwise leave on every merged pull
+    # request and closed issue. The GitHub Release is the announcement.
+    - successComment: false
+      failComment: false
