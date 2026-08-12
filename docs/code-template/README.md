@@ -32,6 +32,7 @@ meta_img_props:
 | `language` | Any [Shiki language]; unknown names fall back to plain text.     |
 | `title`    | Optional heading above the panel. Omit for a bare code image.    |
 | `filename` | Shown in the window bar, when `code.chrome` draws one.           |
+| `mark`     | Text or a line to mark on the snippet. One, or a list.           |
 | `theme`    | Optional per-post override of `config.code.theme`.               |
 
 [Shiki language]: https://shiki.style/languages
@@ -144,6 +145,50 @@ lives.
 
 The [`terminal` template](../templates/) always draws the bar, with the traffic
 lights, since a terminal is a window rather than a decorated panel.
+
+### Marking a token or a line
+
+A post can point at the part of the snippet it is about, with a `mark` prop:
+
+```yaml
+meta_img_props:
+  template: code
+  language: typescript
+  mark: SlugStrategy
+  code: |
+    export function slugFromPath(relative: string, strategy: SlugStrategy) {
+```
+
+<img src="../samples/code-mark.png" alt="a boxed token and a highlighted line" width="60%" />
+
+A string is text to find, and it is boxed where it first appears. Naming the
+text rather than the place is what survives the snippet being edited above the
+line it is on.
+
+An object names the place instead, for when the same text appears twice or the
+thing worth marking is a whole line:
+
+```yaml
+mark:
+  - text: "'QUERY'"
+  - line: 5 # a band across the line
+  - { line: 2, column: 11, length: 7 } # the same as the first, by hand
+  - { text: JSON, color: "#facc15" }
+```
+
+Lines and columns are one-based, as an editor counts them. A mark naming a line
+and no column draws a band across it rather than a box around it, which is the
+difference between highlighting something and pointing at it.
+
+Marks take `colors.brandWarm` unless one names a `color` of its own, so they
+are the one thing on the image that is neither the code theme's colours nor the
+site's brand.
+
+A mark is looked for in the snippet **as drawn**, after fitting. Text on a line
+that did not fit, or past the width where the line was clipped, is reported
+through [`onWarning`](../configuration/warnings/) rather than passed over: an
+image cannot show that it is missing a mark, so nothing else would say the post
+asked for one.
 
 ### The panel itself
 

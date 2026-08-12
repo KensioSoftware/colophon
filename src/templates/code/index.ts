@@ -6,6 +6,7 @@ import { barRoom, windowBar } from "./bar.js";
 import { codeFooter, codeHeading } from "./chrome.js";
 import { blockColumns } from "./fit.js";
 import { gutterColumns, numberLines } from "./gutter.js";
+import { codeMarks } from "./mark/index.js";
 import { fitSnippet } from "./layout.js";
 import { layoutPanel, titleBand } from "./panel.js";
 import { hugPanel, panelSvg } from "./plate.js";
@@ -79,17 +80,36 @@ export const codeTemplate: Template = {
       height: bar + bodyHeight + fitted.padding * 2,
     });
 
+    // Code reads from the left edge, as it does in an editor. Indentation is
+    // carried by each token's column, so the snippet keeps its shape.
+    const originX = panel.x + fitted.padding;
+    const originY = panel.y + bar + (panel.height - bar - bodyHeight) / 2;
+
     const body = codeBody(lines, {
-      // Code reads from the left edge, as it does in an editor. Indentation is
-      // carried by each token's column, so the snippet keeps its shape.
-      originX: panel.x + fitted.padding,
-      originY: panel.y + bar + (panel.height - bar - bodyHeight) / 2,
+      originX,
+      originY,
       fontSize: fitted.fontSize,
       charWidth: fitted.charWidth,
       step: fitted.step,
       fontFamily: config.code.fontFamily,
       foreground: highlighted.foreground,
     });
+
+    const marks = codeMarks(
+      props,
+      fitted.lines,
+      {
+        // Past the gutter, since a mark names columns of the code rather than
+        // of the grid the numbers share with it.
+        originX: originX + gutter * fitted.charWidth,
+        originY,
+        charWidth: fitted.charWidth,
+        fontSize: fitted.fontSize,
+        step: fitted.step,
+        band: { x: originX, width: panel.width - fitted.padding * 2 },
+      },
+      config,
+    );
 
     const shadowOffset = Math.round(Math.min(width, height) * 0.01);
     const plate = panelSvg(
@@ -108,6 +128,7 @@ export const codeTemplate: Template = {
       ) +
       plate +
       windowBar(panel, bar, props, config, measure) +
+      marks +
       body +
       codeFooter(dimensions, footerFs, config)
     );
