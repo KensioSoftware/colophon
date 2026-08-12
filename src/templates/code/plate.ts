@@ -1,4 +1,5 @@
 import { panel } from "../../layout/index.js";
+import type { ResolvedConfig } from "../../types.js";
 import type { Panel } from "./panel.js";
 
 /**
@@ -34,17 +35,29 @@ export function hugPanel(
  * The panel itself: a drop shadow, then the theme-coloured surface it sits on.
  * The surface is stroked rather than left flat, so a dark theme still has an
  * edge against a dark background.
+ *
+ * A panel the background shows through casts no shadow. The shadow is the same
+ * rectangle offset a few pixels, so a translucent surface shows most of it as
+ * a dark wash across the panel, which reads as a smudge rather than as depth.
+ * A pane of glass is not a raised card, and this is the difference.
  */
 export function panelSvg(
   available: Panel,
   background: string,
   shadowOffset: number,
+  config: ResolvedConfig,
 ): string {
+  const { panelOpacity, borderColor, borderOpacity } = config.code;
+
+  // A full-opacity surface says nothing about its opacity, which keeps the
+  // common case's output to what the template actually decided.
   return panel(available, {
     radius: available.radius,
     fill: background,
-    stroke: "#ffffff",
-    strokeOpacity: 0.12,
-    shadow: shadowOffset,
+    stroke: borderColor,
+    strokeOpacity: borderOpacity,
+    ...(panelOpacity < 1
+      ? { fillOpacity: panelOpacity }
+      : { shadow: shadowOffset }),
   });
 }

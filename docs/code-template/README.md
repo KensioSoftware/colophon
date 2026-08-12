@@ -31,6 +31,7 @@ meta_img_props:
 | `code`     | The snippet. Trimmed, tabs expanded, common indentation removed. |
 | `language` | Any [Shiki language]; unknown names fall back to plain text.     |
 | `title`    | Optional heading above the panel. Omit for a bare code image.    |
+| `filename` | Shown in the window bar, when `code.chrome` draws one.           |
 | `theme`    | Optional per-post override of `config.code.theme`.               |
 
 [Shiki language]: https://shiki.style/languages
@@ -95,9 +96,65 @@ export default defineConfig({
     cornerScale: 0.025,
     maxFontScale: 0.075, // fractions of the image width
     minFontScale: 0.025,
+    lineNumbers: false,
+    chrome: "none", // or "mono", or "macos"
+    panelOpacity: 1,
+    borderColor: "#ffffff",
+    borderOpacity: 0.12,
   },
 });
 ```
+
+### Line numbers
+
+`lineNumbers` puts a number in front of every line, in the theme's own
+foreground at low opacity.
+
+The gutter is columns of the same monospace grid the code sits on, which is
+what keeps the numbers on the code's baselines. It also means the gutter takes
+width from the snippet: with numbers on, a long line has that much less room
+before it is truncated. The digits reserved are the digits the whole snippet
+needs, so the code does not shift left when a line is dropped.
+
+A snippet cut short is numbered as far as it goes. The line that marks the
+truncation is not numbered, since it stands for the lines that are not there.
+
+### Window chrome
+
+`chrome` draws a bar across the top of the panel, with the buttons every reader
+has seen on a window. `"mono"` draws them in one neutral tone and `"macos"`
+draws the traffic lights.
+
+<img src="../samples/code-window.png" alt="code template with window chrome and line numbers" width="60%" />
+
+With chrome on, a post's `filename` prop is drawn in the bar:
+
+```yaml
+meta_img_props:
+  template: code
+  language: javascript
+  filename: search.js
+  code: |
+    await fetch("/search", { method: "QUERY" });
+```
+
+`title` is unaffected and still sits above the panel. The two say different
+things: a title is what the image is about, and a filename is where the code
+lives.
+
+The [`terminal` template](../templates/) always draws the bar, with the traffic
+lights, since a terminal is a window rather than a decorated panel.
+
+### The panel itself
+
+`borderColor` and `borderOpacity` are the panel's edge, which is there so that
+a dark theme has an edge against a dark background. Set `borderOpacity: 0` for
+none.
+
+`panelOpacity` lets the background through the panel, which reads best over a
+[texture](../configuration/themes/#textures) worth seeing. Below `1` the
+panel's drop shadow is dropped: the shadow is the same rectangle offset a few
+pixels, so a translucent surface shows it as a dark wash rather than as depth.
 
 ## Supply the monospace face
 

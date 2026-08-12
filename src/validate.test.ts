@@ -277,6 +277,13 @@ describe("validateConfig", () => {
     );
   });
 
+  it("rejects window chrome the code template does not know", () => {
+    assertIdentical(
+      messageFor({ code: { chrome: "macOS" } }),
+      'Unknown window chrome "macOS". Did you mean "macos"?',
+    );
+  });
+
   it("checks rings against their own keys", () => {
     assertIdentical(
       messageFor({ texture: { type: "waves", widht: 3 } }),
