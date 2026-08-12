@@ -166,11 +166,40 @@ const codeWindowSample: Sample = {
   },
 };
 
+/**
+ * A snippet with both kinds of mark on it: a box around a token and a band
+ * across a line. It is drawn on a plain panel rather than in a window, so that
+ * the docs image for marks is about the marks.
+ */
+const codeMarkSample: Sample = {
+  name: "code-mark",
+  dimensions: wide,
+  props: {
+    template: "code",
+    language: "typescript",
+    title: "What changed",
+    code: `export function slugFromPath(
+  relative: string,
+  strategy: SlugStrategy,
+): string {
+  return strategy === "basename" ? basename(relative) : route(relative);
+}`,
+    mark: ["SlugStrategy", { line: 5 }],
+  },
+  config: {
+    colors: { brand: "#4f46e5", brandDark: "#3730a3", brandWarm: "#f59e0b" },
+    texture: { type: "dots" },
+    footer: "example.com",
+    code: { lineNumbers: true },
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
   wavesSample,
   codeWindowSample,
+  codeMarkSample,
   {
     name: "banner-square",
     dimensions: square,
