@@ -218,6 +218,33 @@ describe("textureSvg", () => {
     assertStringNotIncludes(svg, "txa");
   });
 
+  it("renders chevrons as one V to a tile", () => {
+    const svg = textureSvg(
+      { type: "chevrons", color: "#ffffff", gap: 40, width: 3 },
+      dimensions,
+      "tx",
+    );
+
+    // The ends sit at the same height on both edges, so one tile's chevron
+    // carries on into the next rather than stopping in a corner.
+    assertStringIncludes(svg, '<path d="M0 28L20 12L40 28"');
+    assertStringIncludes(svg, '<pattern id="tx" width="40" height="40"');
+  });
+
+  it("renders a honeycomb whose repeat is wider than it is tall", () => {
+    const svg = textureSvg(
+      { type: "honeycomb", color: "#ffffff", size: 10 },
+      dimensions,
+      "tx",
+    );
+
+    // Three sides across and side * sqrt(3) down is the smallest rectangle a
+    // honeycomb fits in, so the tile is not square like the others.
+    assertStringIncludes(svg, '<pattern id="tx" width="30" height="17.32');
+    // A hexagon of side 10 is 20 across the points, centred a side in.
+    assertStringIncludes(svg, "M0 8.66L5 0L15 0L20 8.66L15 17.32L5 17.32Z");
+  });
+
   it("renders moire as one grid turned against another", () => {
     const svg = textureSvg(
       { type: "moire", color: "#ffffff", gap: 20, width: 2, angle: 6 },

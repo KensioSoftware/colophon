@@ -259,6 +259,35 @@ export type Texture =
     }
   | {
       /**
+       * Rows of chevrons, one V to a tile. A tile, so one of the cheap ones.
+       */
+      readonly type: "chevrons";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.07`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `2`. */
+      readonly width?: number;
+      /** How wide one chevron is, and how far apart the rows are. Default `36`. */
+      readonly gap?: number;
+    }
+  | {
+      /**
+       * Hexagon outlines, the honeycomb of a beehive or a chemistry diagram.
+       * Also a tile, though the only one whose repeat is not square.
+       */
+      readonly type: "honeycomb";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.07`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `1.5`. */
+      readonly width?: number;
+      /** The length of one side of a hexagon. Defaults to `26`. */
+      readonly size?: number;
+    }
+  | {
+      /**
        * A small cross where each line of a grid would meet, which is the dot
        * grid with something more to look at. Also a tile, and as cheap.
        */

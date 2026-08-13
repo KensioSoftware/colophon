@@ -1,9 +1,11 @@
 import { checkKeys, isRecord } from "./check.js";
 import {
+  chevronsTextureKeys,
   crossesTextureKeys,
   dotsTextureKeys,
   grainTextureKeys,
   gridTextureKeys,
+  honeycombTextureKeys,
   moireTextureKeys,
   raysTextureKeys,
   rulesTextureKeys,
@@ -59,6 +61,16 @@ export function checkTexture(
 
   if (type === "grid") {
     checkKeys(texture, path, gridTextureKeys, problems);
+    return;
+  }
+
+  if (type === "chevrons") {
+    checkKeys(texture, path, chevronsTextureKeys, problems);
+    return;
+  }
+
+  if (type === "honeycomb") {
+    checkKeys(texture, path, honeycombTextureKeys, problems);
     return;
   }
 

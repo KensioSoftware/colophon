@@ -52,6 +52,8 @@ type RaysTexture = Extract<Texture, { readonly type: "rays" }>;
 type MoireTexture = Extract<Texture, { readonly type: "moire" }>;
 type GridTexture = Extract<Texture, { readonly type: "grid" }>;
 type CrossesTexture = Extract<Texture, { readonly type: "crosses" }>;
+type ChevronsTexture = Extract<Texture, { readonly type: "chevrons" }>;
+type HoneycombTexture = Extract<Texture, { readonly type: "honeycomb" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
 type ImageByPath = Extract<ImageSource, { readonly path: string }>;
 type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
@@ -384,6 +386,24 @@ export const crossesTextureKeys = knownKeys<CrossesTexture>({
   gap: true,
 });
 
+/** Keys of the rows of chevrons. */
+export const chevronsTextureKeys = knownKeys<ChevronsTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  gap: true,
+});
+
+/** Keys of the honeycomb. */
+export const honeycombTextureKeys = knownKeys<HoneycombTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  size: true,
+});
+
 /**
  * The texture variants, as values, for the reason {@link backgroundTypes} are:
  * they have different keys, so a mistyped `type` has to be reported as itself
@@ -398,6 +418,8 @@ export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
   moire: true,
   grid: true,
   crosses: true,
+  chevrons: true,
+  honeycomb: true,
 });
 
 /**
