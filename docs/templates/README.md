@@ -18,6 +18,7 @@ same site can produce different kinds of image from the same config.
 | `docs`      | A breadcrumb trail, a rule, then the page's title.                           | `breadcrumb`                                 |
 | `event`     | A date on a plate, then what the event is and where.                         | `date`, `location`                           |
 | `thumbnail` | One title grown to fill the frame, for a video thumbnail.                    |                                              |
+| `cover`     | A mark beside a name and tagline, for a profile header.                      |                                              |
 
 The `code` template has enough of its own behaviour to need
 [a page of its own](../code-template/). Every one of the others is described
@@ -55,7 +56,7 @@ are, because a name typed into frontmatter is easy to get wrong:
 
 ```text
 Unknown template "bannner". Available templates: article, banner, card,
-code, docs, event, photo, quote, release, stat, terminal, thumbnail,
+code, cover, docs, event, photo, quote, release, stat, terminal, thumbnail,
 wordmark.
 ```
 
@@ -355,6 +356,63 @@ tenth of the image height, is cut to the lines there is room for.
 
 Textures want to be coarser here too, for the same reason the text does. See
 [`textureScale`](../configuration/themes/#textures-at-thumbnail-size).
+
+### `cover`
+
+A profile cover: the configured logo beside a name, with a tagline under it.
+
+```yaml
+---
+meta_img_props:
+  template: cover
+  title: Kensio Software
+  subtitle: Tools for people who publish on the web
+---
+```
+
+<img src="../samples/cover-x.png" alt="cover template" width="70%" />
+
+This is the header image at the top of a profile rather than a card attached to
+a post, so it is made once for a site and usually declared in
+[`extra`](../configuration/extra-images/) rather than driven by frontmatter:
+
+```ts
+import { defineConfig, SIZE_PRESETS } from "@kensio/colophon";
+
+export default defineConfig({
+  extra: [
+    {
+      props: {
+        template: "cover",
+        title: "Kensio Software",
+        subtitle: "Tools for people who publish on the web",
+      },
+      output: "public/covers/x.png",
+      size: SIZE_PRESETS.xCover,
+    },
+  ],
+});
+```
+
+There is a preset per platform, each carrying the safe area that platform's crop
+and avatar leave behind. [Cover images](../configuration/cover-images/) has the
+sizes, the safe areas and where the numbers came from.
+
+What makes this a template rather than the `wordmark` at other proportions is
+the shape of the space. A cover is a strip somewhere between 2.6:1 and 6:1, and
+a layout that stacks a mark above a name has nothing left to set the name in. So
+the mark goes beside the words, and the pair is centred as one lockup. A site
+with no logo configured gets the words alone, centred the same way.
+
+The name is one line, shrunk to fit and cut with an ellipsis if it still will
+not, for the reason the `wordmark`'s is: a name broken across two lines stops
+reading as a name, and on a strip there is no second line to break onto anyway.
+The tagline may wrap to two.
+
+The other thing it does differently is size its text from the room it has rather
+than from the image. Everywhere else those are nearly the same number; on a
+YouTube banner they are 423 and 1440, so a title set at a tenth of the image
+would be a third of the height of the part anyone sees.
 
 ## Writing your own
 

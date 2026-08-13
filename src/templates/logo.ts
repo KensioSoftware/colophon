@@ -1,8 +1,8 @@
 import type { Rect } from "../layout/index.js";
 import { image } from "../layout/index.js";
-import type { Dimensions, ImageAsset } from "../types.js";
+import type { ImageAsset } from "../types.js";
 
-/** The logo's height, as a fraction of the image's. */
+/** The logo's height, as a fraction of the frame's. */
 const logoScale = 0.075;
 
 /**
@@ -13,10 +13,14 @@ const logoScale = 0.075;
  * follows from the proportions of the picture. A logo whose format does not
  * state its size is drawn in a square, where a wordmark will sit small in the
  * middle rather than being stretched to fit.
+ *
+ * `area` is the frame's, which is the whole image unless the config named a
+ * safe area. Taking it from the image instead would put the mark in a corner
+ * a profile cover crops off, and size it against a height nobody sees.
  */
 export function logoRect(
   logo: ImageAsset | undefined,
-  dimensions: Dimensions,
+  area: Rect,
   pad: number,
   align: "start" | "middle",
 ): Rect | undefined {
@@ -24,14 +28,14 @@ export function logoRect(
     return undefined;
   }
 
-  const height = Math.round(dimensions.height * logoScale);
+  const height = Math.round(area.height * logoScale);
   const width = Math.round(height * logo.aspect);
   const x =
     align === "middle"
-      ? Math.round((dimensions.width - width) / 2)
-      : dimensions.width - pad - width;
+      ? Math.round(area.x + (area.width - width) / 2)
+      : area.x + area.width - pad - width;
 
-  return { x, y: pad, width, height };
+  return { x, y: area.y + pad, width, height };
 }
 
 /** The logo drawn in the rectangle it was given, whole rather than cropped. */

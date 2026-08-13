@@ -28,13 +28,13 @@ export const eventTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const { fontFamily, colors } = config;
     const frame = imageFrame(dimensions, config, avatar, {
       padScale: 0.09,
     });
     const { pad } = frame;
-    const mark = logoRect(logo, dimensions, pad, "middle");
+    const mark = logoRect(logo, frame.full, pad, "middle");
 
     const area = contentArea(frame, markRoom(mark?.height, pad / 2));
 
@@ -68,7 +68,7 @@ export const eventTemplate: Template = {
       anchor: "middle",
     });
 
-    const footer = footerLine(config, frame, width, avatar, measure, "middle");
+    const footer = footerLine(config, frame, avatar, measure, "middle");
 
     return (
       logoElement(logo, mark) +

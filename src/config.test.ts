@@ -67,6 +67,30 @@ describe("SIZE_PRESETS", () => {
     assertArrayEquals(DEFAULT_SIZES, [SIZE_PRESETS.og, SIZE_PRESETS.square]);
   });
 
+  it("carries the cover presets, each with its platform's safe area", () => {
+    // YouTube is the only platform that publishes the figure, so it is the
+    // one worth pinning: 1546x423 centred on 2560x1440.
+    assertObjectEquals(SIZE_PRESETS.youtubeCover, {
+      name: "youtube-cover",
+      width: 2560,
+      height: 1440,
+      safeArea: {
+        top: (1440 - 423) / 2 / 1440,
+        right: (2560 - 1546) / 2 / 2560,
+        bottom: (1440 - 423) / 2 / 1440,
+        left: (2560 - 1546) / 2 / 2560,
+      },
+    });
+  });
+
+  it("keeps the covers out of the default sizes", () => {
+    // A cover is made once for a site. Nothing should start rendering one for
+    // every post because the package was upgraded.
+    const names = DEFAULT_SIZES.map((size) => size.name);
+
+    assertFalse(names.some((name) => name.endsWith("-cover")));
+  });
+
   it("carries YouTube's thumbnail size, with its texture scaled up", () => {
     // The one preset with an override of its own. A thumbnail is shown at a
     // third of the width it is uploaded at or less, so a treatment at its
@@ -102,6 +126,7 @@ describe("resolveConfig", () => {
       "banner",
       "card",
       "code",
+      "cover",
       "docs",
       "event",
       "photo",

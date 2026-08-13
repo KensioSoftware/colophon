@@ -181,6 +181,29 @@ describe("validateConfig", () => {
     );
   });
 
+  it("checks the safe area's edges", () => {
+    assertIdentical(
+      messageFor({ safeArea: { botom: 0.12 } }),
+      'Unknown option "safeArea.botom". Did you mean "bottom"?',
+    );
+  });
+
+  it("checks a safe area a size carries", () => {
+    assertIdentical(
+      messageFor({
+        sizes: [
+          {
+            name: "x-cover",
+            width: 1500,
+            height: 500,
+            safeArea: { lefft: 0.25 },
+          },
+        ],
+      }),
+      'Unknown option "sizes[0].safeArea.lefft". Did you mean "left"?',
+    );
+  });
+
   it("names the size an unknown option came from", () => {
     assertIdentical(
       messageFor({

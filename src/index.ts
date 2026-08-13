@@ -26,6 +26,7 @@ export type {
   PropsFromFrontmatter,
   Rasteriser,
   RenderedMetaImage,
+  SafeArea,
   SlugStrategy,
   SizeOverrides,
   ResolvedConfig,

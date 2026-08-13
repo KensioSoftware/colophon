@@ -15,6 +15,7 @@ import type {
 import { validateConfig } from "../validate/index.js";
 import { DEFAULT_FONT_FAMILY, DEFAULT_FORMAT } from "./defaults.js";
 import { resolveMaxBytes, resolveQuality } from "./output.js";
+import { resolveSafeArea } from "./safe-area.js";
 import {
   defaultBackground,
   resolveBackground,
@@ -94,6 +95,7 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
       resolveBackground(config.background) ?? defaultBackground(colors),
     texture: resolveTexture(config.texture, colors),
     textureScale: resolveTextureScale(config.textureScale),
+    safeArea: resolveSafeArea(config.safeArea),
     fonts,
     systemFonts: shouldLoadSystemFonts(config.systemFonts, fonts),
     // A project that supplies one font should not have to name it twice.

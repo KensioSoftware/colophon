@@ -1,8 +1,8 @@
-import { drawLines, inset } from "../../layout/index.js";
+import { drawLines } from "../../layout/index.js";
 import { optionalString } from "../../props.js";
 import type { Template, TemplateContext } from "../../types.js";
-import { attribution } from "../attribution.js";
-import { footerBaseline, footerFontSize, hasFooter } from "../footer.js";
+import { footerLine } from "../bottom.js";
+import { contentArea, imageFrame, markRoom } from "../frame.js";
 import { logoElement, logoRect } from "../logo.js";
 import { badgeFor } from "./badge-props.js";
 import { renderBadge } from "./badge.js";
@@ -27,12 +27,12 @@ export const bannerTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const { fontFamily } = config;
-    const pad = Math.round(width * 0.075);
-    const footerFs = footerFontSize(dimensions);
+    const frame = imageFrame(dimensions, config, avatar);
+    const { pad, full } = frame;
     const badgeHeight = Math.round(height * 0.072);
-    const mark = logoRect(logo, dimensions, pad, "start");
+    const mark = logoRect(logo, full, pad, "start");
     const badge = badgeFor(props, config);
 
     const subtitle = optionalString(props.subtitle);
@@ -44,18 +44,9 @@ export const bannerTemplate: Template = {
       badge === undefined ? 0 : badgeHeight,
       mark?.height ?? 0,
     );
-    const area = inset(
-      { x: 0, y: 0, width, height },
-      {
-        top: pad + (topMark === 0 ? 0 : topMark + Math.round(height * 0.03)),
-        right: pad,
-        left: pad,
-        bottom:
-          pad +
-          (hasFooter(config) || avatar !== undefined
-            ? footerFs + Math.round(height * 0.02)
-            : 0),
-      },
+    const area = contentArea(
+      frame,
+      markRoom(topMark, Math.round(height * 0.03)),
     );
 
     const lines = bannerLines(props, {
@@ -77,21 +68,15 @@ export const bannerTemplate: Template = {
     const badgeMark =
       badge === undefined
         ? ""
-        : renderBadge(badge, fontFamily, config.colors.brand, pad, badgeHeight);
+        : renderBadge(
+            badge,
+            fontFamily,
+            config.colors.brand,
+            { x: full.x + pad, y: full.y + pad },
+            badgeHeight,
+          );
 
-    const footer = attribution(
-      config,
-      {
-        x: pad,
-        y: footerBaseline(height, pad, footerFs),
-        fontSize: footerFs,
-        opacity: 0.78,
-        left: pad,
-        width: width - pad * 2,
-      },
-      avatar,
-      measure,
-    );
+    const footer = footerLine(config, frame, avatar, measure, "start", 0.78);
 
     return badgeMark + logoElement(logo, mark) + body + footer;
   },

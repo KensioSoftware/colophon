@@ -7,6 +7,34 @@ export interface Dimensions {
 }
 
 /**
+ * The part of an image that survives being displayed: what is left after the
+ * platform has cropped it and drawn its own furniture over it.
+ *
+ * Each edge is an inset from that edge, as a fraction of the image's width for
+ * `left` and `right` and of its height for `top` and `bottom`. An edge that is
+ * not named is not inset, so an empty object is the whole image, which is what
+ * a config that says nothing gets.
+ *
+ * Fractions rather than pixels because the same crop applies at whatever size
+ * a platform is served: YouTube publishes its safe area as 1546x423 on a
+ * 2560x1440 upload and as 1235x338 on the 2048x1152 minimum, which are the
+ * same two fractions.
+ *
+ * A profile cover is what this exists for, since every platform overlays a
+ * circular avatar on one corner of it and crops the rest differently on each
+ * of its own clients. `SIZE_PRESETS` carries one per platform. It applies to
+ * every template rather than to any one of them, so an image rendered at a
+ * cover size keeps its margins, its footer and its logo inside the part that
+ * will be seen.
+ */
+export interface SafeArea {
+  readonly top?: number;
+  readonly right?: number;
+  readonly bottom?: number;
+  readonly left?: number;
+}
+
+/**
  * A named output size. The `name` identifies the size in output filenames
  * (e.g. `og`, `square`) and must be unique within a config, so every
  * generated image gets a distinct, descriptive filename.
@@ -963,6 +991,16 @@ export interface ColophonConfig {
    */
   readonly textureScale?: number;
   /**
+   * The part of the image a template may draw in: see {@link SafeArea}.
+   * Defaults to all of it.
+   *
+   * Like `textureScale`, this usually belongs on a size rather than on a whole
+   * build, because what it describes is where the image ends up rather than
+   * anything about the picture. The cover presets in `SIZE_PRESETS` carry one
+   * each. See {@link SizeOverrides.safeArea}.
+   */
+  readonly safeArea?: SafeArea;
+  /**
    * Fonts to load into the rasteriser, so the output does not depend on what
    * the build machine happens to have installed. Supplying any font turns
    * {@link ColophonConfig.systemFonts} off by default, which is the point:
@@ -1185,6 +1223,16 @@ export interface SizeOverrides {
    * for that reason, and naming it on a size of your own overrides that.
    */
   readonly textureScale?: number;
+  /**
+   * Replaces the config's safe area, which is where it usually belongs: a
+   * crop is a property of the platform an image is uploaded to, and that is
+   * what a size names. Every cover preset in `SIZE_PRESETS` carries one.
+   *
+   * It replaces rather than merges, for the reason `background` does. A safe
+   * area describes one platform's crop as a whole, so half of X's over half of
+   * YouTube's is not a safe area for anywhere.
+   */
+  readonly safeArea?: SafeArea;
   readonly fontFamily?: string;
   readonly footer?: string;
   readonly badge?: Badge;
@@ -1235,6 +1283,8 @@ export interface ResolvedConfig {
   readonly texture: Texture | undefined;
   /** How much larger than its stated lengths the texture is drawn. */
   readonly textureScale: number;
+  /** The part of the image a template may draw in, with every edge filled in. */
+  readonly safeArea: Required<SafeArea>;
   /** Configured fonts, with every `path` made absolute. */
   readonly fonts: readonly FontSource[];
   readonly systemFonts: boolean;

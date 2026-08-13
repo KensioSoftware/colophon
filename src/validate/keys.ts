@@ -14,6 +14,7 @@ import type {
   OutputFormat,
   OutputSize,
   Placement,
+  SafeArea,
   Scrim,
   SlugStrategy,
   Texture,
@@ -70,6 +71,7 @@ export const configKeys = knownKeys<ColophonConfig>({
   background: true,
   texture: true,
   textureScale: true,
+  safeArea: true,
   fonts: true,
   systemFonts: true,
   fontFamily: true,
@@ -203,11 +205,20 @@ export const sizeKeys = knownKeys<OutputSize>({
   background: true,
   texture: true,
   textureScale: true,
+  safeArea: true,
   fontFamily: true,
   footer: true,
   badge: true,
   logo: true,
   code: true,
+});
+
+/** The edges of a safe area. */
+export const safeAreaKeys = knownKeys<Required<SafeArea>>({
+  top: true,
+  right: true,
+  bottom: true,
+  left: true,
 });
 
 /**

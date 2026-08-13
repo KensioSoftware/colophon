@@ -3,6 +3,7 @@ import { articleTemplate } from "./article/index.js";
 import { bannerTemplate } from "./banner/index.js";
 import { cardTemplate } from "./card/index.js";
 import { codeTemplate } from "./code/index.js";
+import { coverTemplate } from "./cover/index.js";
 import { docsTemplate } from "./docs/index.js";
 import { eventTemplate } from "./event/index.js";
 import { photoTemplate } from "./photo/index.js";
@@ -22,6 +23,7 @@ export const builtinTemplates: Readonly<Record<string, Template>> = {
   [bannerTemplate.name]: bannerTemplate,
   [cardTemplate.name]: cardTemplate,
   [codeTemplate.name]: codeTemplate,
+  [coverTemplate.name]: coverTemplate,
   [docsTemplate.name]: docsTemplate,
   [eventTemplate.name]: eventTemplate,
   [photoTemplate.name]: photoTemplate,
@@ -37,6 +39,7 @@ export { articleTemplate } from "./article/index.js";
 export { bannerTemplate } from "./banner/index.js";
 export { cardTemplate } from "./card/index.js";
 export { codeTemplate } from "./code/index.js";
+export { coverTemplate } from "./cover/index.js";
 export { docsTemplate } from "./docs/index.js";
 export { eventTemplate } from "./event/index.js";
 export { photoTemplate } from "./photo/index.js";

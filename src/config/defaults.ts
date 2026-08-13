@@ -23,8 +23,23 @@ export const DEFAULT_THUMBNAIL_TEXTURE_SCALE = 3;
 export const DEFAULT_TEXTURE_SCALE = 1;
 
 /**
+ * YouTube's safe area, as insets of the banner it is uploaded on.
+ *
+ * This is the one platform that publishes the figure rather than leaving it to
+ * be worked out: 1546x423 centred on a 2560x1440 upload, so the insets are
+ * `(2560 - 1546) / 2 / 2560` and `(1440 - 423) / 2 / 1440`. They are written
+ * out because the arithmetic is the evidence. The same fractions turn up as
+ * 1235x338 on the 2048x1152 minimum upload, which is what says a safe area
+ * belongs in fractions rather than pixels.
+ */
+const YOUTUBE_SAFE_X = (2560 - 1546) / 2 / 2560;
+const YOUTUBE_SAFE_Y = (1440 - 423) / 2 / 1440;
+
+/**
  * Named output-size presets covering the common social-image standards. Each
  * `name` becomes the filename suffix (e.g. `my-post-og.png`).
+ *
+ * The first group are share images, made once per post:
  *
  * - `og`: 1.91:1, the Open Graph standard (`og:image`). Facebook, LinkedIn,
  *   Slack, Discord, WhatsApp, Mastodon, and the usual `twitter:image` reuse.
@@ -32,8 +47,18 @@ export const DEFAULT_TEXTURE_SCALE = 1;
  * - `twitter`: 2:1, X/Twitter `summary_large_image` card.
  * - `pinterest`: 2:3 tall pin.
  * - `thumbnail`: 16:9, the size YouTube asks video thumbnails to be uploaded
- *   at. It is the one preset carrying an override of its own, for the reason
- *   {@link SizeOverrides.textureScale} gives.
+ *   at, carrying a {@link SizeOverrides.textureScale} for the reason that
+ *   field gives.
+ *
+ * The rest are profile covers, made once for a site rather than once per post,
+ * so `config.extra` is the usual way to declare one. Each carries the
+ * {@link SafeArea} for the platform it is named after, which is what keeps the
+ * text out of the avatar and out of whatever that platform crops. Where those
+ * numbers come from, and how much to trust each of them, is in
+ * `docs/configuration/cover-images`.
+ *
+ * None of the covers is in `DEFAULT_SIZES`: a cover is not something a build
+ * should start making for every post because the package was upgraded.
  */
 export const SIZE_PRESETS = {
   og: { name: "og", width: 1200, height: 630 },
@@ -45,6 +70,41 @@ export const SIZE_PRESETS = {
     width: 1280,
     height: 720,
     textureScale: DEFAULT_THUMBNAIL_TEXTURE_SCALE,
+  },
+  xCover: {
+    name: "x-cover",
+    width: 1500,
+    height: 500,
+    safeArea: { top: 0.12, right: 0.06, bottom: 0.12, left: 0.25 },
+  },
+  linkedinCover: {
+    name: "linkedin-cover",
+    width: 1584,
+    height: 396,
+    safeArea: { top: 0.1, right: 0.2, bottom: 0.1, left: 0.28 },
+  },
+  linkedinPageCover: {
+    name: "linkedin-page-cover",
+    width: 4200,
+    height: 700,
+    safeArea: { top: 0.14, right: 0.12, bottom: 0.14, left: 0.22 },
+  },
+  blueskyCover: {
+    name: "bluesky-cover",
+    width: 3000,
+    height: 1000,
+    safeArea: { top: 0.15, right: 0.1, bottom: 0.15, left: 0.22 },
+  },
+  youtubeCover: {
+    name: "youtube-cover",
+    width: 2560,
+    height: 1440,
+    safeArea: {
+      top: YOUTUBE_SAFE_Y,
+      right: YOUTUBE_SAFE_X,
+      bottom: YOUTUBE_SAFE_Y,
+      left: YOUTUBE_SAFE_X,
+    },
   },
 } as const satisfies Record<string, OutputSize>;
 

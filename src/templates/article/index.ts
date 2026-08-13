@@ -32,7 +32,7 @@ export const articleTemplate: Template = {
       footer: said.length > 0,
     });
     const { pad } = frame;
-    const mark = logoRect(logo, dimensions, pad, "start");
+    const mark = logoRect(logo, frame.full, pad, "start");
 
     const chips = tagBand(
       props,

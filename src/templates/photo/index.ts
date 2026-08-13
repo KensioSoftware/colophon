@@ -40,13 +40,18 @@ export const photoTemplate: Template = {
     const { fontFamily, colors } = config;
     const frame = imageFrame(dimensions, config, avatar);
     const { pad } = frame;
-    const mark = logoRect(logo, dimensions, pad, "start");
+    const mark = logoRect(logo, frame.full, pad, "start");
 
+    // Over the whole image rather than over the frame, so that a safe area
+    // moves the words and leaves the picture behind them full-bleed. The part
+    // a platform crops off is still seen on some of its clients, and a
+    // photograph stopping short of the edge would be the visible fault there.
+    const canvas = { x: 0, y: 0, width, height };
     const backdrop =
       picture === undefined
         ? ""
-        : image(frame.full, picture.href, { fit: "cover" }) +
-          scrim(frame.full, scrimId, { from: scrimFrom, to: scrimTo });
+        : image(canvas, picture.href, { fit: "cover" }) +
+          scrim(canvas, scrimId, { from: scrimFrom, to: scrimTo });
 
     const area = contentArea(frame, markRoom(mark?.height, pad / 2));
 
@@ -65,15 +70,7 @@ export const photoTemplate: Template = {
       { fontFamily, fill: colors.foreground, lineHeight: 1.24, align: "end" },
     );
 
-    const footer = footerLine(
-      config,
-      frame,
-      width,
-      avatar,
-      measure,
-      "start",
-      0.85,
-    );
+    const footer = footerLine(config, frame, avatar, measure, "start", 0.85);
 
     return backdrop + logoElement(logo, mark) + body + footer;
   },
