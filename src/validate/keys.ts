@@ -48,6 +48,7 @@ type GrainTexture = Extract<Texture, { readonly type: "grain" }>;
 type DotsTexture = Extract<Texture, { readonly type: "dots" }>;
 type RulesTexture = Extract<Texture, { readonly type: "rules" }>;
 type WavesTexture = Extract<Texture, { readonly type: "waves" }>;
+type RaysTexture = Extract<Texture, { readonly type: "rays" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
 type ImageByPath = Extract<ImageSource, { readonly path: string }>;
 type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
@@ -338,6 +339,17 @@ export const wavesTextureKeys = knownKeys<WavesTexture>({
   gap: true,
 });
 
+/** Keys of the fan of straight lines. */
+export const raysTextureKeys = knownKeys<RaysTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  count: true,
+  x: true,
+  y: true,
+});
+
 /**
  * The texture variants, as values, for the reason {@link backgroundTypes} are:
  * they have different keys, so a mistyped `type` has to be reported as itself
@@ -348,6 +360,7 @@ export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
   dots: true,
   rules: true,
   waves: true,
+  rays: true,
 });
 
 /**

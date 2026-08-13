@@ -2,6 +2,7 @@ import { checkKeys, isRecord } from "./check.js";
 import {
   dotsTextureKeys,
   grainTextureKeys,
+  raysTextureKeys,
   rulesTextureKeys,
   textureTypes,
   wavesTextureKeys,
@@ -45,6 +46,11 @@ export function checkTexture(
 
   if (type === "waves") {
     checkKeys(texture, path, wavesTextureKeys, problems);
+    return;
+  }
+
+  if (type === "rays") {
+    checkKeys(texture, path, raysTextureKeys, problems);
     return;
   }
 

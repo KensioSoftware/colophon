@@ -82,12 +82,13 @@ A texture is drawn over the background and under everything the template draws,
 so it never comes between a headline and the reader. All of them are intended
 to be noticed only in passing, and the defaults are faint.
 
-| Texture   | Options                                     |
-| --------- | ------------------------------------------- |
-| `"grain"` | `opacity`, `scale`                          |
-| `"dots"`  | `color`, `opacity`, `size`, `gap`           |
-| `"rules"` | `color`, `opacity`, `width`, `gap`, `angle` |
-| `"waves"` | `color`, `opacity`, `width`, `gap`          |
+| Texture   | Options                                        |
+| --------- | ---------------------------------------------- |
+| `"grain"` | `opacity`, `scale`                             |
+| `"dots"`  | `color`, `opacity`, `size`, `gap`              |
+| `"rules"` | `color`, `opacity`, `width`, `gap`, `angle`    |
+| `"waves"` | `color`, `opacity`, `width`, `gap`             |
+| `"rays"`  | `color`, `opacity`, `width`, `count`, `x`, `y` |
 
 Everything but `grain` defaults to the foreground colour, so a texture shows up
 on a light theme as readily as on a dark one. Lengths are in pixels at the size
@@ -130,6 +131,7 @@ every row of the image, which is most of what PNG compresses by. Measured on a
 | none              | 81KB  |
 | `dots`            | 100KB |
 | `rules`           | 93KB  |
+| `rays`            | 151KB |
 | `waves`           | 624KB |
 | `waves`, `gap` 44 | 415KB |
 | `grain`           | 1.7MB |
@@ -138,6 +140,31 @@ Rendering is around 500ms against 270ms with no texture. If the size matters
 more than the format does, [`format: "webp"`](../formats/) takes the same
 image to 91KB, since a lossy encoding does not care how many colours a row
 holds.
+
+### Rays
+
+`rays` is straight lines fanning out from one point, which by default sits just
+below the bottom edge of the image:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#4f46e5" },
+  texture: { type: "rays" },
+});
+```
+
+<img src="../../samples/texture-rays.png" alt="rays texture" width="50%" />
+
+`x` and `y` move the origin, as fractions of the image, so `{ x: 0, y: 0 }` is
+the top-left corner and `{ y: 0.5 }` is a star in the middle rather than a fan
+across the picture. `count` is rays around the whole circle, of which only
+those pointing into the image are seen, so the spacing stays the same wherever
+the origin goes.
+
+Of the treatments that cover the whole image rather than repeating a tile, this
+is the cheap one: there are no curves in it and only a few dozen lines, so a
+1200×1200 image goes from 81KB to around 150KB. That is nearer the dot grid
+than `waves`.
 
 ### Grain costs bytes
 
