@@ -1,5 +1,5 @@
 import type { Rect, TextLine } from "../../layout/index.js";
-import { image, row } from "../../layout/index.js";
+import { image, row, trackedWidth } from "../../layout/index.js";
 import type { ImageAsset, MeasureText } from "../../types.js";
 
 /** The mark's height, as a fraction of the room the lockup has. */
@@ -8,7 +8,14 @@ const markScale = 0.72;
 /** The clear space between the mark and the words, of the same room. */
 const markGapScale = 0.24;
 
-/** The widest of a block of lines, which is how wide the block is. */
+/**
+ * The widest of a block of lines, which is how wide the block is.
+ *
+ * Tracking counts towards it, because a tracked line is drawn wider than it
+ * measures. Leaving it out would centre the lockup on the width the words
+ * would have had, which is the one place a stretched line would push past its
+ * own margin.
+ */
 export function linesWidth(
   lines: readonly TextLine[],
   measure: MeasureText,
@@ -18,11 +25,15 @@ export function linesWidth(
     (widest, line) =>
       Math.max(
         widest,
-        measure(line.text, {
-          fontFamily,
-          fontSize: line.fontSize,
-          fontWeight: line.fontWeight,
-        }),
+        trackedWidth(
+          line.text,
+          measure(line.text, {
+            fontFamily,
+            fontSize: line.fontSize,
+            fontWeight: line.fontWeight,
+          }),
+          line.letterSpacing ?? 0,
+        ),
       ),
     0,
   );

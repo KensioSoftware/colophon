@@ -409,6 +409,39 @@ not, for the reason the `wordmark`'s is: a name broken across two lines stops
 reading as a name, and on a strip there is no second line to break onto anyway.
 The tagline may wrap to two.
 
+#### Tracking the tagline to the name
+
+`tracking: fill` spaces the tagline's characters out until it is exactly as wide
+as the name above it, so the pair share both edges and read as one block:
+
+```yaml
+---
+meta_img_props:
+  template: cover
+  title: Kensio Software
+  subtitle: kensiosoftware.co.uk
+  tracking: fill
+---
+```
+
+This is the adjustment somebody makes by hand in a drawing program and then has
+to make again every time the words change. A site URL under a product name is
+what it is for.
+
+It is opt-in, and it declines rather than doing something silly in three cases.
+A tagline already as wide as the name is left alone, because the only way to
+close the gap would be to pull the letters together, and letters pushed apart
+read as a decision where letters pulled together read as a mistake. A tagline
+that wrapped to two lines is left alone, since justifying every line to the same
+width goes wrong on the short last one the way justified text always does. And a
+tagline needing more than half an em between its characters is left alone, which
+is the point past which a two-word strapline under a long name stops looking
+considered.
+
+`trackingFor` and `trackedWidth` are exported from
+[`@kensio/colophon/layout`](../layout/), so a template of your own can do the
+same thing. `TextLine` carries the result as `letterSpacing`.
+
 The other thing it does differently is size its text from the room it has rather
 than from the image. Everywhere else those are nearly the same number; on a
 YouTube banner they are 423 and 1440, so a title set at a tenth of the image

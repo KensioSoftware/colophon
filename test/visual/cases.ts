@@ -104,6 +104,23 @@ const regressions: readonly Sample[] = [
     },
   },
   {
+    // A tagline tracked out to the width of the name above it, which is the
+    // one thing on any image whose correctness is a measurement rather than a
+    // look: the two lines have to share both edges.
+    name: "cover-tracked",
+    dimensions: { width: 1200, height: 400 },
+    props: {
+      template: "cover",
+      title: "Kensio Software",
+      subtitle: "kensiosoftware.co.uk",
+      tracking: "fill",
+    },
+    config: {
+      colors: { brand: "#6a4c9c", brandDark: "#533b7a", brandWarm: "#9b6969" },
+      safeArea: { top: 0.12, right: 0.06, bottom: 0.12, left: 0.25 },
+    },
+  },
+  {
     // Text over a picture, which is only readable because of the scrim.
     name: "photo-scrim",
     dimensions: { width: 1200, height: 630 },

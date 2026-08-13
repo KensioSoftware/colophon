@@ -143,6 +143,25 @@ in a list set at the same size as the rest.
 clampLine(change, content.width - indent, widthOf, 44);
 ```
 
+`trackingFor` goes the other way again: rather than fitting text to a box, it
+stretches one line to the width of another by spacing its characters out. Give
+it the line, the width it has and the width it wants, and it returns the spacing
+to put on `TextLine.letterSpacing`; `trackedWidth` says how wide the result will
+be, which is what a layout centring the block needs.
+
+```ts
+const spacing = trackingFor(tagline, widthOf(tagline, 40), nameWidth);
+```
+
+The arithmetic is exact because of how the renderer applies it: SVG puts the
+space between characters and not after the last one, so a line of `n` characters
+has `n - 1` gaps, the tracked width lands on the target, and `middle` and `end`
+anchors stay where they were put. That was checked by rendering rather than read
+from a specification. Nothing is returned for a line already at the target, since
+that would mean negative tracking, or for a line of one character, which has no
+gaps to put the space in. The `cover` template is the built-in that uses it; see
+[its `tracking` prop](../templates/#tracking-the-tagline-to-the-name).
+
 And `stringList` reads a prop that may be a YAML sequence or a single value,
 which is what a hand-written `tags:` or `breadcrumb:` field turns out to be:
 

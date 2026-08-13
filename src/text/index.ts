@@ -8,5 +8,6 @@ export { fillText } from "./fill.js";
 export type { FillOptions } from "./fill.js";
 export { fitText } from "./fit.js";
 export type { FitOptions, FittedText, MeasureAt } from "./fit.js";
+export { trackedWidth, trackingFor } from "./track.js";
 export { wrapText } from "./wrap.js";
 export type { MeasureLine } from "./wrap.js";

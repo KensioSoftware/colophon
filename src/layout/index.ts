@@ -47,6 +47,8 @@ export {
   fillText,
   fitText,
   textElement,
+  trackedWidth,
+  trackingFor,
   wrapText,
 } from "../text/index.js";
 export type {

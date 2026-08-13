@@ -54,6 +54,9 @@ export function drawLines(
         fill: style.fill,
         fillOpacity: line.opacity,
         ...(style.anchor !== undefined && { anchor: style.anchor }),
+        ...(line.letterSpacing !== undefined && {
+          letterSpacing: line.letterSpacing,
+        }),
       }),
     )
     .join("");

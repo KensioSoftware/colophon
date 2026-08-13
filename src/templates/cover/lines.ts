@@ -1,6 +1,7 @@
 import type { TextLine } from "../../layout/index.js";
 import { blockLines, clampLine, measureIn } from "../../layout/index.js";
 import type { MeasureText, MetaImageProps } from "../../types.js";
+import { trackTagline } from "./tracking.js";
 
 /**
  * One line for the name, for the reason the `wordmark` has one: a name broken
@@ -104,9 +105,12 @@ export function coverLines(props: MetaImageProps, text: CoverText): TextLine[] {
   });
 
   const scale = tagline.length === 0 ? nameScale : nameWithTaglineScale;
+  const name = nameLines(props, text, Math.round(contentHeight * scale));
 
   return [
-    ...nameLines(props, text, Math.round(contentHeight * scale)),
-    ...tagline,
+    ...name,
+    ...(props["tracking"] === "fill"
+      ? trackTagline(name, tagline, measure, fontFamily)
+      : tagline),
   ];
 }
