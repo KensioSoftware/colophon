@@ -122,21 +122,23 @@ export function resolveCompressionLevel(level: number | undefined): number {
  * Whether to load the machine's own fonts. Configured fonts are meant to make
  * the output the same everywhere, so supplying any turns system fonts off
  * unless the project asks for them back.
+ *
+ * A project that configures none still gets them, even though the package now
+ * bundles fonts of its own. What the bundled ones give is a Latin face that is
+ * the same everywhere, and they cover nothing else: a Japanese or Arabic title
+ * on a project that has configured no fonts has only the machine's own to be
+ * drawn in, and turning them off by default would render it as nothing at all.
+ * So the rule is unchanged and the bundled fonts sit in front of the system
+ * ones rather than in place of them.
+ *
+ * `systemFonts: false` with no fonts configured used to be an error, on the
+ * grounds that it left nothing to render with. The bundled fonts are what it
+ * leaves now, and that pairing is the whole way to ask for a build that does
+ * not depend on the machine without supplying font files, so it is allowed.
  */
 export function shouldLoadSystemFonts(
   systemFonts: boolean | undefined,
   fonts: readonly FontSource[],
 ): boolean {
-  if (systemFonts === undefined) {
-    return fonts.length === 0;
-  }
-
-  if (!systemFonts && fonts.length === 0) {
-    throw new Error(
-      "systemFonts is false and no fonts are configured, so no text could be" +
-        " rendered. Add fonts, or leave systemFonts unset.",
-    );
-  }
-
-  return systemFonts;
+  return systemFonts ?? fonts.length === 0;
 }

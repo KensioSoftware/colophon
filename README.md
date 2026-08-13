@@ -40,9 +40,10 @@ pnpm add @kensio/colophon
 ```
 
 `@resvg/resvg-js` rasterises the SVG to PNG, and `shiki` provides the grammars
-and themes for the `code` template. No headless browser is involved. Fonts can
-be handed to the renderer as files, so a build renders the same image
-everywhere.
+and themes for the `code` template. No headless browser is involved. Outfit and
+JetBrains Mono ship with the package and are used by default, so a build renders
+the same image everywhere without configuring anything; point `fonts` at your
+own files to use those instead.
 
 ## Quick start
 

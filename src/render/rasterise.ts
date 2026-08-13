@@ -1,7 +1,11 @@
 import type { ResvgRenderOptions } from "@resvg/resvg-js";
 import { renderAsync } from "@resvg/resvg-js";
 
-import { fallbackFamily, fontFilePaths } from "../fonts/index.js";
+import {
+  fallbackFamily,
+  fontFilePaths,
+  withBundledFonts,
+} from "../fonts/index.js";
 import type { Rasteriser, ResolvedConfig } from "../types.js";
 
 /**
@@ -11,11 +15,16 @@ import type { Rasteriser, ResolvedConfig } from "../types.js";
 async function fontOptions(
   config: ResolvedConfig,
 ): Promise<NonNullable<ResvgRenderOptions["font"]>> {
-  const fallback = fallbackFamily(config.fonts);
+  // The bundled fonts count here too, so that a stack naming nothing loaded
+  // falls back to Outfit rather than to whatever resvg would have chosen. That
+  // is the family the measurer will have measured against, and the two have to
+  // agree or the layout is right on a machine that happens to have the font
+  // and wrong on one that does not.
+  const fallback = fallbackFamily(withBundledFonts(config.fonts));
 
   return {
     loadSystemFonts: config.systemFonts,
-    fontFiles: await fontFilePaths(config.fonts),
+    fontFiles: await fontFilePaths(withBundledFonts(config.fonts)),
     ...(fallback !== undefined && { defaultFontFamily: fallback }),
   };
 }

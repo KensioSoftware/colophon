@@ -71,6 +71,12 @@ fonts[0]: cannot read the font file at "./Inter.ttf" here, since there is no
 filesystem. Supply the bytes as "data" instead.
 ```
 
+The fonts that ship with the package are files, so they are not here either: the
+core measures by estimate and leaves the drawing to whatever the host has, as it
+did before there were bundled fonts. Inlining them would put half a megabyte of
+font into every bundle that imports the core, whether or not it draws any text.
+Pass the bytes yourself where the widths matter.
+
 **There is no rasteriser.** resvg is a native module, so a browser build does
 not include it, and nothing here turns the SVG into pixels. Two ways on:
 
