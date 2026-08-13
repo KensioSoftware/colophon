@@ -1,33 +1,9 @@
 import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
+import { tile } from "./tile.js";
 
 const dotDefaults = { opacity: 0.08, size: 5, gap: 44 };
 const ruleDefaults = { opacity: 0.06, width: 2, gap: 28, angle: 45 };
-
-/**
- * A tiled pattern over the whole image: the `<pattern>` under the given `id`,
- * and the rect that fills with it.
- */
-function tile(
-  id: string,
-  gap: number,
-  contents: string,
-  transform: string,
-  dimensions: Dimensions,
-  opacity: number,
-): string {
-  const { width, height } = dimensions;
-  const size = String(gap);
-
-  return (
-    `<defs>` +
-    `<pattern id="${id}" width="${size}" height="${size}"` +
-    ` patternUnits="userSpaceOnUse"${transform}>${contents}</pattern>` +
-    `</defs>` +
-    `<rect width="${String(width)}" height="${String(height)}"` +
-    ` fill="url(#${id})" opacity="${String(opacity)}"/>`
-  );
-}
 
 /** A grid of dots, one to a tile. */
 export function dotsSvg(

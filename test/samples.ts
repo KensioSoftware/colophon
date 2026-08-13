@@ -213,11 +213,28 @@ const raysSample: Sample = {
   },
 };
 
+/** The two crossed grids, which like the other two wants a picture of its own. */
+const moireSample: Sample = {
+  name: "texture-moire",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Moiré",
+    subtitle: 'texture: { type: "moire" }',
+  },
+  config: {
+    colors: { brand: "#0f766e", brandDark: "#134e4a" },
+    texture: { type: "moire" },
+    footer: "example.com",
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
   wavesSample,
   raysSample,
+  moireSample,
   codeWindowSample,
   codeMarkSample,
   {

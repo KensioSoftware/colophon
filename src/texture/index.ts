@@ -1,5 +1,6 @@
 import type { Dimensions, Texture } from "../types.js";
 import { grainSvg } from "./grain.js";
+import { moireSvg } from "./moire.js";
 import { dotsSvg, rulesSvg } from "./pattern.js";
 import { raysSvg } from "./rays.js";
 import { wavesSvg } from "./waves.js";
@@ -33,6 +34,10 @@ export function textureSvg(
 
   if (texture.type === "rays") {
     return raysSvg(texture, dimensions);
+  }
+
+  if (texture.type === "moire") {
+    return moireSvg(texture, dimensions, id);
   }
 
   return rulesSvg(texture, dimensions, id);
