@@ -40,6 +40,12 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
+      # `core.test.ts` walks the built package rather than the source, since
+      # what a consumer resolves is `dist/` and the `browser` field is the whole
+      # mechanism it is checking. Without this the suite fails before it can
+      # report a number, which is what it had been doing here since the job was
+      # written. `pr.yml` and `release.yml` both build first for this reason.
+      - run: pnpm build
       - run: pnpm test:coverage
 
       - name: Read coverage
