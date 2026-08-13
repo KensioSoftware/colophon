@@ -310,6 +310,36 @@ const honeycombSample: Sample = {
   },
 };
 
+/** The last three, which the docs show side by side under their own headings. */
+const swatchTexture = (
+  name: string,
+  title: string,
+  texture: NonNullable<ColophonConfig["texture"]>,
+): Sample => ({
+  name: `texture-${name}`,
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title,
+    subtitle: `texture: { type: "${name}" }`,
+  },
+  config: {
+    colors: { brand: "#16a34a", brandDark: "#115e59" },
+    texture,
+    footer: "example.com",
+  },
+});
+
+const scallopsSample = swatchTexture("scallops", "Scallops", {
+  type: "scallops",
+});
+const halftoneSample = swatchTexture("halftone", "Halftone", {
+  type: "halftone",
+});
+const topographicSample = swatchTexture("topographic", "Topographic", {
+  type: "topographic",
+});
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
@@ -321,6 +351,9 @@ export const samples: readonly Sample[] = [
   crosshatchSample,
   chevronsSample,
   honeycombSample,
+  scallopsSample,
+  halftoneSample,
+  topographicSample,
   codeWindowSample,
   codeMarkSample,
   {

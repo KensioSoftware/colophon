@@ -82,16 +82,21 @@ A texture is drawn over the background and under everything the template draws,
 so it never comes between a headline and the reader. All of them are intended
 to be noticed only in passing, and the defaults are faint.
 
-| Texture     | Options                                              |
-| ----------- | ---------------------------------------------------- |
-| `"grain"`   | `opacity`, `scale`                                   |
-| `"dots"`    | `color`, `opacity`, `size`, `gap`                    |
-| `"rules"`   | `color`, `opacity`, `width`, `gap`, `angle`, `cross` |
-| `"waves"`   | `color`, `opacity`, `width`, `gap`                   |
-| `"rays"`    | `color`, `opacity`, `width`, `count`, `x`, `y`       |
-| `"moire"`   | `color`, `opacity`, `width`, `gap`, `angle`          |
-| `"grid"`    | `color`, `opacity`, `width`, `gap`, `major`          |
-| `"crosses"` | `color`, `opacity`, `size`, `width`, `gap`           |
+| Texture         | Options                                              |
+| --------------- | ---------------------------------------------------- |
+| `"grain"`       | `opacity`, `scale`                                   |
+| `"dots"`        | `color`, `opacity`, `size`, `gap`                    |
+| `"rules"`       | `color`, `opacity`, `width`, `gap`, `angle`, `cross` |
+| `"waves"`       | `color`, `opacity`, `width`, `gap`                   |
+| `"rays"`        | `color`, `opacity`, `width`, `count`, `x`, `y`       |
+| `"moire"`       | `color`, `opacity`, `width`, `gap`, `angle`          |
+| `"grid"`        | `color`, `opacity`, `width`, `gap`, `major`          |
+| `"crosses"`     | `color`, `opacity`, `size`, `width`, `gap`           |
+| `"chevrons"`    | `color`, `opacity`, `width`, `gap`                   |
+| `"honeycomb"`   | `color`, `opacity`, `width`, `size`                  |
+| `"scallops"`    | `color`, `opacity`, `width`, `size`                  |
+| `"halftone"`    | `color`, `opacity`, `size`, `gap`, `angle`, `from`   |
+| `"topographic"` | `color`, `opacity`, `width`, `gap`, `relief`, `seed` |
 
 Everything but `grain` defaults to the foreground colour, so a texture shows up
 on a light theme as readily as on a dark one. Lengths are in pixels at the size
@@ -135,12 +140,15 @@ every row of the image, which is most of what PNG compresses by. Measured on a
 | `rules`             | 94KB  |
 | `dots`              | 101KB |
 | `crosses`           | 102KB |
+| `halftone`          | 121KB |
 | `grid`, `major` `0` | 150KB |
 | `rays`              | 164KB |
 | `grid`              | 170KB |
 | `chevrons`          | 181KB |
+| `topographic`       | 181KB |
 | `honeycomb`         | 246KB |
 | `rules`, `cross`    | 294KB |
+| `scallops`          | 301KB |
 | `waves`, `gap` 44   | 423KB |
 | `moire`             | 589KB |
 | `waves`             | 634KB |
@@ -198,6 +206,47 @@ Both are tiles, and both cost more than the dot grid without being anywhere
 near `waves`. What they have that dots and squared paper do not is diagonal
 edges, and a diagonal is antialiased differently in every row it passes
 through.
+
+### Halftone
+
+`halftone` is a grid of dots that grow across the image, which is a gradient
+made out of print:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#16a34a" },
+  texture: { type: "halftone" },
+});
+```
+
+<img src="../../samples/texture-halftone.png" alt="halftone texture" width="50%" />
+
+`angle` is the direction they grow in, where `0` runs to the right and `90`,
+the default, runs down the image. `from` is how big the smallest dot is as a
+fraction of the largest, so raising it flattens the ramp.
+
+It cannot be a tile, since every dot is a different size, and it is still one
+of the cheaper treatments: the size follows the position rather than chance, so
+a run of dots across the image is a smooth ramp with nothing noisy in it.
+
+### Scallops and topographic
+
+`scallops` is rows of arcs, each offset by half a scale from the row above.
+`topographic` is contour lines, the height of a made-up landscape drawn every
+`gap` pixels of it.
+
+<img src="../../samples/texture-scallops.png" alt="scallops texture" width="49%" /> <img src="../../samples/texture-topographic.png" alt="topographic texture" width="49%" />
+
+The contours are the real thing rather than circles pretending: the ground is
+sampled on a grid and each line traces one height through it, so the shapes
+close around a summit, run off the edge where the ground keeps rising, and
+never cross. `relief` is how tall the landscape is, counted in contours between
+a valley and a summit, and `seed` picks which landscape: it moves the phases
+and nothing else, so the same seed always draws the same map.
+
+Nothing here rolls dice, which matters more than it sounds: [rebuilds](../../rebuilds/)
+assume that one config draws one picture, so a texture that was random would
+come out different every time nothing had changed.
 
 ### Crosshatch
 

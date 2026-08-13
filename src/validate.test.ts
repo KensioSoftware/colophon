@@ -303,7 +303,7 @@ describe("validateConfig", () => {
       messageFor({ texture: { type: "speckle" } }),
       'Unknown texture type "speckle". Valid types:' +
         " grain, dots, rules, waves, rays, moire, grid, crosses," +
-        " chevrons, honeycomb.",
+        " chevrons, honeycomb, scallops, halftone, topographic.",
     );
   });
 
