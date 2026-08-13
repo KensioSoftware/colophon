@@ -1,7 +1,7 @@
-import { drawLines, inset } from "../../layout/index.js";
+import { drawLines } from "../../layout/index.js";
 import type { Template, TemplateContext } from "../../types.js";
-import { attribution } from "../attribution.js";
-import { footerBaseline, footerFontSize, hasFooter } from "../footer.js";
+import { footerLine } from "../bottom.js";
+import { contentArea, imageFrame, markRoom } from "../frame.js";
 import { logoElement, logoRect } from "../logo.js";
 import { cardLines } from "./lines.js";
 
@@ -22,24 +22,11 @@ export const cardTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
-    const pad = Math.round(width * 0.09);
-    const footerFs = footerFontSize(dimensions);
-    const mark = logoRect(logo, dimensions, pad, "middle");
-
-    const area = inset(
-      { x: 0, y: 0, width, height },
-      {
-        top: pad + (mark === undefined ? 0 : mark.height + pad / 2),
-        right: pad,
-        left: pad,
-        bottom:
-          pad +
-          (hasFooter(config) || avatar !== undefined
-            ? footerFs + Math.round(height * 0.02)
-            : 0),
-      },
-    );
+    const { height } = dimensions;
+    const frame = imageFrame(dimensions, config, avatar, { padScale: 0.09 });
+    const { pad } = frame;
+    const mark = logoRect(logo, frame.full, pad, "middle");
+    const area = contentArea(frame, markRoom(mark?.height, pad / 2));
 
     const lines = cardLines(props, {
       measure,
@@ -57,20 +44,7 @@ export const cardTemplate: Template = {
       anchor: "middle",
     });
 
-    const footer = attribution(
-      config,
-      {
-        x: Math.round(width / 2),
-        y: footerBaseline(height, pad, footerFs),
-        fontSize: footerFs,
-        opacity: 0.75,
-        anchor: "middle",
-        left: pad,
-        width: width - pad * 2,
-      },
-      avatar,
-      measure,
-    );
+    const footer = footerLine(config, frame, avatar, measure, "middle");
 
     return logoElement(logo, mark) + body + footer;
   },

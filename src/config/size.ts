@@ -68,6 +68,7 @@ export function resolveConfigForSize(
     ...(size.textureScale !== undefined && {
       textureScale: size.textureScale,
     }),
+    ...(size.safeArea !== undefined && { safeArea: size.safeArea }),
     ...(size.code !== undefined && { code: { ...base.code, ...size.code } }),
     ...(size.background !== undefined && { background: size.background }),
     ...(size.fontFamily !== undefined && { fontFamily: size.fontFamily }),

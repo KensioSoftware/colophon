@@ -28,6 +28,13 @@ export default defineConfig({
 });
 ```
 
+There are five more presets for profile covers: `xCover`, `linkedinCover`,
+`linkedinPageCover`, `blueskyCover` and `youtubeCover`. They are not in the list
+above because a cover is made once for a site rather than once per post, so it
+belongs in [`extra`](../extra-images/) instead of in `sizes`. Each carries the
+safe area its platform's crop and avatar leave behind; see
+[Cover images](../cover-images/).
+
 A size can also carry its own config overrides, applied only when rendering it.
 See [Per-size config](../per-size-config/). `thumbnail` is the one preset that
 does: it sets `textureScale: 3`, because a thumbnail is looked at in a fraction

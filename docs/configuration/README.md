@@ -34,6 +34,7 @@ yourself.
 | `background`       | gradient derived from `colors`                | Or a solid colour, a mesh, a gradient or a photo.                   |
 | `texture`          | none                                          | A treatment over the background. See [Themes](./themes/).           |
 | `textureScale`     | `1`                                           | Draw that treatment larger. See [Themes](./themes/).                |
+| `safeArea`         | the whole image                               | The part a platform shows. See [Cover images](./cover-images/).     |
 | `fonts`            | Outfit and JetBrains Mono                     | Font files to render with. See [Fonts](./fonts/).                   |
 | `systemFonts`      | `true` until `fonts` is set                   | Whether installed fonts load behind the bundled ones.               |
 | `fontFamily`       | first font, else `Outfit, ...`                | Font stack for template text.                                       |
@@ -42,7 +43,7 @@ yourself.
 | `code`             | `github-dark`, monospace stack                | Styling for [the code template](../code-template/).                 |
 | `onWarning`        | `console.warn`                                | Where compromises are reported. See [Warnings](./warnings/).        |
 | `sizes`            | `og` and `square`                             | Named output sizes. See [Output sizes](./sizes/).                   |
-| `templates`        | the thirteen built-ins                        | Merged over the built-ins. See [Templates](../templates/).          |
+| `templates`        | the fourteen built-ins                        | Merged over the built-ins. See [Templates](../templates/).          |
 | `rasteriser`       | resvg                                         | What turns SVG into bytes. See [Rasteriser](./rasteriser/).         |
 | `compressionLevel` | `9`                                           | How hard to compress the PNG. See [File size](./compression/).      |
 | `quantise`         | `false`                                       | Reduce the PNG to a palette. See [File size](./compression/).       |

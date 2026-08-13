@@ -26,11 +26,11 @@ export const docsTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const { fontFamily, colors } = config;
     const frame = imageFrame(dimensions, config, avatar);
     const { pad } = frame;
-    const mark = logoRect(logo, dimensions, pad, "start");
+    const mark = logoRect(logo, frame.full, pad, "start");
 
     const chrome = docsChrome(
       props,
@@ -66,7 +66,7 @@ export const docsTemplate: Template = {
       chrome.svg +
       logoElement(logo, mark) +
       body +
-      footerLine(config, frame, width, avatar, measure)
+      footerLine(config, frame, avatar, measure)
     );
   },
 };

@@ -202,6 +202,16 @@ gallery stays in sync.
       <sub><code>thumbnail</code> · 1280×720 · title grown to fill the frame, texture scaled up</sub>
     </td>
   </tr>
+  <tr>
+    <td>
+      <img src="docs/samples/cover-x.png" alt="cover template, 3:1" width="100%" /><br />
+      <sub><code>cover</code> · 3:1 · profile header, kept clear of X's avatar corner</sub>
+    </td>
+    <td>
+      <img src="docs/samples/cover-youtube.png" alt="cover template, 16:9" width="100%" /><br />
+      <sub><code>cover</code> · 16:9 · same layout in YouTube's centred safe area</sub>
+    </td>
+  </tr>
 </table>
 
 ### Themes

@@ -26,10 +26,13 @@ re-walks and re-parses everything for every size.
 ## What can be overridden
 
 Overridable: `theme`, `colors`, `background`, `texture`, `textureScale`,
-`fontFamily`, `footer`, `badge` and `code`. These are what a template reads
-while drawing, plus `textureScale`, which is where that setting usually belongs:
-what it corrects for is how small the image will be looked at, and that is a
-property of the size. See [Textures](../themes/#textures-at-thumbnail-size).
+`safeArea`, `fontFamily`, `footer`, `badge` and `code`. These are what a
+template reads while drawing, plus two that a size is the natural home for.
+`textureScale` corrects for how small the image will be looked at, and
+`safeArea` for how much of it the platform will show; both are properties of
+where the image ends up rather than of the picture. See
+[Textures](../themes/#textures-at-thumbnail-size) and
+[Cover images](../cover-images/).
 
 Not overridable:
 
@@ -66,7 +69,8 @@ of the theme back to the neutral default.
 The other options replace rather than merge. A `background` is a union whose
 variants have different keys, so merging half of one onto half of another would
 produce a background that is neither. A `badge` carries a required `text` that a
-partial override could not supply.
+partial override could not supply. A `safeArea` describes one platform's crop as
+a whole, so half of X's over half of YouTube's would be a safe area for nowhere.
 
 A post declaring [its own badge](../../templates/) wins over a size's, since
 that one describes the post rather than the shape of the image.

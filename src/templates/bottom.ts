@@ -19,24 +19,24 @@ const defaultOpacity = 0.75;
 export function footerLine(
   config: ResolvedConfig,
   frame: Frame,
-  imageWidth: number,
   avatar: ImageAsset | undefined,
   measure: MeasureText,
   align: "start" | "middle" = "start",
   opacity: number = defaultOpacity,
 ): string {
-  const { pad } = frame;
+  const { pad, full } = frame;
 
   return attribution(
     config,
     {
-      x: align === "middle" ? Math.round(imageWidth / 2) : pad,
+      x:
+        align === "middle" ? Math.round(full.x + full.width / 2) : full.x + pad,
       y: frame.footerY,
       fontSize: frame.footerFontSize,
       opacity,
       ...(align === "middle" && { anchor: "middle" as const }),
-      left: pad,
-      width: imageWidth - pad * 2,
+      left: full.x + pad,
+      width: full.width - pad * 2,
     },
     avatar,
     measure,

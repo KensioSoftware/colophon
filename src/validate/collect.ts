@@ -9,6 +9,7 @@ import {
   contentKeys,
   fontKeys,
   imageSourceKeys,
+  safeAreaKeys,
 } from "./keys.js";
 import { checkExtras, checkSizes } from "./overrides.js";
 import { checkPlacement } from "./placement.js";
@@ -47,6 +48,7 @@ export function configProblems(config: ColophonConfig): string[] {
     readonly extra?: unknown;
     readonly placement?: unknown;
     readonly format?: unknown;
+    readonly safeArea?: unknown;
   };
   const problems: string[] = [];
 
@@ -56,6 +58,7 @@ export function configProblems(config: ColophonConfig): string[] {
   checkKeys(raw.logo, "logo", imageSourceKeys, problems);
   checkKeys(raw.code, "code", codeKeys, problems);
   checkCodeChrome(raw.code, problems);
+  checkKeys(raw.safeArea, "safeArea", safeAreaKeys, problems);
   checkKeys(raw.content, "content", contentKeys, problems);
   checkSlugStrategy(raw.content, problems);
   checkSizes(raw.sizes, problems);

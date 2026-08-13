@@ -18,17 +18,36 @@ const footerScale = 0.036;
 const footerWidthFloor = 0.026;
 
 /**
+ * The most it may be, as a fraction of the height, which is about a twelfth.
+ *
+ * The width floor assumes an image whose proportions are somewhere near a
+ * share card's, and a profile cover is not: a LinkedIn Page cover is 6:1, so
+ * the floor asks for 72px of footer in a band that has 250px for the title,
+ * and the site's URL comes out the same size as its name. The ceiling is what
+ * says the line along the bottom is a footer rather than a second heading. It
+ * is above every share preset, so nothing that was drawn before this existed
+ * is drawn differently.
+ */
+const footerHeightCeiling = 0.08;
+
+/**
  * The size the line along the bottom is drawn at.
  *
  * Every template asks for it here rather than working it out, which is what
  * stops the twelve of them drifting apart. It is one number for the footer,
  * the byline and the attribution alike, since they are all the same line.
+ *
+ * The dimensions are the frame's rather than the image's, so a size with a
+ * safe area gets a footer scaled to the part of the picture that is seen.
  */
 export function footerFontSize(dimensions: Dimensions): number {
   return Math.round(
-    Math.max(
-      dimensions.height * footerScale,
-      dimensions.width * footerWidthFloor,
+    Math.min(
+      Math.max(
+        dimensions.height * footerScale,
+        dimensions.width * footerWidthFloor,
+      ),
+      dimensions.height * footerHeightCeiling,
     ),
   );
 }

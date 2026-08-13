@@ -41,6 +41,7 @@ export type {
   Rasteriser,
   RenderedMetaImage,
   ResolvedConfig,
+  SafeArea,
   Template,
   TemplateContext,
   Texture,

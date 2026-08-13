@@ -1,4 +1,5 @@
 import { footerBaseline, footerFontSize, hasFooter } from "./footer.js";
+import { safeRect } from "../config/safe-area.js";
 import { inset } from "../layout/index.js";
 import type { Rect } from "../layout/index.js";
 import type { Dimensions, ImageAsset, ResolvedConfig } from "../types.js";
@@ -22,7 +23,10 @@ export interface Frame {
   /** The margin, applied to every edge. */
   readonly pad: number;
   readonly footerFontSize: number;
-  /** The whole image, as the rectangle the content is inset from. */
+  /**
+   * The rectangle the content is inset from: the whole image, or the part of
+   * it that survives being displayed where the config named a safe area.
+   */
   readonly full: Rect;
   /**
    * Vertical room to leave below the content, which is the footer line plus
@@ -35,8 +39,19 @@ export interface Frame {
 
 /** What a template can tell the frame about itself. */
 export interface FrameOptions {
-  /** The margin, as a fraction of the image's width. */
+  /** The margin, as a fraction of the frame's width. */
   readonly padScale?: number;
+  /**
+   * The margin outright, for a template whose frame is too wide for its height
+   * to take one from the width.
+   *
+   * A fraction of the width is the right unit for an image with the
+   * proportions of a card, and the wrong one for a strip: on a 6:1 cover the
+   * usual 7.5% of the width is a third of the height, spent on margins above
+   * and below the only band there is. Wins over `padScale` where both are
+   * given.
+   */
+  readonly pad?: number;
   /**
    * Whether the template draws something of its own on the bottom line, such
    * as a byline, so the room is left for it even where the config has no
@@ -49,6 +64,16 @@ export interface FrameOptions {
  * Work out a template's frame. The avatar counts as a footer even where the
  * config carries no text, since the picture is drawn on the same line and
  * needs the same room.
+ *
+ * The safe area is worked out first and everything else is measured against
+ * it, rather than against the image. That matters most for the margin: a
+ * YouTube banner is 2560 across and the part of it anyone sees is 1546, so a
+ * margin taken from the image would spend a quarter of the visible width on
+ * clear space. It matters for the footer too, which would otherwise sit on the
+ * bottom edge of a picture that is cropped before it gets there.
+ *
+ * A config naming no safe area gets the whole image back, so every one of
+ * these is the arithmetic it always was.
  */
 export function imageFrame(
   dimensions: Dimensions,
@@ -56,18 +81,20 @@ export function imageFrame(
   avatar: ImageAsset | undefined,
   options: FrameOptions = {},
 ): Frame {
-  const { width, height } = dimensions;
-  const pad = Math.round(width * (options.padScale ?? defaultPadScale));
-  const fontSize = footerFontSize(dimensions);
+  const full = safeRect(dimensions, config.safeArea);
+  const pad =
+    options.pad ??
+    Math.round(full.width * (options.padScale ?? defaultPadScale));
+  const fontSize = footerFontSize(full);
   const isDrawn =
     options.footer === true || hasFooter(config) || avatar !== undefined;
 
   return {
     pad,
     footerFontSize: fontSize,
-    full: { x: 0, y: 0, width, height },
-    footerRoom: isDrawn ? fontSize + Math.round(height * footerGap) : 0,
-    footerY: footerBaseline(height, pad, fontSize),
+    full,
+    footerRoom: isDrawn ? fontSize + Math.round(full.height * footerGap) : 0,
+    footerY: footerBaseline(full.y + full.height, pad, fontSize),
   };
 }
 
@@ -83,7 +110,7 @@ export function markRoom(height: number | undefined, gap: number): number {
 }
 
 /**
- * The space a template's content has: the whole image, less the margins, less
+ * The space a template's content has: the frame, less the margins, less
  * whatever sits along the top, less the footer line.
  *
  * `top` is what {@link markRoom} worked out, or whatever else the template put

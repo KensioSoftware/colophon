@@ -30,6 +30,27 @@ const wide: Dimensions = { width: 1200, height: 630 };
 const video: Dimensions = { width: 1280, height: 720 };
 
 /**
+ * The cover samples are the proportions of the presets rather than their sizes.
+ * A gallery image at 2560x1440 or 4200x700 is a megabyte committed to show a
+ * layout, and a safe area is fractions, so the same crop applies either way.
+ */
+const xStrip: Dimensions = { width: 1200, height: 400 };
+
+/**
+ * `SIZE_PRESETS.xCover`'s safe area: the top and bottom X trims, and the
+ * lower-left corner its avatar sits over.
+ */
+const xSafe = { top: 0.12, right: 0.06, bottom: 0.12, left: 0.25 };
+
+/** `SIZE_PRESETS.youtubeCover`'s: the published 1546x423, centred. */
+const youtubeSafe = {
+  top: (1440 - 423) / 2 / 1440,
+  right: (2560 - 1546) / 2 / 2560,
+  bottom: (1440 - 423) / 2 / 1440,
+  left: (2560 - 1546) / 2 / 2560,
+};
+
+/**
  * The theme gallery is rendered small, since eight of them go in one table and
  * a reader is comparing looks rather than reading the type.
  */
@@ -528,6 +549,37 @@ fi`,
       image: scene,
     },
     config: { footer: "kensiosoftware.co.uk" },
+  },
+  {
+    name: "cover-x",
+    dimensions: xStrip,
+    props: {
+      template: "cover",
+      title: "Kensio Software",
+      subtitle: "Tools for people who publish on the web",
+    },
+    config: {
+      colors: brandColors,
+      footer: "kensiosoftware.co.uk",
+      logo: { data: mark },
+      safeArea: xSafe,
+    },
+  },
+  {
+    name: "cover-youtube",
+    dimensions: video,
+    props: {
+      template: "cover",
+      title: "Kensio Software",
+      subtitle: "Tools for people who publish on the web",
+    },
+    config: {
+      colors: brandColors,
+      texture: { type: "dots" },
+      footer: "kensiosoftware.co.uk",
+      logo: { data: mark },
+      safeArea: youtubeSafe,
+    },
   },
   {
     name: "wordmark-wide",

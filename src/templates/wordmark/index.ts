@@ -28,7 +28,7 @@ export const wordmarkTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const frame = imageFrame(dimensions, config, avatar, {
       padScale: 0.09,
     });
@@ -66,7 +66,7 @@ export const wordmarkTemplate: Template = {
     return (
       markElement(logo, markSlot) +
       body +
-      footerLine(config, frame, width, avatar, measure, "middle")
+      footerLine(config, frame, avatar, measure, "middle")
     );
   },
 };

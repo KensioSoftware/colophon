@@ -28,11 +28,11 @@ export const releaseTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const { fontFamily, colors } = config;
     const frame = imageFrame(dimensions, config, avatar);
     const { pad } = frame;
-    const mark = logoRect(logo, dimensions, pad, "start");
+    const mark = logoRect(logo, frame.full, pad, "start");
 
     const area = contentArea(
       frame,
@@ -72,7 +72,7 @@ export const releaseTemplate: Template = {
 
     const list = changeBlock(changes, listSlot, changeFs, config, measure);
 
-    const footer = footerLine(config, frame, width, avatar, measure);
+    const footer = footerLine(config, frame, avatar, measure);
 
     return logoElement(logo, mark) + head + list + footer;
   },

@@ -47,10 +47,10 @@ export const thumbnailTemplate: Template = {
     logo,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const frame = imageFrame(dimensions, config, avatar, { padScale });
     const { pad } = frame;
-    const mark = logoRect(logo, dimensions, pad, "middle");
+    const mark = logoRect(logo, frame.full, pad, "middle");
 
     const area = contentArea(frame, markRoom(mark?.height, pad / 2));
     const text = {
@@ -88,7 +88,7 @@ export const thumbnailTemplate: Template = {
         ...style,
         lineHeight: subtitleLineHeight,
       }) +
-      footerLine(config, frame, width, avatar, measure, "middle")
+      footerLine(config, frame, avatar, measure, "middle")
     );
   },
 };

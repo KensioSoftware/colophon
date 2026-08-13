@@ -26,7 +26,7 @@ export const quoteTemplate: Template = {
     measure,
     avatar,
   }: TemplateContext): string {
-    const { width, height } = dimensions;
+    const { height } = dimensions;
     const { fontFamily, colors } = config;
     // The avatar goes on the attribution line rather than the footer, so as
     // far as the frame is concerned there is none.
@@ -72,7 +72,7 @@ export const quoteTemplate: Template = {
       quoteMark(markSlot, markFs, fontFamily, colors.brandWarm) +
       body +
       speaker(said, saidSlot, saidFs, config, avatar, measure) +
-      footerLine(config, frame, width, undefined, measure, "middle", 0.7)
+      footerLine(config, frame, undefined, measure, "middle", 0.7)
     );
   },
 };
