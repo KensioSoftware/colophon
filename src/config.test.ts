@@ -170,14 +170,16 @@ describe("resolveConfig", () => {
     assertIdentical(resolved.texture?.type, "dots");
   });
 
-  it("turns grain on for no theme, whatever it costs a project in bytes", () => {
-    // Per-pixel noise takes a 1200x1200 PNG past 2MB, which is not something to
-    // hand someone who picked a theme by its name.
-    const grainy = themeNames.filter(
-      (theme) => resolveConfig({ theme }).texture?.type === "grain",
+  it("turns none of the expensive treatments on for a theme", () => {
+    // Grain takes a 1200x1200 PNG from 82KB past 1.7MB, and waves and moire
+    // take it to around 600KB. That is a bill to run up on purpose, not one to
+    // hand someone who picked a look by its name.
+    const dear = new Set(["grain", "waves", "moire"]);
+    const costly = themeNames.filter((theme) =>
+      dear.has(resolveConfig({ theme }).texture?.type ?? ""),
     );
 
-    assertArrayLength(grainy, 0);
+    assertArrayLength(costly, 0);
   });
 
   it("lets the config win over the theme, field by field", () => {
@@ -220,8 +222,12 @@ describe("resolveConfig", () => {
     });
   });
 
-  it("leaves a theme that brings no texture without one", () => {
-    assertUndefined(resolveConfig({ theme: "bloom" }).texture);
+  it("gives every theme a texture of its own", () => {
+    // A treatment is most of what separates a theme from a palette, so each
+    // preset carries one rather than leaving the background bare.
+    for (const theme of themeNames) {
+      assertNonNullable(resolveConfig({ theme }).texture);
+    }
   });
 
   it("falls back to default sizes when given an empty list", () => {
