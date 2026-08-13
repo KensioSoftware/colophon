@@ -82,14 +82,16 @@ A texture is drawn over the background and under everything the template draws,
 so it never comes between a headline and the reader. All of them are intended
 to be noticed only in passing, and the defaults are faint.
 
-| Texture   | Options                                        |
-| --------- | ---------------------------------------------- |
-| `"grain"` | `opacity`, `scale`                             |
-| `"dots"`  | `color`, `opacity`, `size`, `gap`              |
-| `"rules"` | `color`, `opacity`, `width`, `gap`, `angle`    |
-| `"waves"` | `color`, `opacity`, `width`, `gap`             |
-| `"rays"`  | `color`, `opacity`, `width`, `count`, `x`, `y` |
-| `"moire"` | `color`, `opacity`, `width`, `gap`, `angle`    |
+| Texture     | Options                                        |
+| ----------- | ---------------------------------------------- |
+| `"grain"`   | `opacity`, `scale`                             |
+| `"dots"`    | `color`, `opacity`, `size`, `gap`              |
+| `"rules"`   | `color`, `opacity`, `width`, `gap`, `angle`    |
+| `"waves"`   | `color`, `opacity`, `width`, `gap`             |
+| `"rays"`    | `color`, `opacity`, `width`, `count`, `x`, `y` |
+| `"moire"`   | `color`, `opacity`, `width`, `gap`, `angle`    |
+| `"grid"`    | `color`, `opacity`, `width`, `gap`, `major`    |
+| `"crosses"` | `color`, `opacity`, `size`, `width`, `gap`     |
 
 Everything but `grain` defaults to the foreground colour, so a texture shows up
 on a light theme as readily as on a dark one. Lengths are in pixels at the size
@@ -127,20 +129,23 @@ circles to draw, but their antialiased edges put a different set of colours in
 every row of the image, which is most of what PNG compresses by. Measured on a
 1200×1200 card over a gradient:
 
-| Texture           | PNG   |
-| ----------------- | ----- |
-| none              | 81KB  |
-| `dots`            | 100KB |
-| `rules`           | 93KB  |
-| `rays`            | 151KB |
-| `moire`           | 540KB |
-| `waves`           | 624KB |
-| `waves`, `gap` 44 | 415KB |
-| `grain`           | 1.7MB |
+| Texture             | PNG   |
+| ------------------- | ----- |
+| none                | 82KB  |
+| `rules`             | 94KB  |
+| `dots`              | 101KB |
+| `crosses`           | 102KB |
+| `grid`, `major` `0` | 150KB |
+| `rays`              | 164KB |
+| `grid`              | 170KB |
+| `moire`             | 589KB |
+| `waves`, `gap` 44   | 423KB |
+| `waves`             | 634KB |
+| `grain`             | 1.7MB |
 
-Rendering is around 500ms against 270ms with no texture. If the size matters
+Rendering is around 540ms against 210ms with no texture. If the size matters
 more than the format does, [`format: "webp"`](../formats/) takes the same
-image to 91KB, since a lossy encoding does not care how many colours a row
+image to 94KB, since a lossy encoding does not care how many colours a row
 holds.
 
 ### Rays
@@ -165,8 +170,31 @@ the origin goes.
 
 Of the treatments that cover the whole image rather than repeating a tile, this
 is the cheap one: there are no curves in it and only a few dozen lines, so a
-1200×1200 image goes from 81KB to around 150KB. That is nearer the dot grid
-than `waves`.
+1200×1200 image goes from 82KB to 164KB. That is nearer the dot grid than
+`waves`.
+
+### Grids and crosses
+
+`grid` is squared paper: lines both ways, with a heavier one every so often.
+`crosses` is a small cross where each of those lines would meet, which is the
+dot grid with a little more to look at.
+
+```ts
+export default defineConfig({
+  colors: { brand: "#0369a1" },
+  texture: { type: "grid" },
+});
+```
+
+<img src="../../samples/texture-grid.png" alt="grid texture" width="49%" /> <img src="../../samples/texture-crosses.png" alt="crosses texture" width="49%" />
+
+`major` is how many squares apart the heavier lines are, drawn at twice the
+width. Set `major: 0` for a plain grid with none.
+
+Both are tiles square to the image, so both are among the cheap ones. Crosses
+cost about what the dot grid costs. The grid costs a little more, since a row
+of the image crosses a great many more lines than it does dots, and the
+heavier lines add a second pass over it.
 
 ### Moiré
 
@@ -190,7 +218,7 @@ the image, and it looks like one grid slightly out of true; above about ten
 they tighten into a weave. `gap` is the second lever, and the one that decides
 what the image costs.
 
-It is nearly as expensive as `waves`, at around 540KB for a 1200×1200 image,
+It is nearly as expensive as `waves`, at around 590KB for a 1200×1200 image,
 which is worth knowing because the reason is not obvious. Being drawn from a
 tile makes the SVG small, but the tile is what repeats, not the picture: a
 turned grid crosses the lines at a different place in every row, so there is

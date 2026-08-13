@@ -50,6 +50,8 @@ type RulesTexture = Extract<Texture, { readonly type: "rules" }>;
 type WavesTexture = Extract<Texture, { readonly type: "waves" }>;
 type RaysTexture = Extract<Texture, { readonly type: "rays" }>;
 type MoireTexture = Extract<Texture, { readonly type: "moire" }>;
+type GridTexture = Extract<Texture, { readonly type: "grid" }>;
+type CrossesTexture = Extract<Texture, { readonly type: "crosses" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
 type ImageByPath = Extract<ImageSource, { readonly path: string }>;
 type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
@@ -361,6 +363,26 @@ export const moireTextureKeys = knownKeys<MoireTexture>({
   angle: true,
 });
 
+/** Keys of squared paper. */
+export const gridTextureKeys = knownKeys<GridTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  gap: true,
+  major: true,
+});
+
+/** Keys of the grid of crosses. */
+export const crossesTextureKeys = knownKeys<CrossesTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  size: true,
+  width: true,
+  gap: true,
+});
+
 /**
  * The texture variants, as values, for the reason {@link backgroundTypes} are:
  * they have different keys, so a mistyped `type` has to be reported as itself
@@ -373,6 +395,8 @@ export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
   waves: true,
   rays: true,
   moire: true,
+  grid: true,
+  crosses: true,
 });
 
 /**

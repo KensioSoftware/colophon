@@ -4,6 +4,7 @@ import { tile } from "./tile.js";
 
 const dotDefaults = { opacity: 0.08, size: 5, gap: 44 };
 const ruleDefaults = { opacity: 0.06, width: 2, gap: 28, angle: 45 };
+const crossDefaults = { opacity: 0.09, size: 9, width: 1.5, gap: 48 };
 
 /** A grid of dots, one to a tile. */
 export function dotsSvg(
@@ -25,6 +26,39 @@ export function dotsSvg(
     "",
     dimensions,
     texture.opacity ?? dotDefaults.opacity,
+  );
+}
+
+/**
+ * A small cross where each line of a grid would meet, one to a tile.
+ *
+ * It is the dot grid with a little more to look at, and it costs the same: the
+ * mark is two strokes rather than a fill, and the tile is square to the image
+ * either way.
+ */
+export function crossesSvg(
+  texture: Extract<Texture, { readonly type: "crosses" }>,
+  dimensions: Dimensions,
+  id: string,
+): string {
+  const gap = texture.gap ?? crossDefaults.gap;
+  const centre = gap / 2;
+  const arm = (texture.size ?? crossDefaults.size) / 2;
+  const from = String(centre - arm);
+  const to = String(centre + arm);
+  const cross =
+    `<path d="M${from} ${String(centre)}H${to}M${String(centre)} ${from}V${to}"` +
+    ` stroke="${texture.color ?? fallbackColor}"` +
+    ` stroke-width="${String(texture.width ?? crossDefaults.width)}"` +
+    ` fill="none"/>`;
+
+  return tile(
+    id,
+    gap,
+    cross,
+    "",
+    dimensions,
+    texture.opacity ?? crossDefaults.opacity,
   );
 }
 

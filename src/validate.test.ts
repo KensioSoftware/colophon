@@ -302,7 +302,7 @@ describe("validateConfig", () => {
     assertIdentical(
       messageFor({ texture: { type: "speckle" } }),
       'Unknown texture type "speckle".' +
-        " Valid types: grain, dots, rules, waves, rays, moire.",
+        " Valid types: grain, dots, rules, waves, rays, moire, grid, crosses.",
     );
   });
 

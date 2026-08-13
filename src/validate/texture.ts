@@ -1,7 +1,9 @@
 import { checkKeys, isRecord } from "./check.js";
 import {
+  crossesTextureKeys,
   dotsTextureKeys,
   grainTextureKeys,
+  gridTextureKeys,
   moireTextureKeys,
   raysTextureKeys,
   rulesTextureKeys,
@@ -52,6 +54,16 @@ export function checkTexture(
 
   if (type === "rays") {
     checkKeys(texture, path, raysTextureKeys, problems);
+    return;
+  }
+
+  if (type === "grid") {
+    checkKeys(texture, path, gridTextureKeys, problems);
+    return;
+  }
+
+  if (type === "crosses") {
+    checkKeys(texture, path, crossesTextureKeys, problems);
     return;
   }
 
