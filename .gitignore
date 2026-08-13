@@ -286,7 +286,10 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-cover/
+# Anchored to the root. Unanchored, this coverage-tool directory matches any
+# `cover/` at any depth, which silently swallowed `src/templates/cover/`: the
+# working tree built and tested clean while the commit was missing a template.
+/cover/
 
 # Environments
 env/
