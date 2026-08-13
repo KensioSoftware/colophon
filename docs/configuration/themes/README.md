@@ -82,16 +82,16 @@ A texture is drawn over the background and under everything the template draws,
 so it never comes between a headline and the reader. All of them are intended
 to be noticed only in passing, and the defaults are faint.
 
-| Texture     | Options                                        |
-| ----------- | ---------------------------------------------- |
-| `"grain"`   | `opacity`, `scale`                             |
-| `"dots"`    | `color`, `opacity`, `size`, `gap`              |
-| `"rules"`   | `color`, `opacity`, `width`, `gap`, `angle`    |
-| `"waves"`   | `color`, `opacity`, `width`, `gap`             |
-| `"rays"`    | `color`, `opacity`, `width`, `count`, `x`, `y` |
-| `"moire"`   | `color`, `opacity`, `width`, `gap`, `angle`    |
-| `"grid"`    | `color`, `opacity`, `width`, `gap`, `major`    |
-| `"crosses"` | `color`, `opacity`, `size`, `width`, `gap`     |
+| Texture     | Options                                              |
+| ----------- | ---------------------------------------------------- |
+| `"grain"`   | `opacity`, `scale`                                   |
+| `"dots"`    | `color`, `opacity`, `size`, `gap`                    |
+| `"rules"`   | `color`, `opacity`, `width`, `gap`, `angle`, `cross` |
+| `"waves"`   | `color`, `opacity`, `width`, `gap`                   |
+| `"rays"`    | `color`, `opacity`, `width`, `count`, `x`, `y`       |
+| `"moire"`   | `color`, `opacity`, `width`, `gap`, `angle`          |
+| `"grid"`    | `color`, `opacity`, `width`, `gap`, `major`          |
+| `"crosses"` | `color`, `opacity`, `size`, `width`, `gap`           |
 
 Everything but `grain` defaults to the foreground colour, so a texture shows up
 on a light theme as readily as on a dark one. Lengths are in pixels at the size
@@ -133,6 +133,7 @@ every row of the image, which is most of what PNG compresses by. Measured on a
 | ------------------- | ----- |
 | none                | 82KB  |
 | `rules`             | 94KB  |
+| `rules`, `cross`    | 294KB |
 | `dots`              | 101KB |
 | `crosses`           | 102KB |
 | `grid`, `major` `0` | 150KB |
@@ -172,6 +173,28 @@ Of the treatments that cover the whole image rather than repeating a tile, this
 is the cheap one: there are no curves in it and only a few dozen lines, so a
 1200×1200 image goes from 82KB to 164KB. That is nearer the dot grid than
 `waves`.
+
+### Crosshatch
+
+`rules` takes a `cross` flag, which draws a second set at the opposite angle:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#7c3aed" },
+  texture: { type: "rules", cross: true },
+});
+```
+
+<img src="../../samples/texture-crosshatch.png" alt="crosshatch texture" width="50%" />
+
+The crossing set is drawn fainter than the first, which is what makes the two
+read as a weave rather than as two sets of lines.
+
+It is not the cheap change it looks like. One set of rules costs 94KB on the
+1200×1200 card and two crossing sets cost 294KB, because the crossings put
+tones in the image that neither set has on its own, and they land in a
+different place in every row. A tile keeps the SVG small; it is the picture
+that has to repeat for the file to stay small, and here it does not.
 
 ### Grids and crosses
 
