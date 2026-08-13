@@ -232,6 +232,43 @@ export type Texture =
     }
   | {
       /**
+       * Lines both ways, with a heavier one every so often, which is the look
+       * of squared paper. It is a tile, so it is one of the cheap ones.
+       */
+      readonly type: "grid";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.07`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `1`. */
+      readonly width?: number;
+      /** Spacing between one line and the next. Defaults to `32`. */
+      readonly gap?: number;
+      /**
+       * How many squares apart the heavier lines are, drawn at twice the
+       * width. Defaults to `5`; `0` draws none and leaves a plain grid.
+       */
+      readonly major?: number;
+    }
+  | {
+      /**
+       * A small cross where each line of a grid would meet, which is the dot
+       * grid with something more to look at. Also a tile, and as cheap.
+       */
+      readonly type: "crosses";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.09`. */
+      readonly opacity?: number;
+      /** How far a cross reaches across. Defaults to `9`. */
+      readonly size?: number;
+      /** Line thickness. Defaults to `1.5`. */
+      readonly width?: number;
+      /** Centre-to-centre spacing. Defaults to `48`. */
+      readonly gap?: number;
+    }
+  | {
+      /**
        * Two square grids, one turned a few degrees against the other. What is
        * seen is the interference between them, which reads as broad bands
        * sweeping across the image. It is `waves` drawn with straight edges,

@@ -151,6 +151,46 @@ describe("textureSvg", () => {
     assertStringIncludes(svg, 'x2="894" y2="0"');
   });
 
+  it("renders a grid as a fine tile with a heavier one over it", () => {
+    const svg = textureSvg(
+      { type: "grid", color: "#ffffff", gap: 20, width: 1, major: 4 },
+      dimensions,
+      "tx",
+    );
+
+    // The heavy lines are a second tile rather than part of the first, since
+    // what makes them heavy is repeating at a multiple of the spacing.
+    assertStringIncludes(svg, '<pattern id="txa" width="20" height="20"');
+    assertStringIncludes(svg, '<pattern id="txb" width="80" height="80"');
+    assertStringIncludes(svg, '<path d="M0 10H20M10 0V20"');
+    assertStringIncludes(svg, '<path d="M0 40H80M40 0V80"');
+    assertStringIncludes(svg, 'stroke-width="2"');
+  });
+
+  it("draws a grid with no heavier lines as one tile", () => {
+    const svg = textureSvg(
+      { type: "grid", color: "#ffffff", major: 0 },
+      dimensions,
+      "tx",
+    );
+
+    assertStringIncludes(svg, '<pattern id="txa"');
+    assertStringNotIncludes(svg, "txb");
+  });
+
+  it("renders crosses as one mark to a tile", () => {
+    const svg = textureSvg(
+      { type: "crosses", color: "#ffffff", gap: 40, size: 10, width: 2 },
+      dimensions,
+      "tx",
+    );
+
+    // Centred in the tile, with arms half the size either way.
+    assertStringIncludes(svg, '<path d="M15 20H25M20 15V25"');
+    assertStringIncludes(svg, 'stroke="#ffffff" stroke-width="2"');
+    assertStringIncludes(svg, 'fill="url(#tx)" opacity="0.09"');
+  });
+
   it("renders moire as one grid turned against another", () => {
     const svg = textureSvg(
       { type: "moire", color: "#ffffff", gap: 20, width: 2, angle: 6 },

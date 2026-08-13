@@ -229,12 +229,48 @@ const moireSample: Sample = {
   },
 };
 
+/**
+ * The two tiled patterns worth showing, drawn side by side in the docs. Both
+ * are swatches for the reason the themes are.
+ */
+const gridSample: Sample = {
+  name: "texture-grid",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Grid",
+    subtitle: 'texture: { type: "grid" }',
+  },
+  config: {
+    colors: { brand: "#0369a1", brandDark: "#075985" },
+    texture: { type: "grid" },
+    footer: "example.com",
+  },
+};
+
+const crossesSample: Sample = {
+  name: "texture-crosses",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Crosses",
+    subtitle: 'texture: { type: "crosses" }',
+  },
+  config: {
+    colors: { brand: "#0369a1", brandDark: "#075985" },
+    texture: { type: "crosses" },
+    footer: "example.com",
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
   wavesSample,
   raysSample,
   moireSample,
+  gridSample,
+  crossesSample,
   codeWindowSample,
   codeMarkSample,
   {

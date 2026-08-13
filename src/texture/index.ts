@@ -1,7 +1,8 @@
 import type { Dimensions, Texture } from "../types.js";
 import { grainSvg } from "./grain.js";
+import { gridSvg } from "./grid.js";
 import { moireSvg } from "./moire.js";
-import { dotsSvg, rulesSvg } from "./pattern.js";
+import { crossesSvg, dotsSvg, rulesSvg } from "./pattern.js";
 import { raysSvg } from "./rays.js";
 import { wavesSvg } from "./waves.js";
 
@@ -26,6 +27,14 @@ export function textureSvg(
 
   if (texture.type === "dots") {
     return dotsSvg(texture, dimensions, id);
+  }
+
+  if (texture.type === "grid") {
+    return gridSvg(texture, dimensions, id);
+  }
+
+  if (texture.type === "crosses") {
+    return crossesSvg(texture, dimensions, id);
   }
 
   if (texture.type === "waves") {
