@@ -405,6 +405,29 @@ export const honeycombTextureKeys = knownKeys<HoneycombTexture>({
 });
 
 /**
+ * The keys each treatment accepts, by the name it declares.
+ *
+ * A table rather than a chain of `if`s in `checkTexture`, which had a branch
+ * per texture and there are ten of them. It lives here, beside the lists it is
+ * made of, because it is one more list rather than a piece of checking. The
+ * type is what stops it going stale: a treatment added to `Texture` with no
+ * entry here fails to compile.
+ */
+export const textureKeysByType: { [T in Texture["type"]]: readonly string[] } =
+  {
+    grain: grainTextureKeys,
+    dots: dotsTextureKeys,
+    rules: rulesTextureKeys,
+    grid: gridTextureKeys,
+    crosses: crossesTextureKeys,
+    chevrons: chevronsTextureKeys,
+    honeycomb: honeycombTextureKeys,
+    moire: moireTextureKeys,
+    waves: wavesTextureKeys,
+    rays: raysTextureKeys,
+  };
+
+/**
  * The texture variants, as values, for the reason {@link backgroundTypes} are:
  * they have different keys, so a mistyped `type` has to be reported as itself
  * rather than as a list of keys that do not apply.

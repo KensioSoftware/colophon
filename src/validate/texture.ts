@@ -1,27 +1,20 @@
+import type { Texture } from "../types.js";
 import { checkKeys, isRecord } from "./check.js";
-import {
-  chevronsTextureKeys,
-  crossesTextureKeys,
-  dotsTextureKeys,
-  grainTextureKeys,
-  gridTextureKeys,
-  honeycombTextureKeys,
-  moireTextureKeys,
-  raysTextureKeys,
-  rulesTextureKeys,
-  textureTypes,
-  wavesTextureKeys,
-} from "./keys.js";
+import { textureKeysByType, textureTypes } from "./keys.js";
 import { describeUnknownValue } from "./values.js";
+
+/** Whether a declared type is one of the treatments there are. */
+function isTextureType(type: unknown): type is Texture["type"] {
+  return typeof type === "string" && type in textureKeysByType;
+}
 
 /**
  * Check a texture against the keys of whichever treatment it declares.
  *
- * The same reasoning as a background's: `textureSvg` draws anything it does
- * not recognise as the last variant it checks for, so an unknown `type` would
- * come out as a set of ruled lines nobody asked for. A texture with no `type`
- * is left to the type checker, since without one there is no telling which
- * keys were meant.
+ * The same reasoning as a background's: a mistyped `type` has to be reported
+ * as itself rather than as a list of keys that do not apply. A texture with no
+ * `type` is left to the type checker, since without one there is no telling
+ * which keys were meant.
  */
 export function checkTexture(
   texture: unknown,
@@ -34,53 +27,8 @@ export function checkTexture(
 
   const { type } = texture;
 
-  if (type === "grain") {
-    checkKeys(texture, path, grainTextureKeys, problems);
-    return;
-  }
-
-  if (type === "dots") {
-    checkKeys(texture, path, dotsTextureKeys, problems);
-    return;
-  }
-
-  if (type === "rules") {
-    checkKeys(texture, path, rulesTextureKeys, problems);
-    return;
-  }
-
-  if (type === "waves") {
-    checkKeys(texture, path, wavesTextureKeys, problems);
-    return;
-  }
-
-  if (type === "rays") {
-    checkKeys(texture, path, raysTextureKeys, problems);
-    return;
-  }
-
-  if (type === "grid") {
-    checkKeys(texture, path, gridTextureKeys, problems);
-    return;
-  }
-
-  if (type === "chevrons") {
-    checkKeys(texture, path, chevronsTextureKeys, problems);
-    return;
-  }
-
-  if (type === "honeycomb") {
-    checkKeys(texture, path, honeycombTextureKeys, problems);
-    return;
-  }
-
-  if (type === "crosses") {
-    checkKeys(texture, path, crossesTextureKeys, problems);
-    return;
-  }
-
-  if (type === "moire") {
-    checkKeys(texture, path, moireTextureKeys, problems);
+  if (isTextureType(type)) {
+    checkKeys(texture, path, textureKeysByType[type], problems);
     return;
   }
 
