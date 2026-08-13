@@ -331,6 +331,7 @@ export const rulesTextureKeys = knownKeys<RulesTexture>({
   width: true,
   gap: true,
   angle: true,
+  cross: true,
 });
 
 /** Keys of the rings drawn in from either side. */

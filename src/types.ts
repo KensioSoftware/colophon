@@ -178,6 +178,13 @@ export type Texture =
       readonly gap?: number;
       /** Degrees clockwise from vertical. Defaults to `45`. */
       readonly angle?: number;
+      /**
+       * Draw a second set at the opposite angle, crossing the first, which is
+       * the crosshatch of a pencil drawing. The second set is fainter, and
+       * that is what makes the crossings read as a surface rather than as two
+       * sets of lines. Defaults to `false`.
+       */
+      readonly cross?: boolean;
     }
   | {
       /**

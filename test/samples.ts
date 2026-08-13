@@ -263,6 +263,22 @@ const crossesSample: Sample = {
   },
 };
 
+/** The crossing rules, which are a flag rather than a texture of their own. */
+const crosshatchSample: Sample = {
+  name: "texture-crosshatch",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Crosshatch",
+    subtitle: 'texture: { type: "rules", cross: true }',
+  },
+  config: {
+    colors: { brand: "#7c3aed", brandDark: "#4c1d95" },
+    texture: { type: "rules", cross: true },
+    footer: "example.com",
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
@@ -271,6 +287,7 @@ export const samples: readonly Sample[] = [
   moireSample,
   gridSample,
   crossesSample,
+  crosshatchSample,
   codeWindowSample,
   codeMarkSample,
   {

@@ -6,6 +6,15 @@ const dotDefaults = { opacity: 0.08, size: 5, gap: 44 };
 const ruleDefaults = { opacity: 0.06, width: 2, gap: 28, angle: 45 };
 const crossDefaults = { opacity: 0.09, size: 9, width: 1.5, gap: 48 };
 
+/**
+ * How much fainter the crossing set of rules is than the first.
+ *
+ * The same figure the two sets of rings in `waves` use, and for the same
+ * reason: two sets at one opacity read as two sets, and dropping one of them
+ * is what turns the crossings into a surface with a weave to it.
+ */
+const crossScale = 0.65;
+
 /** A grid of dots, one to a tile. */
 export function dotsSvg(
   texture: Extract<Texture, { readonly type: "dots" }>,
@@ -82,13 +91,26 @@ export function rulesSvg(
     ` stroke="${texture.color ?? fallbackColor}"` +
     ` stroke-width="${String(texture.width ?? ruleDefaults.width)}"/>`;
   const angle = texture.angle ?? ruleDefaults.angle;
+  const opacity = texture.opacity ?? ruleDefaults.opacity;
 
-  return tile(
-    id,
-    gap,
-    line,
-    ` patternTransform="rotate(${String(angle)})"`,
-    dimensions,
-    texture.opacity ?? ruleDefaults.opacity,
+  const set = (name: string, at: number, alpha: number): string =>
+    tile(
+      name,
+      gap,
+      line,
+      ` patternTransform="rotate(${String(at)})"`,
+      dimensions,
+      alpha,
+    );
+
+  if (texture.cross !== true) {
+    // One set keeps the id it always had, so that the common case draws what
+    // it drew before, down to the byte.
+    return set(id, angle, opacity);
+  }
+
+  return (
+    set(`${id}a`, angle, opacity) +
+    set(`${id}b`, -angle, Math.round(opacity * crossScale * 1000) / 1000)
   );
 }

@@ -191,6 +191,33 @@ describe("textureSvg", () => {
     assertStringIncludes(svg, 'fill="url(#tx)" opacity="0.09"');
   });
 
+  it("crosses rules with a fainter set at the opposite angle", () => {
+    const svg = textureSvg(
+      { type: "rules", color: "#ffffff", gap: 20, angle: 30, cross: true },
+      dimensions,
+      "tx",
+    );
+
+    assertStringIncludes(svg, 'patternTransform="rotate(30)"');
+    assertStringIncludes(svg, 'patternTransform="rotate(-30)"');
+    // The crossing set is fainter, which is what makes the two read as one
+    // surface rather than as two sets of lines.
+    assertStringIncludes(svg, 'fill="url(#txa)" opacity="0.06"');
+    assertStringIncludes(svg, 'fill="url(#txb)" opacity="0.039"');
+  });
+
+  it("leaves an uncrossed set of rules exactly as it was", () => {
+    const svg = textureSvg(
+      { type: "rules", color: "#ffffff", cross: false },
+      dimensions,
+      "tx",
+    );
+
+    // One set keeps the plain id, so the common case draws what it always drew.
+    assertStringIncludes(svg, '<pattern id="tx"');
+    assertStringNotIncludes(svg, "txa");
+  });
+
   it("renders moire as one grid turned against another", () => {
     const svg = textureSvg(
       { type: "moire", color: "#ffffff", gap: 20, width: 2, angle: 6 },
