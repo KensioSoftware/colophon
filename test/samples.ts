@@ -279,6 +279,37 @@ const crosshatchSample: Sample = {
   },
 };
 
+/** The last two tiled shapes, shown side by side in the docs. */
+const chevronsSample: Sample = {
+  name: "texture-chevrons",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Chevrons",
+    subtitle: 'texture: { type: "chevrons" }',
+  },
+  config: {
+    colors: { brand: "#16a34a", brandDark: "#115e59" },
+    texture: { type: "chevrons" },
+    footer: "example.com",
+  },
+};
+
+const honeycombSample: Sample = {
+  name: "texture-honeycomb",
+  dimensions: swatch,
+  props: {
+    template: "card",
+    title: "Honeycomb",
+    subtitle: 'texture: { type: "honeycomb" }',
+  },
+  config: {
+    colors: { brand: "#16a34a", brandDark: "#115e59" },
+    texture: { type: "honeycomb" },
+    footer: "example.com",
+  },
+};
+
 /** Every sample in the README gallery, themes first. */
 export const samples: readonly Sample[] = [
   ...themeSamples,
@@ -288,6 +319,8 @@ export const samples: readonly Sample[] = [
   gridSample,
   crossesSample,
   crosshatchSample,
+  chevronsSample,
+  honeycombSample,
   codeWindowSample,
   codeMarkSample,
   {

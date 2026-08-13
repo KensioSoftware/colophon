@@ -301,8 +301,9 @@ describe("validateConfig", () => {
   it("rejects a texture type it would otherwise draw as ruled lines", () => {
     assertIdentical(
       messageFor({ texture: { type: "speckle" } }),
-      'Unknown texture type "speckle".' +
-        " Valid types: grain, dots, rules, waves, rays, moire, grid, crosses.",
+      'Unknown texture type "speckle". Valid types:' +
+        " grain, dots, rules, waves, rays, moire, grid, crosses," +
+        " chevrons, honeycomb.",
     );
   });
 

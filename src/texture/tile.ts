@@ -11,18 +11,21 @@ import type { Dimensions } from "../types.js";
  */
 export function tile(
   id: string,
-  gap: number,
+  /** The repeat: one number for a square tile, or both sides where it is not. */
+  gap: number | Dimensions,
   contents: string,
   transform: string,
   dimensions: Dimensions,
   opacity: number,
 ): string {
   const { width, height } = dimensions;
-  const size = String(gap);
+  const repeat =
+    typeof gap === "number" ? { width: gap, height: gap } : { ...gap };
 
   return (
     `<defs>` +
-    `<pattern id="${id}" width="${size}" height="${size}"` +
+    `<pattern id="${id}" width="${String(repeat.width)}"` +
+    ` height="${String(repeat.height)}"` +
     ` patternUnits="userSpaceOnUse"${transform}>${contents}</pattern>` +
     `</defs>` +
     `<rect width="${String(width)}" height="${String(height)}"` +

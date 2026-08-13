@@ -133,14 +133,16 @@ every row of the image, which is most of what PNG compresses by. Measured on a
 | ------------------- | ----- |
 | none                | 82KB  |
 | `rules`             | 94KB  |
-| `rules`, `cross`    | 294KB |
 | `dots`              | 101KB |
 | `crosses`           | 102KB |
 | `grid`, `major` `0` | 150KB |
 | `rays`              | 164KB |
 | `grid`              | 170KB |
-| `moire`             | 589KB |
+| `chevrons`          | 181KB |
+| `honeycomb`         | 246KB |
+| `rules`, `cross`    | 294KB |
 | `waves`, `gap` 44   | 423KB |
+| `moire`             | 589KB |
 | `waves`             | 634KB |
 | `grain`             | 1.7MB |
 
@@ -173,6 +175,29 @@ Of the treatments that cover the whole image rather than repeating a tile, this
 is the cheap one: there are no curves in it and only a few dozen lines, so a
 1200×1200 image goes from 82KB to 164KB. That is nearer the dot grid than
 `waves`.
+
+### Chevrons and honeycomb
+
+`chevrons` is rows of V shapes, and `honeycomb` is hexagon outlines:
+
+```ts
+export default defineConfig({
+  colors: { brand: "#16a34a" },
+  texture: { type: "honeycomb" },
+});
+```
+
+<img src="../../samples/texture-chevrons.png" alt="chevrons texture" width="49%" /> <img src="../../samples/texture-honeycomb.png" alt="honeycomb texture" width="49%" />
+
+`chevrons` takes `gap`, which is both how wide one chevron is and how far
+apart the rows are. `honeycomb` takes `size`, the length of one side of a
+hexagon, and its repeat is the only one here that is not square: a honeycomb
+fits in a rectangle three sides across and `size × √3` down.
+
+Both are tiles, and both cost more than the dot grid without being anywhere
+near `waves`. What they have that dots and squared paper do not is diagonal
+edges, and a diagonal is antialiased differently in every row it passes
+through.
 
 ### Crosshatch
 

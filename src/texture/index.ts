@@ -1,5 +1,7 @@
 import type { Dimensions, Texture } from "../types.js";
+import { chevronsSvg } from "./chevrons.js";
 import { grainSvg } from "./grain.js";
+import { honeycombSvg } from "./honeycomb.js";
 import { gridSvg } from "./grid.js";
 import { moireSvg } from "./moire.js";
 import { crossesSvg, dotsSvg, rulesSvg } from "./pattern.js";
@@ -31,6 +33,14 @@ export function textureSvg(
 
   if (texture.type === "grid") {
     return gridSvg(texture, dimensions, id);
+  }
+
+  if (texture.type === "chevrons") {
+    return chevronsSvg(texture, dimensions, id);
+  }
+
+  if (texture.type === "honeycomb") {
+    return honeycombSvg(texture, dimensions, id);
   }
 
   if (texture.type === "crosses") {
