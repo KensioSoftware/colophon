@@ -10,6 +10,7 @@ import { quoteTemplate } from "./quote/index.js";
 import { releaseTemplate } from "./release/index.js";
 import { statTemplate } from "./stat/index.js";
 import { terminalTemplate } from "./terminal/index.js";
+import { thumbnailTemplate } from "./thumbnail/index.js";
 import { wordmarkTemplate } from "./wordmark/index.js";
 
 /**
@@ -28,6 +29,7 @@ export const builtinTemplates: Readonly<Record<string, Template>> = {
   [releaseTemplate.name]: releaseTemplate,
   [statTemplate.name]: statTemplate,
   [terminalTemplate.name]: terminalTemplate,
+  [thumbnailTemplate.name]: thumbnailTemplate,
   [wordmarkTemplate.name]: wordmarkTemplate,
 };
 
@@ -42,5 +44,6 @@ export { quoteTemplate } from "./quote/index.js";
 export { releaseTemplate } from "./release/index.js";
 export { statTemplate } from "./stat/index.js";
 export { terminalTemplate } from "./terminal/index.js";
+export { thumbnailTemplate } from "./thumbnail/index.js";
 export { wordmarkTemplate } from "./wordmark/index.js";
 export { optionalString } from "../props.js";

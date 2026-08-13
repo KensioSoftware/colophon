@@ -3,20 +3,21 @@
 A template is a layout. Frontmatter picks one by name, so different posts on the
 same site can produce different kinds of image from the same config.
 
-| Name       | Layout                                                                       | Props it reads beyond `title` and `subtitle` |
-| ---------- | ---------------------------------------------------------------------------- | -------------------------------------------- |
-| `banner`   | Left-aligned title with optional version, subtitle, corner badge and footer. | `version`, `badge`                           |
-| `card`     | Minimal centred title with an optional subtitle.                             |                                              |
-| `code`     | Syntax-highlighted snippet on a rounded panel over the background.           | `code`, `language`, `theme`                  |
-| `article`  | Tags, headline and standfirst, with a byline along the bottom.               | `tags`, `author`, `date`, `avatar`           |
-| `quote`    | A pull quote with the speaker under it.                                      | `quote`, `author`, `role`, `avatar`          |
-| `terminal` | A command and its output, in window chrome.                                  | `command`, `output`, `prompt`, `title`       |
-| `release`  | A version, what it is, and the headline changes as a list.                   | `version`, `changes`                         |
-| `stat`     | One big figure with a label above and a caption below.                       | `stat`                                       |
-| `photo`    | The post's photograph, scrimmed, with the title over the bottom of it.       | `image`                                      |
-| `wordmark` | The configured logo above a name and tagline.                                |                                              |
-| `docs`     | A breadcrumb trail, a rule, then the page's title.                           | `breadcrumb`                                 |
-| `event`    | A date on a plate, then what the event is and where.                         | `date`, `location`                           |
+| Name        | Layout                                                                       | Props it reads beyond `title` and `subtitle` |
+| ----------- | ---------------------------------------------------------------------------- | -------------------------------------------- |
+| `banner`    | Left-aligned title with optional version, subtitle, corner badge and footer. | `version`, `badge`                           |
+| `card`      | Minimal centred title with an optional subtitle.                             |                                              |
+| `code`      | Syntax-highlighted snippet on a rounded panel over the background.           | `code`, `language`, `theme`                  |
+| `article`   | Tags, headline and standfirst, with a byline along the bottom.               | `tags`, `author`, `date`, `avatar`           |
+| `quote`     | A pull quote with the speaker under it.                                      | `quote`, `author`, `role`, `avatar`          |
+| `terminal`  | A command and its output, in window chrome.                                  | `command`, `output`, `prompt`, `title`       |
+| `release`   | A version, what it is, and the headline changes as a list.                   | `version`, `changes`                         |
+| `stat`      | One big figure with a label above and a caption below.                       | `stat`                                       |
+| `photo`     | The post's photograph, scrimmed, with the title over the bottom of it.       | `image`                                      |
+| `wordmark`  | The configured logo above a name and tagline.                                |                                              |
+| `docs`      | A breadcrumb trail, a rule, then the page's title.                           | `breadcrumb`                                 |
+| `event`     | A date on a plate, then what the event is and where.                         | `date`, `location`                           |
+| `thumbnail` | One title grown to fill the frame, for a video thumbnail.                    |                                              |
 
 The `code` template has enough of its own behaviour to need
 [a page of its own](../code-template/). Every one of the others is described
@@ -54,7 +55,8 @@ are, because a name typed into frontmatter is easy to get wrong:
 
 ```text
 Unknown template "bannner". Available templates: article, banner, card,
-code, docs, event, photo, quote, release, stat, terminal, wordmark.
+code, docs, event, photo, quote, release, stat, terminal, thumbnail,
+wordmark.
 ```
 
 ## The badge on a banner
@@ -301,6 +303,58 @@ meta_img_props:
 The date is set on a plate in the accent colour rather than as another line of
 text, because it is the one thing a reader is scanning for. As with `article`,
 the date is drawn as written.
+
+### `thumbnail`
+
+A video thumbnail: one title, set as large as it will go.
+
+```yaml
+---
+meta_img_props:
+  template: thumbnail
+  title: Rendering text without a browser
+  subtitle: Episode 4
+---
+```
+
+<img src="../samples/thumbnail-video.png" alt="thumbnail template" width="70%" />
+
+Render it at `SIZE_PRESETS.thumbnail`, which is the 1280x720 YouTube asks for:
+
+```ts
+import { defineConfig, SIZE_PRESETS } from "@kensio/colophon";
+
+export default defineConfig({
+  sizes: [SIZE_PRESETS.og, SIZE_PRESETS.thumbnail],
+});
+```
+
+What makes this a template rather than a `card` at other proportions is where
+the image is looked at. A share card is seen more or less at the size it was
+rendered; a thumbnail is seen in a list, a sidebar or a phone, at something
+between a third and a sixth of it. Three things follow from that.
+
+The title is grown to fill the frame rather than set at a fraction of the
+height, so a three-word title is drawn much larger than a twelve-word one. Every
+other template does the opposite, and is right to: a heading that swelled to fill
+its space would stop looking like a heading. Here the words are the picture.
+
+There is one text field. `subtitle` is available for a series name or an episode
+number and is drawn small under the title, taking its room from the title's, but
+the format rewards leaving it out.
+
+The margins are tighter than elsewhere, since the room they give back is the
+point. The configured logo and footer are still drawn, and a size can drop the
+footer with `footer: ""` where the title should have the whole frame.
+
+One thing worth knowing about the text: it grows until it hits either the width
+or the height, and more lines set larger beats one line set small. A long title
+therefore wraps onto four or five lines rather than shrinking, which is what
+reads at thumbnail size. A title too long to fit even at the floor, around a
+tenth of the image height, is cut to the lines there is room for.
+
+Textures want to be coarser here too, for the same reason the text does. See
+[`textureScale`](../configuration/themes/#textures-at-thumbnail-size).
 
 ## Writing your own
 

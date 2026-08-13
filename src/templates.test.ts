@@ -30,7 +30,7 @@ describe("builtinTemplates", () => {
     assertIdentical(builtinTemplates["banner"], bannerTemplate);
     assertIdentical(builtinTemplates["card"], cardTemplate);
     assertIdentical(builtinTemplates["code"], codeTemplate);
-    assertArrayLength(Object.keys(builtinTemplates), 12);
+    assertArrayLength(Object.keys(builtinTemplates), 13);
   });
 });
 

@@ -104,6 +104,35 @@ const [markSlot, textSlot] = stack(
 );
 ```
 
+`fillLines` is `blockLines` with the question turned round. Instead of a size to
+draw at and a line budget to shrink into, it takes a box, and gives back the
+largest size the whole of the text fits in it:
+
+```ts
+const lines = fillLines(props.title, measure, config.fontFamily, {
+  maxWidth: content.width,
+  maxHeight: content.height,
+  lineHeight: 1.08, // pass the same value to drawLines
+  maxFontSize: Math.round(height * 0.5),
+  minFontSize: Math.round(height * 0.125),
+  fontWeight: 800,
+  opacity: 1,
+});
+```
+
+Reach for it where the text _is_ the picture rather than a heading in one, so
+that three words are drawn much larger than twelve. That is a narrow case, and
+the `thumbnail` template is the built-in it exists for: a video thumbnail is
+looked at in a fraction of the space it is rendered at, so the words have to
+take the room they are given. Everywhere else `blockLines` is right, because a
+heading that grew to fill its space would stop looking like a heading.
+
+Two things it does that are worth knowing. More lines set larger beats one line
+set small, so a long title wraps rather than shrinking. And it will not break a
+word in half to fill the box, which a search measuring only the height it filled
+would happily do. `fillText` is the same thing without the prop reading, for
+text you already have in hand.
+
 `clampLine` is the other way to make text fit: it cuts one line to the width it
 has and marks the cut with an ellipsis. Shrinking is the better answer wherever
 there is room for it, which is what `blockLines` does. Reach for this where a

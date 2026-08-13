@@ -11,7 +11,7 @@ import { scallopsSvg } from "./scallops.js";
 import { topographicSvg } from "./topographic/index.js";
 import { wavesSvg } from "./waves.js";
 
-export { resolveTexture } from "./resolve.js";
+export { resolveTexture, resolveTextureScale } from "./resolve.js";
 
 /** What draws one treatment: its own variant, the size, and an id for `<defs>`. */
 type Draw<T extends Texture["type"]> = (
@@ -56,16 +56,38 @@ const drawers: { [T in Texture["type"]]: Draw<T> } = {
  *
  * It is drawn between the background and whatever a template draws, so a
  * texture never comes between a headline and the reader.
+ *
+ * `scale` draws the same picture larger, for an image that will be looked at
+ * much smaller than it was rendered. It is done here, once, rather than by
+ * every treatment reading it: the thirteen of them describe their geometry in
+ * a dozen different fields, and there is no arithmetic they could share except
+ * this. So the texture is drawn into a smaller image and that image is scaled
+ * back up, which is exactly what a magnifier over the corner of it would show.
+ * The dimensions are rounded up so the treatment still covers the last row of
+ * pixels, and the viewport is what trims the overhang.
+ *
+ * A scale of `1` writes what it always wrote, down to the byte, which is what
+ * leaves every image that does not ask for this alone.
  */
 export function textureSvg(
   texture: Texture,
   dimensions: Dimensions,
   id: string,
+  scale = 1,
 ): string {
   // The value and the lookup narrow separately, so the compiler cannot see
   // that they are the same variant, though the table's type is what makes them
   // so. This is the one line that knows better than the checker.
   const draw = drawers[texture.type] as Draw<Texture["type"]>;
 
-  return draw(texture, dimensions, id);
+  if (scale === 1) {
+    return draw(texture, dimensions, id);
+  }
+
+  const reduced = {
+    width: Math.ceil(dimensions.width / scale),
+    height: Math.ceil(dimensions.height / scale),
+  };
+
+  return `<g transform="scale(${String(scale)})">${draw(texture, reduced, id)}</g>`;
 }

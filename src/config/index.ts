@@ -5,7 +5,7 @@ import { resolveOptionalImage } from "../image/index.js";
 import { defaultRasteriser } from "../platform/rasteriser.node.js";
 import { builtinTemplates } from "../templates/index.js";
 import { applyTheme } from "../theme/index.js";
-import { resolveTexture } from "../texture/index.js";
+import { resolveTexture, resolveTextureScale } from "../texture/index.js";
 import type {
   ColophonConfig,
   ColophonConfigFactory,
@@ -93,6 +93,7 @@ export function resolveConfig(input: ColophonConfig = {}): ResolvedConfig {
     background:
       resolveBackground(config.background) ?? defaultBackground(colors),
     texture: resolveTexture(config.texture, colors),
+    textureScale: resolveTextureScale(config.textureScale),
     fonts,
     systemFonts: shouldLoadSystemFonts(config.systemFonts, fonts),
     // A project that supplies one font should not have to name it twice.

@@ -12,6 +12,7 @@ import {
   breakWord,
   clampLine,
   escapeXml,
+  fillText,
   fitText,
   textElement,
   wrapText,
@@ -110,6 +111,80 @@ describe("fitText", () => {
 
   it("returns no lines for empty text", () => {
     assertArrayEquals(fitText("", byCharacterAt, options).lines, []);
+  });
+});
+
+describe("fillText", () => {
+  // One character per unit of font size, so a line of n characters is n times
+  // the size across, and the sums below can be done in the head.
+  const options = {
+    maxWidth: 100,
+    maxHeight: 100,
+    lineHeight: 1,
+    maxFontSize: 50,
+    minFontSize: 5,
+  };
+
+  it("grows short text until the width runs out", () => {
+    // A box one line tall, so wrapping cannot buy anything and the width is
+    // the only limit: seven characters allow a size of 14. This is the whole
+    // difference from `fitText`, which would have drawn the same words at
+    // whatever size it was handed.
+    const filled = fillText("abc def", byCharacterAt, {
+      ...options,
+      maxHeight: 20,
+    });
+
+    assertIdentical(filled.fontSize, 14);
+    assertArrayEquals(filled.lines, ["abc def"]);
+  });
+
+  it("prefers more lines set larger to one line set small", () => {
+    // The same words in a box five lines tall. Two lines at 33 fill it where
+    // one line at 14 would leave most of it empty, and filling it is the point.
+    const filled = fillText("abc def", byCharacterAt, options);
+
+    assertIdentical(filled.fontSize, 33);
+    assertArrayEquals(filled.lines, ["abc", "def"]);
+  });
+
+  it("keeps a long word whole rather than breaking it to fill the box", () => {
+    // Ten characters fit the width at 10, and the box is tall enough for two
+    // lines at 50. A search measuring only the height it filled would take the
+    // taller answer and cut the word in half to get it.
+    const filled = fillText("abcdefghij", byCharacterAt, options);
+
+    assertIdentical(filled.fontSize, 10);
+    assertArrayEquals(filled.lines, ["abcdefghij"]);
+  });
+
+  it("shrinks text that needs more lines than the box is tall", () => {
+    // Twelve words of four characters. At 11 two of them fit a line and the
+    // six lines that makes fit the height; anything larger does not.
+    const filled = fillText("aaaa ".repeat(12), byCharacterAt, options);
+
+    assertIdentical(filled.fontSize, 11);
+    assertArrayLength(filled.lines, 6);
+  });
+
+  it("cuts to the lines there is room for once it has shrunk as far as it may", () => {
+    const filled = fillText("aaaa ".repeat(200), byCharacterAt, options);
+
+    assertIdentical(filled.fontSize, 5);
+    assertArrayLength(filled.lines, 20);
+  });
+
+  it("never draws larger than the ceiling it was given", () => {
+    const filled = fillText("ab", byCharacterAt, {
+      ...options,
+      maxFontSize: 20,
+    });
+
+    assertIdentical(filled.fontSize, 20);
+  });
+
+  it("returns no lines for empty text", () => {
+    assertArrayEquals(fillText("", byCharacterAt, options).lines, []);
   });
 });
 

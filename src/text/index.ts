@@ -4,6 +4,8 @@ export type { TextAttributes } from "./element.js";
 export { breakWord } from "./break.js";
 export { clampLine } from "./clamp.js";
 export { ellipsis } from "./ellipsis.js";
+export { fillText } from "./fill.js";
+export type { FillOptions } from "./fill.js";
 export { fitText } from "./fit.js";
 export type { FitOptions, FittedText, MeasureAt } from "./fit.js";
 export { wrapText } from "./wrap.js";

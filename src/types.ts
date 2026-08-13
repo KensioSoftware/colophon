@@ -948,6 +948,21 @@ export interface ColophonConfig {
    */
   readonly texture?: Texture;
   /**
+   * How much larger than life to draw the texture. Defaults to `1`.
+   *
+   * A texture's lengths are pixels of the image being rendered, which is the
+   * right unit as long as the image is looked at somewhere near the size it
+   * was rendered at. A YouTube thumbnail is not: it is uploaded at 1280 wide
+   * and shown in a list at a third of that or less, and a dot grid arriving
+   * 10px apart has stopped being a texture. This multiplies every length in
+   * the treatment, so the picture is the one it always was and simply larger.
+   *
+   * It is usually wanted for one output size rather than for a whole build,
+   * and `SIZE_PRESETS.thumbnail` already carries it. See
+   * {@link SizeOverrides.textureScale}.
+   */
+  readonly textureScale?: number;
+  /**
    * Fonts to load into the rasteriser, so the output does not depend on what
    * the build machine happens to have installed. Supplying any font turns
    * {@link ColophonConfig.systemFonts} off by default, which is the point:
@@ -1159,6 +1174,17 @@ export interface SizeOverrides {
   readonly background?: Background;
   /** Replaces the config's texture. */
   readonly texture?: Texture;
+  /**
+   * Replaces the config's texture scale, for a size that is looked at much
+   * smaller than it is rendered.
+   *
+   * This is where the setting usually belongs, because what it corrects for is
+   * a property of where the image ends up rather than of the treatment: the
+   * same dot grid wants its default spacing on an Open Graph card and three
+   * times that on a video thumbnail. `SIZE_PRESETS.thumbnail` sets it to `3`
+   * for that reason, and naming it on a size of your own overrides that.
+   */
+  readonly textureScale?: number;
   readonly fontFamily?: string;
   readonly footer?: string;
   readonly badge?: Badge;
@@ -1207,6 +1233,8 @@ export interface ResolvedConfig {
    * these fields, and by this point they have been applied.
    */
   readonly texture: Texture | undefined;
+  /** How much larger than its stated lengths the texture is drawn. */
+  readonly textureScale: number;
   /** Configured fonts, with every `path` made absolute. */
   readonly fonts: readonly FontSource[];
   readonly systemFonts: boolean;

@@ -196,7 +196,10 @@ gallery stays in sync.
       <img src="docs/samples/docs-wide.png" alt="docs template, landscape" width="100%" /><br />
       <sub><code>docs</code> · 1200×630 · breadcrumb, title and summary</sub>
     </td>
-    <td></td>
+    <td>
+      <img src="docs/samples/thumbnail-video.png" alt="thumbnail template, 16:9" width="100%" /><br />
+      <sub><code>thumbnail</code> · 1280×720 · title grown to fill the frame, texture scaled up</sub>
+    </td>
   </tr>
 </table>
 

@@ -25,8 +25,11 @@ re-walks and re-parses everything for every size.
 
 ## What can be overridden
 
-Overridable: `theme`, `colors`, `background`, `texture`, `fontFamily`, `footer`,
-`badge` and `code`. These are what a template reads while drawing.
+Overridable: `theme`, `colors`, `background`, `texture`, `textureScale`,
+`fontFamily`, `footer`, `badge` and `code`. These are what a template reads
+while drawing, plus `textureScale`, which is where that setting usually belongs:
+what it corrects for is how small the image will be looked at, and that is a
+property of the size. See [Textures](../themes/#textures-at-thumbnail-size).
 
 Not overridable:
 

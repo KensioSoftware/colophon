@@ -65,6 +65,9 @@ export function resolveConfigForSize(
       colors: mergeColors(base.colors, size.theme ?? base.theme, size.colors),
     }),
     ...(size.texture !== undefined && { texture: size.texture }),
+    ...(size.textureScale !== undefined && {
+      textureScale: size.textureScale,
+    }),
     ...(size.code !== undefined && { code: { ...base.code, ...size.code } }),
     ...(size.background !== undefined && { background: size.background }),
     ...(size.fontFamily !== undefined && { fontFamily: size.fontFamily }),

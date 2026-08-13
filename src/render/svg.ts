@@ -39,7 +39,7 @@ export async function buildSvg(
   const texture =
     config.texture === undefined
       ? ""
-      : textureSvg(config.texture, dimensions, textureId);
+      : textureSvg(config.texture, dimensions, textureId, config.textureScale);
   const body = await template.render({
     props,
     config,
