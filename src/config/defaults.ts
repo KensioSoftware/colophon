@@ -58,11 +58,16 @@ export const DEFAULT_SIZES: readonly OutputSize[] = [
 ];
 
 /**
- * Default font stack, used when no fonts are configured. It names families and
- * hopes the machine has them, which is exactly what `config.fonts` exists to
- * avoid: supply a font file and the output stops depending on the machine.
+ * Default font stack, used when no fonts are configured.
+ *
+ * Outfit ships with the package, so this resolves to a real file rather than
+ * to whatever the machine happens to have: the same words come out the same
+ * width on a laptop, in CI and in a container, without a project configuring
+ * anything. The families behind it are the fallback for a character Outfit
+ * does not cover, which is most of what is not Latin.
  */
-export const DEFAULT_FONT_FAMILY = "Arial, Helvetica, sans-serif";
+export const DEFAULT_FONT_FAMILY =
+  'Outfit, "Helvetica Neue", Helvetica, Arial, sans-serif';
 
 /**
  * Default zlib level for the rendered PNG: the strongest there is.

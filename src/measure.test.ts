@@ -90,22 +90,37 @@ describe("createMeasurer", () => {
     );
   });
 
-  it("estimates when nothing is configured to measure against", async () => {
+  it("measures against the bundled faces when nothing is configured", async () => {
     const measure = await measurer();
 
-    // Only the fallback ratio is at work here, so the width is the character
-    // count times the ratio times the size.
+    // Latin text is measured rather than estimated even for a project that
+    // configured nothing, because Outfit ships with the package. A stack
+    // naming nothing loaded is drawn in it, since it is what `fallbackFamily`
+    // hands the rasteriser, so measuring against it is measuring what appears.
     assertIdentical(
       measure("abcde", { fontFamily: "Arial", fontSize: 100 }),
-      260,
+      measure("abcde", { fontFamily: "Outfit", fontSize: 100 }),
+    );
+  });
+
+  it("estimates the characters even the bundled faces do not cover", async () => {
+    const measure = await measurer();
+
+    // Outfit and JetBrains Mono are Latin, so a CJK title still falls to the
+    // estimate: a whole em per character rather than the notdef box.
+    assertIdentical(
+      measure("日本語", { fontFamily: "Arial", fontSize: 100 }),
+      300,
     );
   });
 
   it("takes the caller's fallback ratio for text it cannot measure", async () => {
     const measure = await measurer();
+    // Devanagari, which nothing bundled covers and which the estimator does
+    // not treat as full-width, so the caller's ratio is what decides it.
     const style = { fontFamily: "Menlo", fontSize: 100 };
 
-    assertIdentical(measure("0000", { ...style, fallbackRatio: 0.6 }), 240);
+    assertIdentical(measure("कककक", { ...style, fallbackRatio: 0.6 }), 240);
   });
 
   it("falls back to a loaded face when system fonts are off", async () => {
@@ -140,10 +155,11 @@ describe("createMeasurer", () => {
     });
 
     assertStringIncludes(warnings[0] ?? "", "text measurement");
-    assertNumberBetween(
+    // The unreadable font is reported and then ignored, and the text is still
+    // measured, against the bundled faces the build has regardless.
+    assertIdentical(
       measure("abc", { fontFamily: "x", fontSize: 10 }),
-      15,
-      16,
+      measure("abc", { fontFamily: "Outfit", fontSize: 10 }),
     );
   });
 });

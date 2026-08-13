@@ -295,12 +295,19 @@ describe("resolveConfig", () => {
     assertTrue(resolved.systemFonts);
   });
 
-  it("refuses to disable system fonts with nothing to render with", () => {
-    const error = assertThrowsError(() =>
-      resolveConfig({ systemFonts: false }),
-    );
+  it("allows system fonts off with nothing configured, since fonts ship", () => {
+    // This used to be an error, on the grounds that it left nothing to render
+    // with. The bundled fonts are what it leaves now, and the pairing is how a
+    // project asks for a build that does not depend on the machine without
+    // supplying font files of its own.
+    assertFalse(resolveConfig({ systemFonts: false }).systemFonts);
+  });
 
-    assertStringIncludes(error.message, "no fonts are configured");
+  it("loads system fonts alongside the bundled ones by default", () => {
+    // The bundled fonts are Latin, so a title in a script they do not cover
+    // has only the machine's own to be drawn in. Turning them off by default
+    // would render such a title as nothing at all.
+    assertTrue(resolveConfig().systemFonts);
   });
 
   it("takes the font family from the first configured font", () => {

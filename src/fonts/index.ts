@@ -1,5 +1,6 @@
 import type { FontSource } from "../types.js";
 
+export { bundledFonts, withBundledFonts } from "./bundled.js";
 export { fontFilePaths } from "./materialise.js";
 export { resolveFonts } from "./resolve.js";
 

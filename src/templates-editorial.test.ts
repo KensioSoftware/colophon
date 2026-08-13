@@ -38,7 +38,7 @@ describe("articleTemplate", () => {
 
     assertStringIncludes(svg, ">typescript</text>");
     assertStringIncludes(svg, ">testing</text>");
-    assertStringIncludes(svg, ">Keep test state<");
+    assertStringIncludes(svg, ">Keep test state inside<");
     assertStringIncludes(svg, ">Hugh Grigg · 30 July 2026</text>");
     assertStringIncludes(svg, ">example.com</text>");
   });
@@ -126,7 +126,7 @@ describe("quoteTemplate", () => {
     });
 
     assertStringIncludes(svg, ">“</text>");
-    assertStringIncludes(svg, ">A layout is<");
+    assertStringIncludes(svg, ">A layout is arithmetic<");
     assertStringIncludes(svg, ">— Hugh Grigg, Kensio Software</text>");
   });
 
@@ -136,7 +136,7 @@ describe("quoteTemplate", () => {
       title: "Said in the title instead",
     });
 
-    assertStringIncludes(svg, ">Said in the title<");
+    assertStringIncludes(svg, ">Said in the title instead</text>");
   });
 
   it("gives the words the room back when nobody is named", async () => {
@@ -187,7 +187,7 @@ describe("photoTemplate", () => {
 
     assertStringNotIncludes(svg, "<image");
     assertStringNotIncludes(svg, "colophon-photo-scrim");
-    assertStringIncludes(svg, ">No photograph<");
+    assertStringIncludes(svg, ">No photograph here</text>");
   });
 
   it("sets the text along the bottom of the image", async () => {

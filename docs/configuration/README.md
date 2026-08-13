@@ -34,9 +34,9 @@ yourself.
 | `background`       | gradient derived from `colors`                | Or a solid colour, a mesh, a gradient or a photo.                   |
 | `texture`          | none                                          | A treatment over the background. See [Themes](./themes/).           |
 | `textureScale`     | `1`                                           | Draw that treatment larger. See [Themes](./themes/).                |
-| `fonts`            | none                                          | Font files to render with. See [Fonts](./fonts/).                   |
-| `systemFonts`      | `true` until `fonts` is set                   | Whether installed fonts are loaded too.                             |
-| `fontFamily`       | first font, else `Arial, ...`                 | Font stack for template text.                                       |
+| `fonts`            | Outfit and JetBrains Mono                     | Font files to render with. See [Fonts](./fonts/).                   |
+| `systemFonts`      | `true` until `fonts` is set                   | Whether installed fonts load behind the bundled ones.               |
+| `fontFamily`       | first font, else `Outfit, ...`                | Font stack for template text.                                       |
 | `footer`           | none                                          | Footer text. Omit the field for none.                               |
 | `badge`            | none                                          | Corner badge for `banner`, which a post may override or turn off.   |
 | `code`             | `github-dark`, monospace stack                | Styling for [the code template](../code-template/).                 |

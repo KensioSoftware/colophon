@@ -41,10 +41,12 @@
   },
   "browser": {
     "./dist/platform/read-file.node.js": "./dist/platform/read-file.browser.js",
-    "./dist/platform/rasteriser.node.js": "./dist/platform/rasteriser.browser.js"
+    "./dist/platform/rasteriser.node.js": "./dist/platform/rasteriser.browser.js",
+    "./dist/platform/bundled-fonts.node.js": "./dist/platform/bundled-fonts.browser.js"
   },
   "files": [
     "dist",
+    "fonts",
     "README.md",
     "LICENSE"
   ],
