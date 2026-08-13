@@ -15,6 +15,8 @@ import {
   fillText,
   fitText,
   textElement,
+  trackedWidth,
+  trackingFor,
   wrapText,
 } from "./text/index.js";
 
@@ -248,5 +250,71 @@ describe("textElement", () => {
 
     assertStringIncludes(svg, 'fill-opacity="0.5"');
     assertStringIncludes(svg, 'text-anchor="middle"');
+  });
+
+  it("leaves letter-spacing out when there is none to write", () => {
+    // What keeps every line that wanted no tracking byte for byte what it was.
+    const base = {
+      x: 0,
+      y: 0,
+      fontFamily: "Arial",
+      fontSize: 10,
+      fontWeight: 400,
+      fill: "#000",
+    };
+
+    assertStringNotIncludes(textElement("x", base), "letter-spacing");
+    assertStringNotIncludes(
+      textElement("x", { ...base, letterSpacing: 0 }),
+      "letter-spacing",
+    );
+    assertStringIncludes(
+      textElement("x", { ...base, letterSpacing: 2.5 }),
+      'letter-spacing="2.5"',
+    );
+  });
+});
+
+describe("trackingFor", () => {
+  it("spreads the shortfall across the gaps between characters", () => {
+    // Four characters have three gaps, not four: SVG puts the space between
+    // characters and not after the last one, which is what makes the tracked
+    // width land exactly on the target rather than one gap over.
+    assertIdentical(trackingFor("HHHH", 84, 144), 20);
+  });
+
+  it("gives nothing back for a line already at or past the target", () => {
+    // Negative tracking would pull the letters together, which reads as a
+    // mistake where pushing them apart reads as a decision.
+    assertIdentical(trackingFor("HHHH", 144, 84), 0);
+    assertIdentical(trackingFor("HHHH", 84, 84), 0);
+  });
+
+  it("gives nothing back for a line with no gaps to fill", () => {
+    assertIdentical(trackingFor("H", 20, 200), 0);
+    assertIdentical(trackingFor("", 0, 200), 0);
+  });
+
+  it("counts a code point once rather than its UTF-16 units", () => {
+    // Two astral characters have one gap. Counting units would find three and
+    // track to a third of the width asked for.
+    assertIdentical(trackingFor("\u{1F600}\u{1F601}", 100, 200), 100);
+  });
+});
+
+describe("trackedWidth", () => {
+  it("is the natural width plus one space per gap", () => {
+    assertIdentical(trackedWidth("HHHH", 84, 20), 144);
+  });
+
+  it("round-trips whatever trackingFor worked out", () => {
+    // The property the feature rests on: ask for a width, get that width.
+    const tracking = trackingFor("kensiosoftware.co.uk", 438, 717);
+
+    assertIdentical(trackedWidth("kensiosoftware.co.uk", 438, tracking), 717);
+  });
+
+  it("is the natural width for a line that cannot be tracked", () => {
+    assertIdentical(trackedWidth("H", 20, 0), 20);
   });
 });

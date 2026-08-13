@@ -165,6 +165,81 @@ describe("coverTemplate", () => {
     assertTrue(textYs(svg).every((y) => y > top && y < bottom));
   });
 
+  it("tracks the tagline out to the width of the name above it", async () => {
+    const svg = await render(
+      coverTemplate,
+      {
+        template: "cover",
+        title: "Kensio Software",
+        subtitle: "kensiosoftware.co.uk",
+        tracking: "fill",
+      },
+      measured,
+      header,
+    );
+
+    // That the spacing reached the right element, and only that one. Whether
+    // it comes to the right number is `trackedWidth`'s round-trip in
+    // `text.test.ts`, and whether the drawn edges line up is the
+    // `cover-tracked` visual baseline.
+    const spaced = svg.match(/letter-spacing="([\d.]+)"/g) ?? [];
+
+    assertArrayLength(spaced, 1);
+    assertStringIncludes(
+      svg.slice(svg.indexOf("letter-spacing")),
+      "kensiosoftware.co.uk",
+    );
+  });
+
+  it("leaves the tagline alone unless the post asks", async () => {
+    const svg = await render(
+      coverTemplate,
+      {
+        template: "cover",
+        title: "Kensio Software",
+        subtitle: "kensiosoftware.co.uk",
+      },
+      measured,
+      header,
+    );
+
+    assertStringNotIncludes(svg, "letter-spacing");
+  });
+
+  it("will not track a tagline that is already the wider of the two", async () => {
+    // Tracking only ever adds space. Pulling letters together to fit a short
+    // name would read as a fault rather than as a decision.
+    const svg = await render(
+      coverTemplate,
+      {
+        template: "cover",
+        title: "Kensio",
+        subtitle: "Tools for people who publish on the web",
+        tracking: "fill",
+      },
+      measured,
+      header,
+    );
+
+    assertStringNotIncludes(svg, "letter-spacing");
+  });
+
+  it("gives up rather than stretching a very short tagline absurdly", async () => {
+    const svg = await render(
+      coverTemplate,
+      {
+        template: "cover",
+        title: "A rather long product name indeed",
+        subtitle: "Blog",
+        tracking: "fill",
+      },
+      measured,
+      header,
+    );
+
+    assertStringNotIncludes(svg, "letter-spacing");
+  });
+
   it("sizes the text from the room it has, not from the image", async () => {
     // A YouTube banner is 1440 tall and the band anyone reads is 424 of it,
     // so a title keyed to the image would be a third of the visible height.

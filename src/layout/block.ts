@@ -33,6 +33,12 @@ export interface TextLine {
   readonly fontWeight: number;
   readonly opacity: number;
   readonly gapBefore?: number;
+  /**
+   * Extra space between this line's characters, from `trackingFor`. Fitting
+   * never sets it, because it is a decision about how a line sits against
+   * another one rather than about how the words fit their own box.
+   */
+  readonly letterSpacing?: number;
 }
 
 /**
