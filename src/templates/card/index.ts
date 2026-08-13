@@ -1,7 +1,7 @@
 import { drawLines, inset } from "../../layout/index.js";
 import type { Template, TemplateContext } from "../../types.js";
 import { attribution } from "../attribution.js";
-import { footerBaseline, hasFooter } from "../footer.js";
+import { footerBaseline, footerFontSize, hasFooter } from "../footer.js";
 import { logoElement, logoRect } from "../logo.js";
 import { cardLines } from "./lines.js";
 
@@ -24,7 +24,7 @@ export const cardTemplate: Template = {
   }: TemplateContext): string {
     const { width, height } = dimensions;
     const pad = Math.round(width * 0.09);
-    const footerFs = Math.round(height * 0.032);
+    const footerFs = footerFontSize(dimensions);
     const mark = logoRect(logo, dimensions, pad, "middle");
 
     const area = inset(

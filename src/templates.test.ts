@@ -213,8 +213,9 @@ describe("cardTemplate", () => {
     });
 
     assertStringIncludes(svg, 'clip-path="url(#colophon-avatar)"');
-    // Centred on its own rather than shifted left to make room for words.
-    assertStringIncludes(svg, '<image x="564"');
+    // Centred on its own rather than shifted left to make room for words. The
+    // picture is sized from the footer's text, so this moves with it.
+    assertStringIncludes(svg, '<image x="559"');
   });
 
   it("shrinks a long title instead of losing the end of it", async () => {
@@ -377,11 +378,11 @@ describe("codeTemplate", () => {
       { footer: "example.com" },
     );
 
-    // The 5% margin is where the ink stops, so the 38px footer's baseline sits
+    // The 5% margin is where the ink stops, so the 43px footer's baseline sits
     // its own descender above it.
     assertIdentical(
       baselineOf(svg, /y="(\d+)"[^>]*>example\.com</),
-      1200 - 60 - 8,
+      1200 - 60 - 9,
     );
   }, 5000);
 

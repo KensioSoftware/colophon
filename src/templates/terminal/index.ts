@@ -8,7 +8,7 @@ import { hugPanel, panelSvg } from "../code/plate.js";
 import { codeBody } from "../code/spans.js";
 import { warnIfTruncated } from "../code/warn.js";
 import { charWidthRatio } from "../code/width.js";
-import { hasFooter } from "../footer.js";
+import { footerFontSize, hasFooter } from "../footer.js";
 import { barHeight, titleBar } from "../window/index.js";
 import { terminalSession } from "./session.js";
 
@@ -29,7 +29,7 @@ export const terminalTemplate: Template = {
   name: "terminal",
   async render({ props, config, dimensions, measure }): Promise<string> {
     const { width, height } = dimensions;
-    const footerFs = Math.round(height * 0.032);
+    const footerFs = footerFontSize(dimensions);
     const session = await terminalSession(props, config);
 
     const available = layoutPanel(

@@ -2,7 +2,7 @@ import { drawLines, inset } from "../../layout/index.js";
 import { optionalString } from "../../props.js";
 import type { Template, TemplateContext } from "../../types.js";
 import { attribution } from "../attribution.js";
-import { footerBaseline, hasFooter } from "../footer.js";
+import { footerBaseline, footerFontSize, hasFooter } from "../footer.js";
 import { logoElement, logoRect } from "../logo.js";
 import { badgeFor } from "./badge-props.js";
 import { renderBadge } from "./badge.js";
@@ -30,7 +30,7 @@ export const bannerTemplate: Template = {
     const { width, height } = dimensions;
     const { fontFamily } = config;
     const pad = Math.round(width * 0.075);
-    const footerFs = Math.round(height * 0.034);
+    const footerFs = footerFontSize(dimensions);
     const badgeHeight = Math.round(height * 0.072);
     const mark = logoRect(logo, dimensions, pad, "start");
     const badge = badgeFor(props, config);

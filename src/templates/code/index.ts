@@ -1,6 +1,6 @@
 import { highlightCode } from "../../highlight/index.js";
 import type { Template } from "../../types.js";
-import { hasFooter } from "../footer.js";
+import { footerFontSize, hasFooter } from "../footer.js";
 import { optionalString } from "../../props.js";
 import { barRoom, windowBar } from "./bar.js";
 import { codeFooter, codeHeading } from "./chrome.js";
@@ -29,7 +29,7 @@ export const codeTemplate: Template = {
     const { width, height } = dimensions;
     const title = optionalString(props.title);
     const titleFs = Math.round(height * 0.045);
-    const footerFs = Math.round(height * 0.032);
+    const footerFs = footerFontSize(dimensions);
 
     const highlighted = await highlightCode(
       optionalString(props["code"]) ?? "",

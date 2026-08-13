@@ -1,13 +1,10 @@
-import { footerBaseline, hasFooter } from "./footer.js";
+import { footerBaseline, footerFontSize, hasFooter } from "./footer.js";
 import { inset } from "../layout/index.js";
 import type { Rect } from "../layout/index.js";
 import type { Dimensions, ImageAsset, ResolvedConfig } from "../types.js";
 
 /** Margin from the image edge, as a fraction of its width. */
 const defaultPadScale = 0.075;
-
-/** The footer's size, as a fraction of the image's height. */
-const footerScale = 0.032;
 
 /** Clear space between the content and the footer line, as a fraction of it. */
 const footerGap = 0.02;
@@ -61,16 +58,16 @@ export function imageFrame(
 ): Frame {
   const { width, height } = dimensions;
   const pad = Math.round(width * (options.padScale ?? defaultPadScale));
-  const footerFontSize = Math.round(height * footerScale);
+  const fontSize = footerFontSize(dimensions);
   const isDrawn =
     options.footer === true || hasFooter(config) || avatar !== undefined;
 
   return {
     pad,
-    footerFontSize,
+    footerFontSize: fontSize,
     full: { x: 0, y: 0, width, height },
-    footerRoom: isDrawn ? footerFontSize + Math.round(height * footerGap) : 0,
-    footerY: footerBaseline(height, pad, footerFontSize),
+    footerRoom: isDrawn ? fontSize + Math.round(height * footerGap) : 0,
+    footerY: footerBaseline(height, pad, fontSize),
   };
 }
 
