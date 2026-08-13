@@ -91,10 +91,7 @@ function nameLines(
 }
 
 /** The name over its tagline, each fitted to the room the lockup has. */
-export function coverLines(
-  props: MetaImageProps,
-  text: CoverText,
-): TextLine[] {
+export function coverLines(props: MetaImageProps, text: CoverText): TextLine[] {
   const { measure, fontFamily, contentWidth, contentHeight } = text;
   const tagline = blockLines(props.subtitle, measure, fontFamily, {
     maxWidth: contentWidth,
