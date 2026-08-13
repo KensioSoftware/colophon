@@ -54,6 +54,9 @@ type GridTexture = Extract<Texture, { readonly type: "grid" }>;
 type CrossesTexture = Extract<Texture, { readonly type: "crosses" }>;
 type ChevronsTexture = Extract<Texture, { readonly type: "chevrons" }>;
 type HoneycombTexture = Extract<Texture, { readonly type: "honeycomb" }>;
+type ScallopsTexture = Extract<Texture, { readonly type: "scallops" }>;
+type HalftoneTexture = Extract<Texture, { readonly type: "halftone" }>;
+type ContourTexture = Extract<Texture, { readonly type: "topographic" }>;
 type GradientPoint = NonNullable<GradientBackground["from"]>;
 type ImageByPath = Extract<ImageSource, { readonly path: string }>;
 type ImageByData = Extract<ImageSource, { readonly data: Uint8Array }>;
@@ -404,6 +407,37 @@ export const honeycombTextureKeys = knownKeys<HoneycombTexture>({
   size: true,
 });
 
+/** Keys of the fish scales. */
+export const scallopsTextureKeys = knownKeys<ScallopsTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  size: true,
+});
+
+/** Keys of the growing dots. */
+export const halftoneTextureKeys = knownKeys<HalftoneTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  size: true,
+  gap: true,
+  angle: true,
+  from: true,
+});
+
+/** Keys of the contour lines. */
+export const topographicTextureKeys = knownKeys<ContourTexture>({
+  type: true,
+  color: true,
+  opacity: true,
+  width: true,
+  gap: true,
+  relief: true,
+  seed: true,
+});
+
 /**
  * The keys each treatment accepts, by the name it declares.
  *
@@ -425,6 +459,9 @@ export const textureKeysByType: { [T in Texture["type"]]: readonly string[] } =
     moire: moireTextureKeys,
     waves: wavesTextureKeys,
     rays: raysTextureKeys,
+    scallops: scallopsTextureKeys,
+    halftone: halftoneTextureKeys,
+    topographic: topographicTextureKeys,
   };
 
 /**
@@ -443,6 +480,9 @@ export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
   crosses: true,
   chevrons: true,
   honeycomb: true,
+  scallops: true,
+  halftone: true,
+  topographic: true,
 });
 
 /**

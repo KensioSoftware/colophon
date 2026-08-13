@@ -305,6 +305,75 @@ export type Texture =
     }
   | {
       /**
+       * Fish scales: rows of arcs, each row offset by half a scale from the
+       * one above. A tile, though a curved one, so it costs a little more
+       * than the flat tiles do.
+       */
+      readonly type: "scallops";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.07`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `2`. */
+      readonly width?: number;
+      /** How wide one scale is. Defaults to `40`. */
+      readonly size?: number;
+    }
+  | {
+      /**
+       * A grid of dots that grow across the image, which is a gradient made
+       * out of print. Every dot is a different size, so this is not a tile.
+       */
+      readonly type: "halftone";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.12`. */
+      readonly opacity?: number;
+      /** Diameter of the largest dot. Defaults to `12`. */
+      readonly size?: number;
+      /** Centre-to-centre spacing. Defaults to `30`. */
+      readonly gap?: number;
+      /**
+       * The direction the dots grow in, in degrees, where `0` runs to the
+       * right and `90` runs down the image. Defaults to `90`.
+       */
+      readonly angle?: number;
+      /**
+       * How big the smallest dot is, as a fraction of the largest. Defaults
+       * to `0.1`; raise it for a gentler ramp across the image.
+       */
+      readonly from?: number;
+    }
+  | {
+      /**
+       * Contour lines, the look of a map: closed curves nested inside each
+       * other. The only treatment whose shape is irregular, though it is
+       * arithmetic rather than chance, so the same config draws the same map.
+       */
+      readonly type: "topographic";
+      /** Defaults to the foreground colour. */
+      readonly color?: string;
+      /** Defaults to `0.09`. */
+      readonly opacity?: number;
+      /** Line thickness. Defaults to `1.5`. */
+      readonly width?: number;
+      /** Distance between one contour and the next. Defaults to `34`. */
+      readonly gap?: number;
+      /**
+       * How tall the landscape is, as a multiple of the gap, which is the
+       * same as how many contours there are between a valley and a summit.
+       * Defaults to `5`.
+       */
+      readonly relief?: number;
+      /**
+       * Which landscape to draw. Defaults to `1`. It moves the phases and
+       * nothing else, so any number gives a different map and the same number
+       * always gives the same one.
+       */
+      readonly seed?: number;
+    }
+  | {
+      /**
        * Two square grids, one turned a few degrees against the other. What is
        * seen is the interference between them, which reads as broad bands
        * sweeping across the image. It is `waves` drawn with straight edges,

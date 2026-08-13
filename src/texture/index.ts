@@ -1,11 +1,14 @@
 import type { Dimensions, Texture } from "../types.js";
 import { chevronsSvg } from "./chevrons.js";
 import { grainSvg } from "./grain.js";
+import { halftoneSvg } from "./halftone.js";
 import { gridSvg } from "./grid.js";
 import { honeycombSvg } from "./honeycomb.js";
 import { moireSvg } from "./moire.js";
 import { crossesSvg, dotsSvg, rulesSvg } from "./pattern.js";
 import { raysSvg } from "./rays.js";
+import { scallopsSvg } from "./scallops.js";
+import { topographicSvg } from "./topographic/index.js";
 import { wavesSvg } from "./waves.js";
 
 export { resolveTexture } from "./resolve.js";
@@ -40,8 +43,11 @@ const drawers: { [T in Texture["type"]]: Draw<T> } = {
   chevrons: chevronsSvg,
   honeycomb: honeycombSvg,
   moire: moireSvg,
+  scallops: scallopsSvg,
   waves: (texture, dimensions) => wavesSvg(texture, dimensions),
   rays: (texture, dimensions) => raysSvg(texture, dimensions),
+  halftone: (texture, dimensions) => halftoneSvg(texture, dimensions),
+  topographic: (texture, dimensions) => topographicSvg(texture, dimensions),
 };
 
 /**

@@ -1,9 +1,11 @@
 import {
   assertArrayLength,
+  assertFalse,
   assertIdentical,
   assertObjectEquals,
   assertStringIncludes,
   assertStringNotIncludes,
+  assertTrue,
   assertUndefined,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
@@ -12,6 +14,11 @@ import { resolveTexture, textureSvg } from "./texture/index.js";
 import type { BrandColors } from "./types.js";
 
 const dimensions = { width: 800, height: 400 };
+
+/** Every radius a texture drew, in the order the dots appear. */
+function radii(svg: string): readonly number[] {
+  return Array.from(svg.matchAll(/r="([\d.]+)"/g), (match) => Number(match[1]));
+}
 
 const colors: Required<BrandColors> = {
   brand: "#4f46e5",
@@ -243,6 +250,59 @@ describe("textureSvg", () => {
     assertStringIncludes(svg, '<pattern id="tx" width="30" height="17.32');
     // A hexagon of side 10 is 20 across the points, centred a side in.
     assertStringIncludes(svg, "M0 8.66L5 0L15 0L20 8.66L15 17.32L5 17.32Z");
+  });
+
+  it("renders scallops as two rows to a tile", () => {
+    const svg = textureSvg(
+      { type: "scallops", color: "#ffffff", size: 40 },
+      dimensions,
+      "tx",
+    );
+
+    // One repeat holds both the offset row and the row it is offset from,
+    // since a pattern cannot stagger its own rows.
+    assertStringIncludes(svg, "M0 0A20 20 0 0 0 40 0");
+    assertStringIncludes(svg, "M-20 20A20 20 0 0 0 20 20");
+    assertStringIncludes(svg, "M20 20A20 20 0 0 0 60 20");
+  });
+
+  it("grows halftone dots along the direction it is given", () => {
+    const down = textureSvg({ type: "halftone" }, dimensions, "tx");
+    const across = textureSvg({ type: "halftone", angle: 0 }, dimensions, "tx");
+
+    // Down the image by default: the first dot of the top row is the smallest
+    // there is, and the last of the bottom row the largest.
+    const [firstDown] = radii(down);
+    assertTrue((radii(down).at(-1) ?? 0) > (firstDown ?? 0));
+    // Across, the first row already runs from smallest to largest, so a dot a
+    // few places along it is bigger than the one before.
+    const sideways = radii(across);
+    assertTrue((sideways[3] ?? 0) > (sideways[0] ?? 0));
+  });
+
+  it("draws topographic contours that close and never cross", () => {
+    const svg = textureSvg({ type: "topographic" }, dimensions, "tx");
+
+    // Marching squares over the field, so the lines are segments rather than
+    // rings around a centre.
+    assertStringIncludes(svg, '<path d="M');
+    assertStringIncludes(svg, 'fill="none"');
+    assertStringNotIncludes(svg, "<circle");
+  });
+
+  it("draws the same landscape for the same seed and a different one else", () => {
+    const first = textureSvg({ type: "topographic" }, dimensions, "tx");
+    const same = textureSvg({ type: "topographic", seed: 1 }, dimensions, "tx");
+    const other = textureSvg(
+      { type: "topographic", seed: 2 },
+      dimensions,
+      "tx",
+    );
+
+    // Nothing here rolls dice: the rebuild stamp assumes one config draws one
+    // picture, so a seeded texture has to be a function of its seed.
+    assertIdentical(first, same);
+    assertFalse(other === same);
   });
 
   it("renders moire as one grid turned against another", () => {
