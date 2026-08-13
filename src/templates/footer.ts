@@ -1,5 +1,37 @@
 import { baselineFor, textElement } from "../layout/index.js";
-import type { ResolvedConfig } from "../types.js";
+import type { Dimensions, ResolvedConfig } from "../types.js";
+
+/** The footer's size, as a fraction of the image's height. */
+const footerScale = 0.036;
+
+/**
+ * The least it may be, as a fraction of the image's width.
+ *
+ * Height alone is what the footer used to be measured against, and it left the
+ * landscape sizes with the smallest text on the least of it: at 1200x630 the
+ * line came out at 20px against the square's 38px, on an image a feed scales
+ * to the same width. Width is what legibility tracks, for the reason the code
+ * template's font-size bounds are fractions of it, so this is the floor that
+ * stops a wide image having a footer nobody can read. The square is above it
+ * and keeps the proportions it had.
+ */
+const footerWidthFloor = 0.026;
+
+/**
+ * The size the line along the bottom is drawn at.
+ *
+ * Every template asks for it here rather than working it out, which is what
+ * stops the twelve of them drifting apart. It is one number for the footer,
+ * the byline and the attribution alike, since they are all the same line.
+ */
+export function footerFontSize(dimensions: Dimensions): number {
+  return Math.round(
+    Math.max(
+      dimensions.height * footerScale,
+      dimensions.width * footerWidthFloor,
+    ),
+  );
+}
 
 /**
  * Where and how a template wants its footer drawn. Every template places the
