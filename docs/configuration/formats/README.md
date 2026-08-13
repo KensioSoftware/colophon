@@ -29,8 +29,9 @@ default quality:
 WebP is the usual choice. It is read by current browsers and by the crawlers
 these images are for, it comes out at about a quarter of the size of the PNG,
 and it is no slower to write, because a lossy encoding is cheaper than the
-level-9 zlib pass a PNG gets. AVIF is smaller again but slower to encode, and it
-is the least widely read of the four.
+level-9 zlib pass a PNG gets. AVIF is smaller again but slower to encode, and
+most of the platforms these images are made for will not display it. See
+[What the platforms read](#what-the-platforms-read).
 
 The pictures are the same to look at. At `80` the gradients these templates are
 mostly made of hold up; below about `50` they start to band.
@@ -38,6 +39,58 @@ mostly made of hold up; below about `50` they start to band.
 JPEG has no transparency, so a template that left any gets it flattened onto
 black. Every built-in template paints its background edge to edge, so this only
 comes up in a custom one.
+
+### PNG is not always the largest
+
+The ordering in that table is the usual one rather than a fixed one. PNG loses
+to JPEG on photographs and on long gradients, and can win on flat colour,
+because a run of identical pixels is what PNG compresses best and what JPEG
+spends bits on. Two samples from the gallery in this repository show it:
+`card-wide-solid` is 19KB as a PNG against 24KB as a JPEG, and `theme-slate` is
+7KB against 6KB, near enough the same file either way.
+
+Across all 30 samples, at the default quality of 80:
+
+| Format | The sample gallery |
+| ------ | ------------------ |
+| `png`  | 2300KB             |
+| `jpeg` | 1002KB             |
+| `webp` | 539KB              |
+| `avif` | 496KB              |
+
+So JPEG is the smaller by a wide margin over a mixed set of images, most of
+which have a gradient or a mesh in them. A site whose template is a flat
+background with a line of text on it is the case where that gap closes, and
+where the PNG can be the smaller file.
+
+## What the platforms read
+
+Browsers read all four of these formats. The crawlers behind link previews are
+a different set of programs, and they are some way behind.
+
+AVIF is not a safe choice for a share image today.
+[Testing by Joost de Valk](https://joost.blog/use-avif-webp-share-images/),
+published in December 2024, covered eleven platforms. AVIF rendered on Facebook,
+Pinterest, Threads and WhatsApp. It did not render on Bluesky, Discord,
+iMessage, LinkedIn, Mastodon, Slack or X.
+[Separate testing by Darek Kay](https://darekkay.com/blog/open-graph-image-formats/),
+last updated in November 2025, found only Facebook rendering AVIF at all, with
+WhatsApp showing it in the wrong colours. A platform that cannot read the file
+posts the link with no image on it, which is the outcome the image is there to
+prevent.
+
+Both dates are given so you can judge how far those results have aged. Support
+does move, and if you are reading this a long way after them it is worth
+checking rather than assuming the position still holds.
+
+WebP came out of both sets of tests working: all eleven platforms in the first,
+and every platform except Xing in the second. That is further than the
+documentation goes. Facebook's `og:image` reference still asks for
+`image/jpeg`, `image/gif` or `image/png` and says nothing about WebP, and it is
+not alone in that. So WebP here is a choice made on tested behaviour rather than
+on a documented guarantee. PNG and JPEG are the two formats every platform both
+documents and reads, which is the conservative answer if you would rather not
+rest on someone else's testing.
 
 ## The filenames follow
 
