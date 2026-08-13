@@ -102,6 +102,43 @@ Everything but `grain` defaults to the foreground colour, so a texture shows up
 on a light theme as readily as on a dark one. Lengths are in pixels at the size
 being rendered.
 
+### Textures at thumbnail size
+
+Pixels at the size being rendered is the right unit as long as the image is
+looked at somewhere near that size. A YouTube thumbnail is not: it is uploaded
+at 1280 wide and shown in a list at a third of that or less, so a dot grid at
+its default 44px spacing arrives at the reader about 10px apart. That is not a
+texture any more, it is a slightly dirty background.
+
+`textureScale` multiplies every length in the treatment, so the picture is the
+one it always was and simply larger:
+
+```ts
+export default defineConfig({
+  texture: { type: "dots" },
+  textureScale: 3,
+});
+```
+
+It usually belongs on a [size](../per-size-config/) rather than on the whole
+build, because what it corrects for is where the image ends up rather than
+anything about the treatment: the same dot grid wants its default spacing on an
+Open Graph card and three times that on a thumbnail.
+`SIZE_PRESETS.thumbnail` therefore carries `textureScale: 3` already, and it is
+the only preset that carries an override of its own.
+
+```ts
+sizes: [
+  SIZE_PRESETS.og, // drawn at the stated lengths
+  SIZE_PRESETS.thumbnail, // three times coarser
+  { ...SIZE_PRESETS.thumbnail, textureScale: 4 }, // or your own figure
+],
+```
+
+Below `1` it draws a finer treatment than the numbers say, which is the same
+lever the other way. It costs no more to render and very little to store, since
+what is on the image is the same picture at a different size.
+
 ### Waves
 
 `waves` is two sets of concentric rings, one centred on the middle of each side

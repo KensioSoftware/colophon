@@ -31,6 +31,8 @@ export type { Align, BoxStyle, Extent, Placed, Rect, Span } from "./types.js";
 
 export { blockLines } from "./block.js";
 export type { StyledBlock, TextBlock, TextLine } from "./block.js";
+export { fillLines } from "./fill.js";
+export type { FilledBlock } from "./fill.js";
 export { lineExtents, linesHeight } from "./extent.js";
 export { drawLines } from "./draw.js";
 export type { LinesStyle } from "./draw.js";
@@ -42,11 +44,13 @@ export { optionalString, stringList } from "../props.js";
 export {
   clampLine,
   escapeXml,
+  fillText,
   fitText,
   textElement,
   wrapText,
 } from "../text/index.js";
 export type {
+  FillOptions,
   FitOptions,
   FittedText,
   MeasureAt,

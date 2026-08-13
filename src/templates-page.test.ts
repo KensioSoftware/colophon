@@ -1,13 +1,29 @@
 import {
   assertArrayLength,
+  assertNumberBetween,
   assertStringIncludes,
   assertStringNotIncludes,
   assertTrue,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { renderTemplate as render, samplePng } from "../test/template.js";
-import { docsTemplate, eventTemplate } from "./templates/index.js";
+import {
+  renderTemplate as render,
+  samplePng,
+  sansFont,
+  titleSize,
+} from "../test/template.js";
+import {
+  docsTemplate,
+  eventTemplate,
+  thumbnailTemplate,
+} from "./templates/index.js";
+
+/** The size YouTube asks a video thumbnail to be uploaded at. */
+const thumbnail = { width: 1280, height: 720 };
+
+/** Rendered with a real font, since what this layout does is measure text. */
+const measured = { fonts: [{ family: "DejaVu Sans", path: sansFont }] };
 
 describe("docsTemplate", () => {
   it("draws the trail, a rule and the page's title", async () => {
@@ -122,5 +138,90 @@ describe("eventTemplate", () => {
 
     assertStringNotIncludes(svg, "<rect");
     assertArrayLength(svg.match(/<text/g), 1);
+  });
+});
+
+describe("thumbnailTemplate", () => {
+  it("draws the title and nothing else the post did not ask for", async () => {
+    const svg = await render(
+      thumbnailTemplate,
+      { template: "thumbnail", title: "Ship it" },
+      measured,
+      thumbnail,
+    );
+
+    assertStringIncludes(svg, ">Ship it</text>");
+    assertArrayLength(svg.match(/<text/g), 1);
+  });
+
+  it("sets a short title far larger than a long one", async () => {
+    // The point of the template. Both titles are given the same frame, and
+    // what decides the size is how much there is to fit into it, where every
+    // other built-in would have drawn both at the same fraction of the height.
+    const short = await render(
+      thumbnailTemplate,
+      { template: "thumbnail", title: "Ship it" },
+      measured,
+      thumbnail,
+    );
+    const long = await render(
+      thumbnailTemplate,
+      {
+        template: "thumbnail",
+        title:
+          "Everything I learned building a static site image generator over " +
+          "three years",
+      },
+      measured,
+      thumbnail,
+    );
+
+    assertNumberBetween(titleSize(long), 90, 130);
+    assertNumberBetween(titleSize(short), titleSize(long) * 2, 360);
+  });
+
+  it("keeps one long word whole rather than breaking it across lines", async () => {
+    const svg = await render(
+      thumbnailTemplate,
+      { template: "thumbnail", title: "Frontmatter" },
+      measured,
+      thumbnail,
+    );
+
+    assertStringIncludes(svg, ">Frontmatter</text>");
+  });
+
+  it("gives the title back the room a missing subtitle would have taken", async () => {
+    const alone = await render(
+      thumbnailTemplate,
+      { template: "thumbnail", title: "Measuring text without a browser" },
+      measured,
+      thumbnail,
+    );
+    const captioned = await render(
+      thumbnailTemplate,
+      {
+        template: "thumbnail",
+        title: "Measuring text without a browser",
+        subtitle: "Episode 4",
+      },
+      measured,
+      thumbnail,
+    );
+
+    assertStringIncludes(captioned, ">Episode 4</text>");
+    assertTrue(titleSize(alone) > titleSize(captioned));
+  });
+
+  it("draws the configured footer and logo along with it", async () => {
+    const svg = await render(
+      thumbnailTemplate,
+      { template: "thumbnail", title: "Ship it" },
+      { ...measured, footer: "example.com", logo: { path: samplePng } },
+      thumbnail,
+    );
+
+    assertStringIncludes(svg, ">example.com</text>");
+    assertArrayLength(svg.match(/<image/g), 1);
   });
 });

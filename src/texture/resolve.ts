@@ -1,3 +1,4 @@
+import { DEFAULT_TEXTURE_SCALE } from "../config/defaults.js";
 import type { BrandColors, Texture } from "../types.js";
 
 /**
@@ -23,4 +24,19 @@ export function resolveTexture(
   }
 
   return { color: colors.foreground, ...texture };
+}
+
+/**
+ * The texture scale a config asked for, or `1`.
+ *
+ * A scale of nothing, or of something that is not a positive number, is taken
+ * as no scaling rather than as an error. Everything it could mean instead is
+ * worse: zero would divide the image by nothing, and a negative would draw the
+ * treatment backwards through the origin, so both are configs that would fail
+ * as a blank image rather than as a message.
+ */
+export function resolveTextureScale(scale: number | undefined): number {
+  return scale === undefined || !Number.isFinite(scale) || scale <= 0
+    ? DEFAULT_TEXTURE_SCALE
+    : scale;
 }

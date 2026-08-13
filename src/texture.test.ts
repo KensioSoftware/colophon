@@ -10,7 +10,11 @@ import {
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { resolveTexture, textureSvg } from "./texture/index.js";
+import {
+  resolveTexture,
+  resolveTextureScale,
+  textureSvg,
+} from "./texture/index.js";
 import type { BrandColors } from "./types.js";
 
 const dimensions = { width: 800, height: 400 };
@@ -346,6 +350,43 @@ describe("textureSvg", () => {
   });
 });
 
+describe("textureSvg at a scale", () => {
+  it("writes what it always wrote at a scale of one", () => {
+    assertIdentical(
+      textureSvg({ type: "dots" }, dimensions, "tx", 1),
+      textureSvg({ type: "dots" }, dimensions, "tx"),
+    );
+  });
+
+  it("draws the same picture into a smaller image and scales it back up", () => {
+    // The tile is the size it always was, so the dots are three times as far
+    // apart on the finished image and three times as wide.
+    const svg = textureSvg({ type: "dots" }, dimensions, "tx", 3);
+
+    assertStringIncludes(svg, '<g transform="scale(3)">');
+    assertStringIncludes(svg, '<pattern id="tx" width="44" height="44"');
+    assertArrayLength(radii(svg), 1);
+    assertIdentical(radii(svg)[0], 2.5);
+  });
+
+  it("rounds the reduced image up so the treatment covers the last row", () => {
+    // 800 and 400 over 3 are not whole numbers, and a rect short of the edge
+    // would leave a bare strip down two sides once it was scaled back.
+    const svg = textureSvg({ type: "dots" }, dimensions, "tx", 3);
+
+    assertStringIncludes(svg, '<rect width="267" height="134"');
+  });
+
+  it("scales a treatment that is not a tile as readily", () => {
+    // `waves` names nothing in `<defs>` and draws its rings from the image's
+    // own proportions, which is exactly what the reduced image gives it.
+    const svg = textureSvg({ type: "waves" }, dimensions, "tx", 2);
+
+    assertStringIncludes(svg, '<g transform="scale(2)">');
+    assertStringIncludes(svg, "</g>");
+  });
+});
+
 describe("resolveTexture", () => {
   it("colours a pattern with the foreground where none was given", () => {
     // A fixed white would vanish on a light theme, which is a texture that
@@ -383,5 +424,28 @@ describe("resolveTexture", () => {
 
   it("is nothing where there is no texture", () => {
     assertUndefined(resolveTexture(undefined, colors));
+  });
+});
+
+describe("resolveTextureScale", () => {
+  it("draws a texture at its stated lengths by default", () => {
+    assertIdentical(resolveTextureScale(undefined), 1);
+  });
+
+  it("takes a scale that was asked for", () => {
+    assertIdentical(resolveTextureScale(3), 3);
+  });
+
+  it("takes a scale that was asked for below one", () => {
+    assertIdentical(resolveTextureScale(0.5), 0.5);
+  });
+
+  it("ignores a scale that could only draw nothing", () => {
+    // Zero would divide the image by nothing and a negative would draw the
+    // treatment back through the origin, so both would surface as a blank
+    // image rather than as a message about the config.
+    assertIdentical(resolveTextureScale(0), 1);
+    assertIdentical(resolveTextureScale(-2), 1);
+    assertIdentical(resolveTextureScale(Number.NaN), 1);
   });
 });

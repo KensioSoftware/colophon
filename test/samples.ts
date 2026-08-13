@@ -26,6 +26,9 @@ export interface Sample {
 const square: Dimensions = { width: 1200, height: 1200 };
 const wide: Dimensions = { width: 1200, height: 630 };
 
+/** What YouTube asks a video thumbnail to be uploaded at. */
+const video: Dimensions = { width: 1280, height: 720 };
+
 /**
  * The theme gallery is rendered small, since eight of them go in one table and
  * a reader is comparing looks rather than reading the type.
@@ -538,6 +541,25 @@ fi`,
       colors: brandColors,
       footer: "kensiosoftware.co.uk",
       logo: { data: mark },
+    },
+  },
+  {
+    name: "thumbnail-video",
+    dimensions: video,
+    props: {
+      template: "thumbnail",
+      title: "Rendering text without a browser",
+      subtitle: "Episode 4",
+    },
+    // `textureScale` is written out rather than taken from
+    // `SIZE_PRESETS.thumbnail`, since a sample is dimensions and a config
+    // rather than an output size. It is the figure the preset carries, and
+    // what the gallery is showing is what that buys.
+    config: {
+      colors: { brand: "#7c3aed", brandDark: "#4c1d95" },
+      texture: { type: "dots" },
+      textureScale: 3,
+      footer: "example.com",
     },
   },
   {

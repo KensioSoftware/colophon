@@ -6,6 +6,23 @@ import type {
 } from "../types.js";
 
 /**
+ * How much larger a texture is drawn on the `thumbnail` preset.
+ *
+ * A thumbnail is uploaded at 1280 wide and shown at somewhere between about
+ * 360 and 170, so a dot grid at its default 44px spacing arrives at the reader
+ * about 10px apart, which is not a texture any more but a slightly dirty
+ * background. Three is the factor for the largest of those, and it is the
+ * conservative choice: a treatment that is a little too coarse still reads as
+ * a treatment, where one that is too fine reads as nothing at all.
+ */
+export const DEFAULT_THUMBNAIL_TEXTURE_SCALE = 3;
+
+/**
+ * The texture scale everything else is drawn at, which is to say, unchanged.
+ */
+export const DEFAULT_TEXTURE_SCALE = 1;
+
+/**
  * Named output-size presets covering the common social-image standards. Each
  * `name` becomes the filename suffix (e.g. `my-post-og.png`).
  *
@@ -14,12 +31,21 @@ import type {
  * - `square`: 1:1, X/Twitter `summary` card and a universal fallback.
  * - `twitter`: 2:1, X/Twitter `summary_large_image` card.
  * - `pinterest`: 2:3 tall pin.
+ * - `thumbnail`: 16:9, the size YouTube asks video thumbnails to be uploaded
+ *   at. It is the one preset carrying an override of its own, for the reason
+ *   {@link SizeOverrides.textureScale} gives.
  */
 export const SIZE_PRESETS = {
   og: { name: "og", width: 1200, height: 630 },
   square: { name: "square", width: 1200, height: 1200 },
   twitter: { name: "twitter", width: 1200, height: 600 },
   pinterest: { name: "pinterest", width: 1000, height: 1500 },
+  thumbnail: {
+    name: "thumbnail",
+    width: 1280,
+    height: 720,
+    textureScale: DEFAULT_THUMBNAIL_TEXTURE_SCALE,
+  },
 } as const satisfies Record<string, OutputSize>;
 
 /**

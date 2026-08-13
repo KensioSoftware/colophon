@@ -66,6 +66,18 @@ describe("SIZE_PRESETS", () => {
   it("defaults to the Open Graph landscape plus a square", () => {
     assertArrayEquals(DEFAULT_SIZES, [SIZE_PRESETS.og, SIZE_PRESETS.square]);
   });
+
+  it("carries YouTube's thumbnail size, with its texture scaled up", () => {
+    // The one preset with an override of its own. A thumbnail is shown at a
+    // third of the width it is uploaded at or less, so a treatment at its
+    // stated lengths arrives too fine to see.
+    assertObjectEquals(SIZE_PRESETS.thumbnail, {
+      name: "thumbnail",
+      width: 1280,
+      height: 720,
+      textureScale: 3,
+    });
+  });
 });
 
 describe("resolveConfig", () => {
@@ -97,6 +109,7 @@ describe("resolveConfig", () => {
       "release",
       "stat",
       "terminal",
+      "thumbnail",
       "wordmark",
     ]);
     assertObjectEquals(resolved.code, DEFAULT_CODE_STYLE);
@@ -478,6 +491,25 @@ describe("resolveConfigForSize", () => {
       gap: 60,
       color: DEFAULT_COLORS.foreground,
     });
+  });
+
+  it("draws a texture at its stated lengths unless a size says otherwise", () => {
+    const config = { texture: { type: "dots" } } as const;
+
+    assertIdentical(resolveConfigForSize(config, square).textureScale, 1);
+    assertIdentical(
+      resolveConfigForSize(config, SIZE_PRESETS.thumbnail).textureScale,
+      3,
+    );
+    // What the size names beats the preset it was built from, which is the
+    // rule every other override follows.
+    assertIdentical(
+      resolveConfigForSize(config, {
+        ...SIZE_PRESETS.thumbnail,
+        textureScale: 5,
+      }).textureScale,
+      5,
+    );
   });
 
   it("rebuilds the derived gradient around an overridden brand", () => {

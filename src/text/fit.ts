@@ -1,3 +1,4 @@
+import { nextSize } from "./step.js";
 import { wrapText } from "./wrap.js";
 
 /** The width a run of text would be drawn at, at a given font size. */
@@ -18,9 +19,6 @@ export interface FittedText {
   readonly lines: readonly string[];
   readonly fontSize: number;
 }
-
-/** How much of the size is given up each time the text does not fit. */
-const shrinkStep = 0.94;
 
 /**
  * Wrap text into the space it has, shrinking it until it fits.
@@ -44,13 +42,7 @@ export function fitText(
   let lines = wrapText(text, maxWidth, (line) => measure(line, fontSize));
 
   while (lines.length > maxLines && fontSize > minFontSize) {
-    // Both terms are here to guarantee progress: the proportional step is what
-    // makes the search short, and the whole pixel is what stops it stalling
-    // once the sizes are small enough for rounding to swallow the step.
-    fontSize = Math.max(
-      minFontSize,
-      Math.min(fontSize - 1, Math.floor(fontSize * shrinkStep)),
-    );
+    fontSize = nextSize(fontSize, minFontSize);
     lines = wrapText(text, maxWidth, (line) => measure(line, fontSize));
   }
 

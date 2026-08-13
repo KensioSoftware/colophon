@@ -22,13 +22,18 @@ export default defineConfig({
     SIZE_PRESETS.square, // 1200x1200, Twitter summary card, universal
     SIZE_PRESETS.twitter, // 1200x600 (2:1), Twitter summary_large_image
     SIZE_PRESETS.pinterest, // 1000x1500 (2:3), Pinterest
+    SIZE_PRESETS.thumbnail, // 1280x720 (16:9), YouTube video thumbnail
     { name: "hero", width: 1600, height: 900 }, // or anything custom
   ],
 });
 ```
 
 A size can also carry its own config overrides, applied only when rendering it.
-See [Per-size config](../per-size-config/).
+See [Per-size config](../per-size-config/). `thumbnail` is the one preset that
+does: it sets `textureScale: 3`, because a thumbnail is looked at in a fraction
+of the space it is uploaded at and a texture at its stated lengths would arrive
+too fine to see. Pair it with the
+[`thumbnail` template](../../templates/#thumbnail).
 
 ## The base filename
 
