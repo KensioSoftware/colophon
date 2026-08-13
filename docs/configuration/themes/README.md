@@ -1,7 +1,7 @@
 # Themes and background treatments
 
-A theme is a named look, made up of a palette, a background and, for some of
-them, a texture over it. Naming one is the shortest config a project can write.
+A theme is a named look, made up of a palette, a background and a texture over
+it. Naming one is the shortest config a project can write.
 
 ```ts
 export default defineConfig({
@@ -12,16 +12,16 @@ export default defineConfig({
 
 ## The set
 
-| Theme       | Look                                                |
-| ----------- | --------------------------------------------------- |
-| `midnight`  | Deep navy, indigo and violet mesh, faint dot grid   |
-| `aurora`    | Near-black teal under teal, cyan and violet         |
-| `ember`     | Warm dark, brown into orange                        |
-| `forest`    | Deep green, ruled diagonally                        |
-| `bloom`     | Violet into pink and magenta                        |
-| `slate`     | Flat cool navy with a dot grid                      |
-| `paper`     | Warm off-white, ruled, near-black text              |
-| `sandstone` | Pale sand gradient with a dot grid, near-black text |
+| Theme       | Look                                                 |
+| ----------- | ---------------------------------------------------- |
+| `midnight`  | Deep navy, indigo and violet mesh, faint dot grid    |
+| `aurora`    | Near-black teal under teal and violet, faint crosses |
+| `ember`     | Warm dark, brown into orange, rays from below        |
+| `forest`    | Deep green, ruled diagonally                         |
+| `bloom`     | Violet into pink and magenta, faint dot grid         |
+| `slate`     | Flat cool navy with a dot grid                       |
+| `paper`     | Warm off-white, ruled, near-black text               |
+| `sandstone` | Pale sand gradient with a dot grid, near-black text  |
 
 <table>
   <tr>
@@ -43,7 +43,7 @@ usually asked to be, and two are light for a site whose own pages are.
 
 ## What a theme sets
 
-`colors`, `background` and sometimes `texture`, and nothing else. Those are
+`colors`, `background` and `texture`, and nothing else. Those are
 ordinary config options, so a theme is a set of defaults rather than a fixed
 look, and any of the three you name yourself is the one that is used.
 

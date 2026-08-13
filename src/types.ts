@@ -295,7 +295,7 @@ export type Texture =
     };
 
 /**
- * A named preset: a palette, a background and, for some of them, a texture.
+ * A named preset: a palette, a background and a texture over it.
  *
  * Choosing colours from nothing is the step that stops someone trying a
  * package, and a theme is the answer to it. Everything a theme sets is an
@@ -830,8 +830,8 @@ export type Rasteriser = (
 export interface ColophonConfig {
   /**
    * A named look to start from: see {@link ThemeName}. A theme supplies
-   * `colors`, `background` and sometimes `texture`, and any of those the
-   * config sets for itself wins.
+   * `colors`, `background` and `texture`, and any of those the config sets
+   * for itself wins.
    */
   readonly theme?: ThemeName;
   readonly colors?: BrandColors;

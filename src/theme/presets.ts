@@ -24,11 +24,19 @@ export interface Theme {
  * image is usually asked to be, and two are light, because a site whose own
  * pages are light has nothing to reach for otherwise.
  *
- * None of them turns grain on, though it is the treatment they would most
- * obviously want. Per-pixel noise does not compress, and it takes a
- * 1200x1200 PNG from around 600KB to a little over 2MB: a cost worth paying
- * on purpose, and not one to hand someone who picked a theme by its name and
- * is committing the images next to their posts.
+ * All of them carry a texture, since a treatment is most of what separates a
+ * theme from a palette, and every one of them is drawn from the cheap end of
+ * the set. What that costs is worth writing down, measured on a 1200x1200
+ * card: `aurora` goes from 244KB to 279KB, `bloom` from 342KB to 372KB, and
+ * `ember` from 99KB to 192KB, which is the largest jump here and still the
+ * smallest image of the three.
+ *
+ * None of them turns grain, `waves` or `moire` on, though grain is the
+ * treatment they would most obviously want. Those three do not compress:
+ * grain takes a 1200x1200 PNG from around 82KB to 1.7MB, and the other two to
+ * around 600KB. That is a cost worth paying on purpose, and not one to hand
+ * someone who picked a theme by its name and is committing the images next to
+ * their posts.
  */
 export const THEMES: Readonly<Record<ThemeName, Theme>> = {
   midnight: {
@@ -66,6 +74,7 @@ export const THEMES: Readonly<Record<ThemeName, Theme>> = {
         { color: "#8b5cf6", x: 1, y: 0.9, radius: 0.5, opacity: 0.55 },
       ],
     },
+    texture: { type: "crosses", opacity: 0.07 },
   },
 
   ember: {
@@ -83,6 +92,7 @@ export const THEMES: Readonly<Record<ThemeName, Theme>> = {
         { offset: "100%", color: "#ea580c" },
       ],
     },
+    texture: { type: "rays", opacity: 0.06 },
   },
 
   forest: {
@@ -119,6 +129,7 @@ export const THEMES: Readonly<Record<ThemeName, Theme>> = {
         { color: "#7c3aed", x: 0.5, y: 1, radius: 0.75, opacity: 0.8 },
       ],
     },
+    texture: { type: "dots", opacity: 0.06 },
   },
 
   slate: {
