@@ -9,9 +9,47 @@ export interface TextRun {
   readonly face: Face | undefined;
 }
 
-/** Advance width of `text` in `face`, as a multiple of the font size. */
-export function emWidth(text: string, face: Face): number {
-  return face.font.layout(text).advanceWidth / face.font.unitsPerEm;
+/** Advance width of `text` in `face` as the font itself will shape it. */
+function shapedWidth(text: string, face: Face): number | undefined {
+  try {
+    return face.font.layout(text).advanceWidth;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Advance width of `text` in `face` from the characters taken one by one. */
+function glyphWidth(text: string, face: Face): number | undefined {
+  let units = 0;
+
+  try {
+    for (const character of text) {
+      const point = character.codePointAt(0) ?? 0;
+      units += face.font.glyphForCodePoint(point).advanceWidth;
+    }
+  } catch {
+    return undefined;
+  }
+
+  return units;
+}
+
+/**
+ * Advance width of `text` in `face`, as a multiple of the font size, or
+ * nothing where the face cannot give one and the width has to be estimated.
+ *
+ * Shaping the whole string is what accounts for kerning and ligatures, and it
+ * is also what can fail: a font file is data, and fontkit reads more of it
+ * than an advance needs. JetBrains Mono shapes `--` to a ligature followed by
+ * an empty spacer, that spacer is the last glyph in the file, and fontkit
+ * reads its bounding box off the end of the outline table and throws. Taking
+ * the characters one at a time is the answer when that happens, and it is
+ * exact for a monospace face and close for the rest.
+ */
+export function emWidth(text: string, face: Face): number | undefined {
+  const units = shapedWidth(text, face) ?? glyphWidth(text, face);
+
+  return units === undefined ? undefined : units / face.font.unitsPerEm;
 }
 
 /**

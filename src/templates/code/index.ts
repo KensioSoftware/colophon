@@ -2,9 +2,10 @@ import { highlightCode } from "../../highlight/index.js";
 import type { Template } from "../../types.js";
 import { footerFontSize, hasFooter } from "../footer.js";
 import { optionalString } from "../../props.js";
+import { codeAdvance } from "./advance.js";
 import { barRoom, windowBar } from "./bar.js";
 import { codeFooter, codeHeading } from "./chrome.js";
-import { blockColumns } from "./fit.js";
+import { blockWidth } from "./extent.js";
 import { gutterColumns, numberLines } from "./gutter.js";
 import { codeMarks } from "./mark/index.js";
 import { fitSnippet } from "./layout.js";
@@ -12,7 +13,6 @@ import { layoutPanel, titleBand } from "./panel.js";
 import { hugPanel, panelSvg } from "./plate.js";
 import { codeBody } from "./spans.js";
 import { warnIfTruncated } from "./warn.js";
-import { charWidthRatio } from "./width.js";
 
 /**
  * Syntax-highlighted code snippet on a rounded panel over the configured
@@ -50,13 +50,14 @@ export const codeTemplate: Template = {
     );
     const bar = barRoom(config, available.width);
     const gutter = gutterColumns(config, highlighted.lines.length);
+    const advance = codeAdvance(measure, config.code.fontFamily);
 
     const fitted = fitSnippet(
       highlighted,
       { ...available, y: available.y + bar, height: available.height - bar },
       width,
       config,
-      charWidthRatio(measure, config.code.fontFamily),
+      advance,
       gutter,
     );
 
@@ -76,7 +77,7 @@ export const codeTemplate: Template = {
     // block leaves the code marooned off to one side.
     const bodyHeight = fitted.lines.length * fitted.step;
     const panel = hugPanel(available, {
-      width: blockColumns(lines) * fitted.charWidth + fitted.padding * 2,
+      width: blockWidth(lines, advance) * fitted.fontSize + fitted.padding * 2,
       height: bar + bodyHeight + fitted.padding * 2,
     });
 
@@ -89,7 +90,7 @@ export const codeTemplate: Template = {
       originX,
       originY,
       fontSize: fitted.fontSize,
-      charWidth: fitted.charWidth,
+      advance,
       step: fitted.step,
       fontFamily: config.code.fontFamily,
       foreground: highlighted.foreground,
@@ -109,6 +110,7 @@ export const codeTemplate: Template = {
         band: { x: originX, width: panel.width - fitted.padding * 2 },
       },
       config,
+      advance,
     );
 
     const shadowOffset = Math.round(Math.min(width, height) * 0.01);

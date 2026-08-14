@@ -77,6 +77,18 @@ the face as a file under [`fonts`](../configuration/fonts/) and name it in
 `code.fontFamily`. Builds that do neither fall back to the `0.6` that was the
 default here.
 
+### `HighlightedCode.longestLine` has gone
+
+`highlightCode` no longer reports the longest line in characters, because a
+character count is not a width: an ideograph is a full em where a Latin letter
+is a little over half of one, so the same count is two different widths. The
+`code` template measures the lines it is going to draw instead, and nothing was
+left for the field to say.
+
+Only code calling `highlightCode` directly has anything to change. A custom
+template wanting the width of a line should measure it, with the `measure` its
+[`TemplateContext`](../templates/) carries, rather than count it.
+
 ### `wrapText` takes a width and a measurer
 
 ```ts

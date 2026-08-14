@@ -85,6 +85,26 @@ const regressions: readonly Sample[] = [
     config: { colors: { brand: "#0f766e" } },
   },
   {
+    // A snippet holding characters that are a full em wide in a grid sized for
+    // Latin. The faces the baselines are pinned to have no ideographs, so what
+    // this shows is where the Latin around them lands: the closing quote, the
+    // bracket and the semicolon after each string sit past the room two
+    // ideographs need rather than on top of them.
+    name: "code-wide-characters",
+    dimensions: { width: 1200, height: 630 },
+    props: {
+      template: "code",
+      title: "Full-width characters",
+      language: "typescript",
+      code: [
+        'const bank = convert(dictionary, "银行");',
+        'const hair = convert(dictionary, "頭髮");',
+        "// yínháng, tóufà",
+      ].join("\n"),
+    },
+    config: { colors: { brand: "#b45309" }, footer: "example.com" },
+  },
+  {
     // A logo in one corner, a badge in the other and an avatar on the footer:
     // everything `loadImages` gathers, drawn at once.
     name: "branded",

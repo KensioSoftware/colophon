@@ -1,6 +1,9 @@
 import type { CodeToken, HighlightedCode } from "../../highlight/index.js";
 import type { ResolvedConfig } from "../../types.js";
+import type { Advance } from "./advance.js";
+import { cellWidth } from "./advance.js";
 import { clipLines } from "./clip.js";
+import { blockWidth } from "./extent.js";
 import { fitFontSize, fitLines } from "./fit.js";
 import type { Panel } from "./panel.js";
 
@@ -12,6 +15,7 @@ export interface FittedCode {
   readonly lines: readonly (readonly CodeToken[])[];
   readonly clipped: number;
   readonly fontSize: number;
+  /** One cell of the monospace grid, in pixels, for the parts that are one. */
   readonly charWidth: number;
   readonly step: number;
   readonly padding: number;
@@ -23,34 +27,38 @@ export interface FittedCode {
  *
  * `gutter` is columns reserved to the left of the code, for line numbers. It
  * is counted in characters rather than pixels because that is what it is: the
- * numbers sit on the same monospace grid, so the space they take follows
- * whatever font size the fitting settles on.
+ * numbers are digits in a monospace face, so the space they take follows
+ * whatever font size the fitting settles on. Everything to the right of them
+ * is measured instead, since the code is text and not necessarily a grid.
  */
 export function fitSnippet(
   highlighted: HighlightedCode,
   available: Panel,
   imageWidth: number,
   config: ResolvedConfig,
-  charWidthRatio: number,
+  advance: Advance,
   gutter = 0,
 ): FittedCode {
   const inner = Math.round(Math.min(available.width, available.height) * 0.07);
   const codeWidth = Math.max(1, available.width - inner * 2);
   const codeHeight = Math.max(1, available.height - inner * 2);
+  const cell = cellWidth(advance);
 
   const fontSize = fitFontSize(
-    { ...highlighted, longestLine: highlighted.longestLine + gutter },
+    {
+      lines: highlighted.lines.length,
+      width: blockWidth(highlighted.lines, advance) + gutter * cell,
+    },
     { width: codeWidth, height: codeHeight },
     imageWidth,
     config,
-    charWidthRatio,
   );
-  const charWidth = fontSize * charWidthRatio;
   const step = fontSize * config.code.lineHeight;
 
   const { lines, clipped } = clipLines(
     fitLines(highlighted.lines, codeHeight, step),
-    Math.max(1, Math.floor(codeWidth / charWidth) - gutter),
+    Math.max(cell, codeWidth / fontSize - gutter * cell),
+    advance,
   );
 
   // Padding reads best proportional to the text rather than the panel, since a
@@ -61,5 +69,12 @@ export function fitSnippet(
     Math.round(inner * 0.35),
   );
 
-  return { lines, clipped, fontSize, charWidth, step, padding };
+  return {
+    lines,
+    clipped,
+    fontSize,
+    charWidth: fontSize * cell,
+    step,
+    padding,
+  };
 }

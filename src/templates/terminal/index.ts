@@ -1,13 +1,13 @@
 import { optionalString } from "../../props.js";
 import type { Template } from "../../types.js";
+import { codeAdvance } from "../code/advance.js";
 import { codeFooter } from "../code/chrome.js";
-import { blockColumns } from "../code/fit.js";
+import { blockWidth } from "../code/extent.js";
 import { fitSnippet } from "../code/layout.js";
 import { layoutPanel } from "../code/panel.js";
 import { hugPanel, panelSvg } from "../code/plate.js";
 import { codeBody } from "../code/spans.js";
 import { warnIfTruncated } from "../code/warn.js";
-import { charWidthRatio } from "../code/width.js";
 import { footerFontSize, hasFooter } from "../footer.js";
 import { barHeight, titleBar } from "../window/index.js";
 import { terminalSession } from "./session.js";
@@ -44,13 +44,14 @@ export const terminalTemplate: Template = {
     // than against the window it ends up as, so that the room reserved for it
     // and the bar that is drawn are the same height.
     const bar = barHeight(available.width);
+    const advance = codeAdvance(measure, config.code.fontFamily);
 
     const fitted = fitSnippet(
       session,
       { ...available, y: available.y + bar, height: available.height - bar },
       width,
       config,
-      charWidthRatio(measure, config.code.fontFamily),
+      advance,
     );
 
     warnIfTruncated(
@@ -66,7 +67,9 @@ export const terminalTemplate: Template = {
 
     const body = fitted.lines.length * fitted.step;
     const window = hugPanel(available, {
-      width: blockColumns(fitted.lines) * fitted.charWidth + fitted.padding * 2,
+      width:
+        blockWidth(fitted.lines, advance) * fitted.fontSize +
+        fitted.padding * 2,
       height: bar + body + fitted.padding * 2,
     });
 
@@ -85,7 +88,7 @@ export const terminalTemplate: Template = {
         originX: window.x + fitted.padding,
         originY: window.y + bar + (window.height - bar - body) / 2,
         fontSize: fitted.fontSize,
-        charWidth: fitted.charWidth,
+        advance,
         step: fitted.step,
         fontFamily: config.code.fontFamily,
         foreground: session.foreground,

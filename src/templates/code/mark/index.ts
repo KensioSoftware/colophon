@@ -1,5 +1,6 @@
 import type { CodeToken } from "../../../highlight/index.js";
 import type { MetaImageProps, ResolvedConfig } from "../../../types.js";
+import type { Advance } from "../advance.js";
 import { markSvg } from "./draw.js";
 import type { MarkMetrics } from "./draw.js";
 import { locateMark } from "./locate.js";
@@ -22,6 +23,7 @@ export function codeMarks(
   lines: readonly (readonly CodeToken[])[],
   metrics: MarkMetrics,
   config: ResolvedConfig,
+  advance: Advance,
 ): string {
   // Widened because this arrives from a post's frontmatter: the declared type
   // is what a project means to write, not what the file holds.
@@ -30,7 +32,7 @@ export function codeMarks(
   let drawn = "";
 
   for (const mark of readMarks(declared, config)) {
-    const span = locateMark(mark, lines);
+    const span = locateMark(mark, lines, advance);
 
     if (span === undefined) {
       missing.push(mark.text ?? `line ${String(mark.line ?? 0)}`);

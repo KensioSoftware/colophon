@@ -1,6 +1,6 @@
 /**
- * One highlighted run of text on a line, positioned by character column so the
- * renderer can lay it out on a fixed monospace grid.
+ * One highlighted run of text on a line, carrying the character column it
+ * starts at so the renderer can position it absolutely.
  */
 export interface CodeToken {
   readonly text: string;
@@ -15,8 +15,13 @@ export interface CodeToken {
 }
 
 /**
- * A tokenised snippet ready for layout: the grid of lines, the theme's own
- * colours, and its longest line in characters.
+ * A tokenised snippet ready for layout: the lines, and the theme's own
+ * colours.
+ *
+ * There is no width here, and there was: the longest line in characters. How
+ * wide a line is depends on the face it is drawn in, since an ideograph takes
+ * a full em where a Latin letter takes a fraction of one, so the width is
+ * measured where the font is known rather than counted here where it is not.
  */
 export interface HighlightedCode {
   readonly lines: readonly (readonly CodeToken[])[];
@@ -24,8 +29,6 @@ export interface HighlightedCode {
   readonly foreground: string;
   /** Theme background, used to fill the code panel. */
   readonly background: string;
-  /** Length in characters of the longest line, for width fitting. */
-  readonly longestLine: number;
 }
 
 /**

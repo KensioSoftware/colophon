@@ -263,6 +263,13 @@ function tspanColumns(svg: string): readonly number[] {
   );
 }
 
+/** The x of the last token on each line, in the order the lines are drawn. */
+function lineEnds(svg: string): readonly number[] {
+  return Array.from(svg.matchAll(/<text [^>]*>(.*?)<\/text>/g), (match) =>
+    Number(tspanColumns(match[1] ?? "").at(-1)),
+  );
+}
+
 describe("codeTemplate", () => {
   const bash = "#!/usr/bin/env bash\n\necho 'hello'\n";
 
@@ -297,7 +304,7 @@ describe("codeTemplate", () => {
     assertStringIncludes(dark, 'rx="30" fill="#24292e"');
   }, 5000);
 
-  it("lays the grid out on the font's own advance", async () => {
+  it("lays a snippet out at the width its face will draw it", async () => {
     const props = {
       template: "code",
       code: "if x:\n    return 1",
@@ -306,15 +313,35 @@ describe("codeTemplate", () => {
     const assumed = await render(codeTemplate, props);
     const measured = await render(codeTemplate, props, {
       // A proportional face, which is not a configuration the template
-      // supports: it draws on a character grid and wants a monospace font. It
-      // is here because its digit advance of 0.636 em is far enough from the
-      // 0.6 assumed for monospace to show up in the geometry.
+      // supports: it wants a monospace font. It is here because the difference
+      // shows. Its digit is 0.636 em, wider than the 0.6 assumed when nothing
+      // can be measured, and its spaces and lower case are a good deal
+      // narrower, so the block comes out narrower than a count of cells. What
+      // the panel hugs is the text the lines hold rather than how many
+      // characters they have.
       fonts: [{ family: "DejaVu Sans", path: sansFont }],
       code: { fontFamily: "DejaVu Sans" },
     });
 
-    // Wider characters mean a wider block, and the panel hugs the block.
-    assertTrue(panelRect(measured).width > panelRect(assumed).width);
+    assertTrue(panelRect(measured).width < panelRect(assumed).width);
+  }, 5000);
+
+  it("gives a full-width character the room it needs", async () => {
+    const svg = await render(codeTemplate, {
+      template: "code",
+      code: 'const a = "ab";\nconst b = "银行";',
+      language: "typescript",
+    });
+    const [latin, wide] = lineEnds(svg);
+
+    assertNonNullable(latin);
+    assertNonNullable(wide);
+    // The two lines have the same number of characters, so counting them puts
+    // both semicolons at the same x and draws the ideographs over the quote
+    // and the semicolon after them. Two ideographs are two full ems where four
+    // Latin characters are about two fifths of that, so the semicolon after
+    // them belongs further along.
+    assertTrue(wide > latin);
   }, 5000);
 
   it("preserves indentation as absolute token columns", async () => {

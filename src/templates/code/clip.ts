@@ -1,8 +1,11 @@
 import type { CodeToken } from "../../highlight/index.js";
 import { ellipsis } from "../../text/ellipsis.js";
+import type { Advance } from "./advance.js";
+import { placeTokens } from "./extent.js";
+import { truncate } from "./truncate.js";
 
 /**
- * Clip a line to the columns that fit, ending it with an ellipsis. The font
+ * Clip a line to the width that fits, ending it with an ellipsis. The font
  * size is floored for legibility, so a wide enough snippet can still overrun
  * the panel, and clipping keeps it inside instead of bleeding off the image.
  *
@@ -11,29 +14,35 @@ import { ellipsis } from "../../text/ellipsis.js";
  */
 export function clipLine(
   tokens: readonly CodeToken[],
-  maxColumns: number,
+  maxWidth: number,
+  advance: Advance,
 ): readonly CodeToken[] {
-  const last = tokens.at(-1);
+  const placed = placeTokens(tokens, advance);
+  const last = placed.at(-1);
 
-  if (last === undefined || last.column + last.text.length <= maxColumns) {
+  if (last === undefined || last.x + advance(last.token.text) <= maxWidth) {
     return tokens;
   }
 
   const clipped: CodeToken[] = [];
+  const mark = advance(ellipsis);
 
-  for (const token of tokens) {
-    if (token.column >= maxColumns) {
+  for (const { token, x } of placed) {
+    const room = maxWidth - x;
+
+    // Not even room for the marker, so there is nothing worth drawing here:
+    // whatever it were cut to would be the ellipsis on its own, overhanging
+    // the width the rest of the line was held to.
+    if (room < mark) {
       break;
     }
 
-    const room = maxColumns - token.column;
-
-    if (token.text.length <= room) {
+    if (advance(token.text) <= room) {
       clipped.push(token);
       continue;
     }
 
-    clipped.push({ ...token, text: token.text.slice(0, room - 1) + ellipsis });
+    clipped.push({ ...token, text: truncate(token.text, room, advance) });
     break;
   }
 
@@ -45,12 +54,13 @@ export function clipLine(
  */
 export function clipLines(
   lines: readonly (readonly CodeToken[])[],
-  maxColumns: number,
+  maxWidth: number,
+  advance: Advance,
 ): { lines: readonly (readonly CodeToken[])[]; clipped: number } {
   let clipped = 0;
 
   const fitted = lines.map((tokens) => {
-    const line = clipLine(tokens, maxColumns);
+    const line = clipLine(tokens, maxWidth, advance);
 
     if (line !== tokens) {
       clipped += 1;
