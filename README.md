@@ -24,8 +24,8 @@ work.
   frontmatter with real VS Code theme colours.
 - **Configurable branding.** Colours, gradient, fonts, footer and badge come from
   config, not from any one site's stylesheet.
-- **Themes.** Eight named looks, or your own colours with a mesh, grain, a dot
-  grid or ruled lines over them.
+- **Themes.** Eight named looks, or your own colours with a mesh, a dot grid or
+  ruled lines over them.
 - **Multiple sizes from one input.** A 1:1 square and a 1.91:1 landscape by
   default, or whatever set you configure.
 - **Manifest and meta tags.** A JSON record of what was generated, and the Open
@@ -105,7 +105,7 @@ Full documentation is in [`docs/`](./docs/).
 - [Astro](./docs/astro/ "The integration and the meta tags component")
 - [The browser-safe core](./docs/core/ "Running the template layer outside Node")
 - [The layout toolkit](./docs/layout/ "The primitives templates are built from")
-- [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, grain, dots and rules")
+- [Themes and background treatments](./docs/configuration/themes/ "Named looks, meshes, dots and rules")
 - [Logos and photographs](./docs/configuration/images/ "Branding an image with a logo, avatar or background photo")
 - [Configuration](./docs/configuration/ "Every option, and what happens to an unknown one")
 - [Output formats](./docs/configuration/formats/ "WebP, JPEG and AVIF, quality, size caps and the SVG source")

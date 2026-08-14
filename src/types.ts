@@ -162,10 +162,16 @@ export type Background =
  * A treatment laid over the background, under everything a template draws.
  *
  * A flat fill or a gradient is clean but a little bare, and these are the
- * cheap ways to give one some surface: film grain, a dot grid, ruled lines, or
- * rings drawn in from either side. Each of them is a few elements of SVG
- * rather than an image to load, and each is meant to be felt rather than seen,
- * so the defaults are faint.
+ * cheap ways to give one some surface: a dot grid, ruled lines, or rings drawn
+ * in from either side. Each of them is a few elements of SVG rather than an
+ * image to load, and each is meant to be felt rather than seen, so the
+ * defaults are faint.
+ *
+ * They are not, however, fine. A share image is looked at somewhere between a
+ * third and a sixth of the size it was rendered at, so a treatment pitched to
+ * look right on the full-size picture disappears in the feed the picture is
+ * for. The lengths below are what carries through that, and a project wanting
+ * the finer version of one says so.
  *
  * Lengths are in pixels at the size being rendered, so a texture is a little
  * finer on a large image than on a small one, which is what keeps a dot grid
@@ -173,25 +179,14 @@ export type Background =
  */
 export type Texture =
   | {
-      /**
-       * Film grain, from one turbulence filter. It lightens what is under it
-       * slightly, since the noise it lays down is grey.
-       */
-      readonly type: "grain";
-      /** Defaults to `0.1`. */
-      readonly opacity?: number;
-      /** Roughly the size of a speck, in pixels. Defaults to `1.4`. */
-      readonly scale?: number;
-    }
-  | {
       readonly type: "dots";
       /** Defaults to the foreground colour. */
       readonly color?: string;
       /** Defaults to `0.08`. */
       readonly opacity?: number;
-      /** Dot diameter. Defaults to `5`. */
+      /** Dot diameter. Defaults to `8`. */
       readonly size?: number;
-      /** Centre-to-centre spacing. Defaults to `44`. */
+      /** Centre-to-centre spacing. Defaults to `66`. */
       readonly gap?: number;
     }
   | {
@@ -200,9 +195,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.06`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `2`. */
+      /** Line thickness. Defaults to `3`. */
       readonly width?: number;
-      /** Spacing between lines. Defaults to `28`. */
+      /** Spacing between lines. Defaults to `42`. */
       readonly gap?: number;
       /** Degrees clockwise from vertical. Defaults to `45`. */
       readonly angle?: number;
@@ -231,9 +226,9 @@ export type Texture =
        * Defaults to `0.14`.
        */
       readonly opacity?: number;
-      /** Ring thickness. Defaults to `2`. */
+      /** Ring thickness. Defaults to `3`. */
       readonly width?: number;
-      /** Distance between one ring and the next. Defaults to `24`. */
+      /** Distance between one ring and the next. Defaults to `36`. */
       readonly gap?: number;
     }
   | {
@@ -248,12 +243,12 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.07`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `2`. */
+      /** Line thickness. Defaults to `3`. */
       readonly width?: number;
       /**
        * Rays around the whole circle, of which only those pointing into the
        * image are seen. Counting the full circle is what keeps the spacing the
-       * same when the origin moves. Defaults to `36`, a ray every ten degrees.
+       * same when the origin moves. Defaults to `24`, a ray every fifteen degrees.
        */
       readonly count?: number;
       /** Origin across, as a fraction of the image. Defaults to `0.5`. */
@@ -275,9 +270,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.07`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `1`. */
+      /** Line thickness. Defaults to `1.5`. */
       readonly width?: number;
-      /** Spacing between one line and the next. Defaults to `32`. */
+      /** Spacing between one line and the next. Defaults to `48`. */
       readonly gap?: number;
       /**
        * How many squares apart the heavier lines are, drawn at twice the
@@ -294,9 +289,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.07`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `2`. */
+      /** Line thickness. Defaults to `3`. */
       readonly width?: number;
-      /** How wide one chevron is, and how far apart the rows are. Default `36`. */
+      /** How wide one chevron is, and how far apart the rows are. Default `54`. */
       readonly gap?: number;
     }
   | {
@@ -309,9 +304,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.07`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `1.5`. */
+      /** Line thickness. Defaults to `2`. */
       readonly width?: number;
-      /** The length of one side of a hexagon. Defaults to `26`. */
+      /** The length of one side of a hexagon. Defaults to `39`. */
       readonly size?: number;
     }
   | {
@@ -324,11 +319,11 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.09`. */
       readonly opacity?: number;
-      /** How far a cross reaches across. Defaults to `9`. */
+      /** How far a cross reaches across. Defaults to `14`. */
       readonly size?: number;
-      /** Line thickness. Defaults to `1.5`. */
+      /** Line thickness. Defaults to `2`. */
       readonly width?: number;
-      /** Centre-to-centre spacing. Defaults to `48`. */
+      /** Centre-to-centre spacing. Defaults to `72`. */
       readonly gap?: number;
     }
   | {
@@ -342,9 +337,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.07`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `2`. */
+      /** Line thickness. Defaults to `3`. */
       readonly width?: number;
-      /** How wide one scale is. Defaults to `40`. */
+      /** How wide one scale is. Defaults to `60`. */
       readonly size?: number;
     }
   | {
@@ -357,9 +352,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.12`. */
       readonly opacity?: number;
-      /** Diameter of the largest dot. Defaults to `12`. */
+      /** Diameter of the largest dot. Defaults to `18`. */
       readonly size?: number;
-      /** Centre-to-centre spacing. Defaults to `30`. */
+      /** Centre-to-centre spacing. Defaults to `45`. */
       readonly gap?: number;
       /**
        * The direction the dots grow in, in degrees, where `0` runs to the
@@ -383,9 +378,9 @@ export type Texture =
       readonly color?: string;
       /** Defaults to `0.09`. */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `1.5`. */
+      /** Line thickness. Defaults to `2`. */
       readonly width?: number;
-      /** Distance between one contour and the next. Defaults to `34`. */
+      /** Distance between one contour and the next. Defaults to `51`. */
       readonly gap?: number;
       /**
        * How tall the landscape is, as a multiple of the gap, which is the
@@ -415,9 +410,9 @@ export type Texture =
        * what makes the crossings read as one surface. Defaults to `0.1`.
        */
       readonly opacity?: number;
-      /** Line thickness. Defaults to `1`. */
+      /** Line thickness. Defaults to `1.5`. */
       readonly width?: number;
-      /** Spacing between one line and the next. Defaults to `16`. */
+      /** Spacing between one line and the next. Defaults to `24`. */
       readonly gap?: number;
       /**
        * Degrees the second grid is turned by, which is the whole texture.
@@ -971,7 +966,7 @@ export interface ColophonConfig {
   /** Explicit background, overriding the gradient derived from `colors`. */
   readonly background?: Background;
   /**
-   * A treatment over the background: grain, a dot grid or ruled lines. Omit
+   * A treatment over the background: a dot grid, ruled lines, contours. Omit
    * (the default) for none, unless a theme brings one.
    */
   readonly texture?: Texture;

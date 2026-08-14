@@ -1,7 +1,7 @@
 import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 
-const wavesDefaults = { opacity: 0.14, width: 2, gap: 24 };
+const wavesDefaults = { opacity: 0.14, width: 3, gap: 36 };
 
 /**
  * How much fainter the set drawn from the right is than the set from the left.

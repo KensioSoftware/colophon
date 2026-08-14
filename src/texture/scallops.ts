@@ -2,7 +2,7 @@ import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 import { tile } from "./tile.js";
 
-const scallopDefaults = { opacity: 0.07, width: 2, size: 40 };
+const scallopDefaults = { opacity: 0.07, width: 3, size: 60 };
 
 /** One arc of a row, bulging downwards from the two points it spans. */
 function scallop(cx: number, y: number, radius: number): string {

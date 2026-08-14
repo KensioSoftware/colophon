@@ -1,6 +1,5 @@
 import type { Dimensions, Texture } from "../types.js";
 import { chevronsSvg } from "./chevrons.js";
-import { grainSvg } from "./grain.js";
 import { halftoneSvg } from "./halftone.js";
 import { gridSvg } from "./grid.js";
 import { honeycombSvg } from "./honeycomb.js";
@@ -24,7 +23,7 @@ type Draw<T extends Texture["type"]> = (
  * Which function draws which treatment.
  *
  * A table rather than a chain of `if`s, because the chain had a branch per
- * texture and there are ten of them: the file was close to the complexity
+ * texture and there are a dozen of them: the file was close to the complexity
  * threshold and every new treatment made it worse. The type is what keeps this
  * honest, and it does the job the chain's final `return` used to do badly: a
  * variant added to `Texture` with no entry here fails to compile, where before
@@ -35,7 +34,6 @@ type Draw<T extends Texture["type"]> = (
  * says what it uses.
  */
 const drawers: { [T in Texture["type"]]: Draw<T> } = {
-  grain: grainSvg,
   dots: dotsSvg,
   rules: rulesSvg,
   grid: gridSvg,

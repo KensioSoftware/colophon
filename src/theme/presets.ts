@@ -31,12 +31,12 @@ export interface Theme {
  * `ember` from 99KB to 192KB, which is the largest jump here and still the
  * smallest image of the three.
  *
- * None of them turns grain, `waves` or `moire` on, though grain is the
- * treatment they would most obviously want. Those three do not compress:
- * grain takes a 1200x1200 PNG from around 82KB to 1.7MB, and the other two to
- * around 600KB. That is a cost worth paying on purpose, and not one to hand
- * someone who picked a theme by its name and is committing the images next to
- * their posts.
+ * None of them turns `waves` or `moire` on, which are the two that do not
+ * compress: either takes a 1200x1200 PNG from around 36KB to several hundred,
+ * because a turned or crossed set of lines meets itself somewhere different in
+ * every row and there is nothing for the compression to fold up. That is a
+ * cost worth paying on purpose, and not one to hand someone who picked a theme
+ * by its name and is committing the images next to their posts.
  */
 export const THEMES: Readonly<Record<ThemeName, Theme>> = {
   midnight: {

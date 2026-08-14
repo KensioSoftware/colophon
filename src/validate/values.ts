@@ -4,6 +4,24 @@ import { codeChromeStyles, outputFormats, slugStrategies } from "./keys.js";
 import { nearestName } from "./suggest.js";
 
 /**
+ * Values that have gone, keyed by the field they were a value of and what to
+ * say instead of suggesting a name.
+ *
+ * The reason `removedOptions` exists, one level down: a removal has nothing to
+ * point at, so edit distance answers it with whichever survivor happens to
+ * look similar, and "did you mean grid?" is not what somebody who wrote
+ * `grain` needs to read.
+ */
+const removedValues = new Map<string, string>([
+  [
+    "texture type:grain",
+    "per-pixel noise is the one thing PNG cannot compress, and film grain took" +
+      " a 1200x1200 image from around 82KB to 1.7MB. Every other treatment is" +
+      " a fraction of that; `halftone` is the nearest in look.",
+  ],
+]);
+
+/**
  * Report a value that is not one of the names a field accepts. `noun` names
  * the field, `plural` heads the list of what it does accept.
  */
@@ -13,6 +31,12 @@ export function describeUnknownValue(
   value: string,
   known: readonly string[],
 ): string {
+  const removed = removedValues.get(`${noun}:${value}`);
+
+  if (removed !== undefined) {
+    return `The ${noun} "${value}" has been removed: ${removed}`;
+  }
+
   const suggestion = nearestName(value, known);
 
   return suggestion === undefined

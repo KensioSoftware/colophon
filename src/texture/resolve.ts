@@ -8,8 +8,7 @@ import type { BrandColors, Texture } from "../types.js";
  * A dot grid, a set of rules or a set of rings has to be the foreground colour
  * by default, because that is the one colour known to contrast with the
  * background: a fixed white would disappear on a light theme, which is a
- * texture that silently does nothing. Grain has no colour to fill in, being
- * noise.
+ * texture that silently does nothing.
  *
  * It happens here rather than while drawing so that the resolved config says
  * what will actually be drawn, which is also what the rebuild stamp hashes: a
@@ -19,11 +18,9 @@ export function resolveTexture(
   texture: Texture | undefined,
   colors: Required<BrandColors>,
 ): Texture | undefined {
-  if (texture === undefined || texture.type === "grain") {
-    return texture;
-  }
-
-  return { color: colors.foreground, ...texture };
+  return texture === undefined
+    ? undefined
+    : { color: colors.foreground, ...texture };
 }
 
 /**

@@ -62,7 +62,7 @@ describe("validateConfig", () => {
       },
       onWarning: () => undefined,
       theme: "midnight",
-      texture: { type: "grain", opacity: 0.1, scale: 1.4 },
+      texture: { type: "dots", opacity: 0.08, gap: 66 },
       sizes: [{ name: "square", width: 1200, height: 1200 }],
       templates: {},
       content: { slugStrategy: "route" },
@@ -325,9 +325,16 @@ describe("validateConfig", () => {
     assertIdentical(
       messageFor({ texture: { type: "speckle" } }),
       'Unknown texture type "speckle". Valid types:' +
-        " grain, dots, rules, waves, rays, moire, grid, crosses," +
+        " dots, rules, waves, rays, moire, grid, crosses," +
         " chevrons, honeycomb, scallops, halftone, topographic.",
     );
+  });
+
+  it("says why grain has gone rather than suggesting grid", () => {
+    const message = messageFor({ texture: { type: "grain" } });
+
+    assertStringIncludes(message, 'The texture type "grain" has been removed:');
+    assertStringIncludes(message, "PNG cannot compress");
   });
 
   it("rejects a theme that does not exist", () => {

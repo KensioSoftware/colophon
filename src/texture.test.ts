@@ -32,31 +32,6 @@ const colors: Required<BrandColors> = {
 };
 
 describe("textureSvg", () => {
-  it("renders grain as a turbulence filter over the whole image", () => {
-    const svg = textureSvg({ type: "grain" }, dimensions, "tx");
-
-    assertStringIncludes(svg, '<filter id="tx"');
-    assertStringIncludes(svg, 'type="fractalNoise"');
-    // The scale is a speck's size in pixels, and the filter wants its
-    // reciprocal: 1 / 1.4.
-    assertStringIncludes(svg, 'baseFrequency="0.714"');
-    // Coloured specks over a brand colour read as a fault rather than as film.
-    assertStringIncludes(svg, '<feColorMatrix type="saturate" values="0"/>');
-    assertStringIncludes(svg, 'width="800" height="400" filter="url(#tx)"');
-    assertStringIncludes(svg, 'opacity="0.1"');
-  });
-
-  it("takes the grain scale and opacity it is given", () => {
-    const svg = textureSvg(
-      { type: "grain", opacity: 0.25, scale: 4 },
-      dimensions,
-      "tx",
-    );
-
-    assertStringIncludes(svg, 'baseFrequency="0.250"');
-    assertStringIncludes(svg, 'opacity="0.25"');
-  });
-
   it("renders dots as one circle to a tile", () => {
     const svg = textureSvg(
       { type: "dots", color: "#ffffff", size: 6, gap: 40 },
@@ -77,16 +52,16 @@ describe("textureSvg", () => {
     const rules = textureSvg({ type: "rules" }, dimensions, "tx");
     const waves = textureSvg({ type: "waves" }, dimensions, "tx");
 
-    assertStringIncludes(dots, 'width="44" height="44"');
-    assertStringIncludes(dots, '<circle cx="22" cy="22" r="2.5"');
+    assertStringIncludes(dots, 'width="66" height="66"');
+    assertStringIncludes(dots, '<circle cx="33" cy="33" r="4"');
     assertStringIncludes(dots, 'opacity="0.08"');
-    assertStringIncludes(rules, 'width="28" height="28"');
+    assertStringIncludes(rules, 'width="42" height="42"');
     assertStringIncludes(rules, 'patternTransform="rotate(45)"');
-    assertStringIncludes(rules, 'stroke-width="2"');
+    assertStringIncludes(rules, 'stroke-width="3"');
     assertStringIncludes(rules, 'opacity="0.06"');
-    assertStringIncludes(waves, 'stroke-width="2"');
+    assertStringIncludes(waves, 'stroke-width="3"');
     assertStringIncludes(waves, 'opacity="0.14"');
-    assertStringIncludes(waves, '<circle cx="0" cy="200" r="24"/>');
+    assertStringIncludes(waves, '<circle cx="0" cy="200" r="36"/>');
     // A texture resolved from config carries a colour; one built by hand may
     // not, and it still has to draw.
     assertStringIncludes(dots, 'fill="#ffffff"');
@@ -364,9 +339,9 @@ describe("textureSvg at a scale", () => {
     const svg = textureSvg({ type: "dots" }, dimensions, "tx", 3);
 
     assertStringIncludes(svg, '<g transform="scale(3)">');
-    assertStringIncludes(svg, '<pattern id="tx" width="44" height="44"');
+    assertStringIncludes(svg, '<pattern id="tx" width="66" height="66"');
     assertArrayLength(radii(svg), 1);
-    assertIdentical(radii(svg)[0], 2.5);
+    assertIdentical(radii(svg)[0], 4);
   });
 
   it("rounds the reduced image up so the treatment covers the last row", () => {
@@ -413,12 +388,6 @@ describe("resolveTexture", () => {
     assertObjectEquals(resolveTexture({ type: "waves" }, colors), {
       type: "waves",
       color: "#f1f5f9",
-    });
-  });
-
-  it("leaves grain alone, having no colour to fill in", () => {
-    assertObjectEquals(resolveTexture({ type: "grain" }, colors), {
-      type: "grain",
     });
   });
 

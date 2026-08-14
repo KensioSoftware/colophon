@@ -1,7 +1,7 @@
 import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 
-const rayDefaults = { opacity: 0.07, width: 2, count: 36, x: 0.5, y: 1.15 };
+const rayDefaults = { opacity: 0.07, width: 3, count: 24, x: 0.5, y: 1.15 };
 
 interface Origin {
   readonly x: number;

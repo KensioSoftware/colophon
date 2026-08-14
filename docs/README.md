@@ -20,7 +20,7 @@ project. The [README](../README.md) has the install steps and a short example.
 ## Configuration
 
 - [Configuration overview](./configuration/ "Every option, and what happens to an unknown one")
-- [Themes and background treatments](./configuration/themes/ "Named looks, meshes, grain, dots and rules")
+- [Themes and background treatments](./configuration/themes/ "Named looks, meshes, dots and rules")
 - [Frontmatter](./configuration/frontmatter/ "Which fields are read, and mapping the ones you have")
 - [Fonts](./configuration/fonts/ "Rendering with font files instead of installed fonts")
 - [Rasteriser](./configuration/rasteriser/ "Replacing resvg with another backend")

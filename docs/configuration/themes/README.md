@@ -84,7 +84,6 @@ to be noticed only in passing, and the defaults are faint.
 
 | Texture         | Options                                              |
 | --------------- | ---------------------------------------------------- |
-| `"grain"`       | `opacity`, `scale`                                   |
 | `"dots"`        | `color`, `opacity`, `size`, `gap`                    |
 | `"rules"`       | `color`, `opacity`, `width`, `gap`, `angle`, `cross` |
 | `"waves"`       | `color`, `opacity`, `width`, `gap`                   |
@@ -98,16 +97,22 @@ to be noticed only in passing, and the defaults are faint.
 | `"halftone"`    | `color`, `opacity`, `size`, `gap`, `angle`, `from`   |
 | `"topographic"` | `color`, `opacity`, `width`, `gap`, `relief`, `seed` |
 
-Everything but `grain` defaults to the foreground colour, so a texture shows up
-on a light theme as readily as on a dark one. Lengths are in pixels at the size
-being rendered.
+Every texture defaults to the foreground colour, so it shows up on a light
+theme as readily as on a dark one. Lengths are in pixels at the size being
+rendered.
+
+They are not fine lengths. A share image is looked at somewhere between a third
+and a sixth of the size it was rendered at, so a treatment pitched to look
+right on the full-size picture is not there at all in the feed the picture is
+for. The defaults carry through that, and a project wanting the finer version
+of one lowers `gap` or `size` itself.
 
 ### Textures at thumbnail size
 
 Pixels at the size being rendered is the right unit as long as the image is
 looked at somewhere near that size. A YouTube thumbnail is not: it is uploaded
 at 1280 wide and shown in a list at a third of that or less, so a dot grid at
-its default 44px spacing arrives at the reader about 10px apart. That is not a
+its default 66px spacing arrives at the reader about 15px apart. That is not a
 texture any more, it is a slightly dirty background.
 
 `textureScale` multiplies every length in the treatment, so the picture is the
@@ -116,22 +121,22 @@ one it always was and simply larger:
 ```ts
 export default defineConfig({
   texture: { type: "dots" },
-  textureScale: 3,
+  textureScale: 2,
 });
 ```
 
 It usually belongs on a [size](../per-size-config/) rather than on the whole
 build, because what it corrects for is where the image ends up rather than
 anything about the treatment: the same dot grid wants its default spacing on an
-Open Graph card and three times that on a thumbnail.
-`SIZE_PRESETS.thumbnail` therefore carries `textureScale: 3` already, and it is
+Open Graph card and twice that on a thumbnail.
+`SIZE_PRESETS.thumbnail` therefore carries `textureScale: 2` already, and it is
 the only preset that carries an override of its own.
 
 ```ts
 sizes: [
   SIZE_PRESETS.og, // drawn at the stated lengths
-  SIZE_PRESETS.thumbnail, // three times coarser
-  { ...SIZE_PRESETS.thumbnail, textureScale: 4 }, // or your own figure
+  SIZE_PRESETS.thumbnail, // twice as coarse
+  { ...SIZE_PRESETS.thumbnail, textureScale: 3 }, // or your own figure
 ],
 ```
 
@@ -166,35 +171,39 @@ as what it is, which is a lot of circles.
 
 #### Waves costs bytes as well
 
-Not as many as grain, and for a different reason. There are only a few dozen
-circles to draw, but their antialiased edges put a different set of colours in
-every row of the image, which is most of what PNG compresses by. Measured on a
-1200×1200 card over a gradient:
+There are only a few dozen circles to draw, but their antialiased edges put a
+different set of colours in every row of the image, which is most of what PNG
+compresses by. Measured on one 1200×1200 card over a gradient, in a single run
+so that the rows are comparable:
 
 | Texture             | PNG   |
 | ------------------- | ----- |
-| none                | 82KB  |
-| `rules`             | 94KB  |
-| `dots`              | 101KB |
-| `crosses`           | 102KB |
-| `halftone`          | 121KB |
-| `grid`, `major` `0` | 150KB |
-| `rays`              | 164KB |
-| `grid`              | 170KB |
-| `chevrons`          | 181KB |
-| `topographic`       | 181KB |
-| `honeycomb`         | 246KB |
-| `rules`, `cross`    | 294KB |
-| `scallops`          | 301KB |
-| `waves`, `gap` 44   | 423KB |
-| `moire`             | 589KB |
-| `waves`             | 634KB |
-| `grain`             | 1.7MB |
+| none                | 36KB  |
+| `crosses`           | 42KB  |
+| `dots`              | 43KB  |
+| `halftone`          | 50KB  |
+| `chevrons`          | 57KB  |
+| `grid`, `major` `0` | 57KB  |
+| `grid`              | 64KB  |
+| `rays`              | 78KB  |
+| `rules`             | 83KB  |
+| `honeycomb`         | 85KB  |
+| `scallops`          | 92KB  |
+| `topographic`       | 112KB |
+| `rules`, `cross`    | 182KB |
+| `waves`, `gap` 66   | 228KB |
+| `moire`             | 324KB |
+| `waves`             | 349KB |
 
-Rendering is around 540ms against 210ms with no texture. If the size matters
+Rendering is around 330ms against 170ms with no texture. If the size matters
 more than the format does, [`format: "webp"`](../formats/) takes the same
-image to 94KB, since a lossy encoding does not care how many colours a row
-holds.
+image to a fraction of that, since a lossy encoding does not care how many
+colours a row holds.
+
+Coarser lengths cost nothing here, and the two dearest treatments they save on:
+a wider stroke puts back roughly what the wider spacing takes away, so `dots`
+and `grid` are unchanged to the kilobyte, while `waves` came down from 450KB
+and `moire` from 385KB.
 
 ### Rays
 
@@ -352,21 +361,11 @@ the image, and it looks like one grid slightly out of true; above about ten
 they tighten into a weave. `gap` is the second lever, and the one that decides
 what the image costs.
 
-It is nearly as expensive as `waves`, at around 590KB for a 1200×1200 image,
+It is nearly as expensive as `waves`, at around 320KB for a 1200×1200 image,
 which is worth knowing because the reason is not obvious. Being drawn from a
 tile makes the SVG small, but the tile is what repeats, not the picture: a
 turned grid crosses the lines at a different place in every row, so there is
 nothing for the compression to fold up. Raising `gap` is what brings it down.
-
-### Grain costs bytes
-
-`grain` is one turbulence filter, and per-pixel noise is the one thing PNG
-cannot compress. It takes a 1200×1200 image from around 600KB to a little over
-2MB, and adds roughly 150ms to rendering it.
-
-That is well inside what the social platforms accept, but it is a lot to commit
-next to a post, which is why no theme turns grain on by itself. Choose it
-deliberately, and look at what lands on disk afterwards.
 
 ## Meshes
 

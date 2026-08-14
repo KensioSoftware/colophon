@@ -610,7 +610,7 @@ fi`,
     config: {
       colors: { brand: "#7c3aed", brandDark: "#4c1d95" },
       texture: { type: "dots" },
-      textureScale: 3,
+      textureScale: 2,
       footer: "example.com",
     },
   },
