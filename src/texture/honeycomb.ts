@@ -2,7 +2,7 @@ import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 import { tile } from "./tile.js";
 
-const combDefaults = { opacity: 0.07, width: 1.5, size: 26 };
+const combDefaults = { opacity: 0.07, width: 2, size: 39 };
 
 /** Rounded to keep the path short, since it is written out twice a tile. */
 function at(value: number): string {

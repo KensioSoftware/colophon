@@ -3,8 +3,8 @@ import { fallbackColor } from "./color.js";
 
 const halftoneDefaults = {
   opacity: 0.12,
-  size: 12,
-  gap: 30,
+  size: 18,
+  gap: 45,
   angle: 90,
   from: 0.1,
 };

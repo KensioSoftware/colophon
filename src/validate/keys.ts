@@ -45,7 +45,6 @@ type SolidBackground = Extract<Background, { readonly type: "solid" }>;
 type ImageBackground = Extract<Background, { readonly type: "image" }>;
 type GradientBackground = Extract<Background, { readonly type: "gradient" }>;
 type MeshBackground = Extract<Background, { readonly type: "mesh" }>;
-type GrainTexture = Extract<Texture, { readonly type: "grain" }>;
 type DotsTexture = Extract<Texture, { readonly type: "dots" }>;
 type RulesTexture = Extract<Texture, { readonly type: "rules" }>;
 type WavesTexture = Extract<Texture, { readonly type: "waves" }>;
@@ -325,13 +324,6 @@ export const backgroundTypes = knownKeys<Record<Background["type"], unknown>>({
   image: true,
 });
 
-/** Keys of film grain. */
-export const grainTextureKeys = knownKeys<GrainTexture>({
-  type: true,
-  opacity: true,
-  scale: true,
-});
-
 /** Keys of a dot grid. */
 export const dotsTextureKeys = knownKeys<DotsTexture>({
   type: true,
@@ -462,7 +454,6 @@ export const topographicTextureKeys = knownKeys<ContourTexture>({
  */
 export const textureKeysByType: { [T in Texture["type"]]: readonly string[] } =
   {
-    grain: grainTextureKeys,
     dots: dotsTextureKeys,
     rules: rulesTextureKeys,
     grid: gridTextureKeys,
@@ -483,7 +474,6 @@ export const textureKeysByType: { [T in Texture["type"]]: readonly string[] } =
  * rather than as a list of keys that do not apply.
  */
 export const textureTypes = knownKeys<Record<Texture["type"], unknown>>({
-  grain: true,
   dots: true,
   rules: true,
   waves: true,

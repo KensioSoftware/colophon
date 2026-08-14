@@ -9,13 +9,17 @@ import type {
  * How much larger a texture is drawn on the `thumbnail` preset.
  *
  * A thumbnail is uploaded at 1280 wide and shown at somewhere between about
- * 360 and 170, so a dot grid at its default 44px spacing arrives at the reader
- * about 10px apart, which is not a texture any more but a slightly dirty
- * background. Three is the factor for the largest of those, and it is the
+ * 360 and 170, so a dot grid at its default 66px spacing arrives at the reader
+ * about 15px apart, which is not a texture any more but a slightly dirty
+ * background. Two is the factor for the largest of those, and it is the
  * conservative choice: a treatment that is a little too coarse still reads as
  * a treatment, where one that is too fine reads as nothing at all.
+ *
+ * It was three while the treatments themselves were half again finer. What it
+ * corrects for is the display size, so when the base geometry grew this came
+ * down by the same factor and the finished thumbnail is unchanged.
  */
-export const DEFAULT_THUMBNAIL_TEXTURE_SCALE = 3;
+export const DEFAULT_THUMBNAIL_TEXTURE_SCALE = 2;
 
 /**
  * The texture scale everything else is drawn at, which is to say, unchanged.

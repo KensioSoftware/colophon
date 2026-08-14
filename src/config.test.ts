@@ -99,7 +99,7 @@ describe("SIZE_PRESETS", () => {
       name: "thumbnail",
       width: 1280,
       height: 720,
-      textureScale: 3,
+      textureScale: 2,
     });
   });
 });
@@ -209,10 +209,10 @@ describe("resolveConfig", () => {
   });
 
   it("turns none of the expensive treatments on for a theme", () => {
-    // Grain takes a 1200x1200 PNG from 82KB past 1.7MB, and waves and moire
-    // take it to around 600KB. That is a bill to run up on purpose, not one to
-    // hand someone who picked a look by its name.
-    const dear = new Set(["grain", "waves", "moire"]);
+    // Waves and moire take a 1200x1200 PNG from around 82KB to several
+    // hundred. That is a bill to run up on purpose, not one to hand someone
+    // who picked a look by its name.
+    const dear = new Set(["waves", "moire"]);
     const costly = themeNames.filter((theme) =>
       dear.has(resolveConfig({ theme }).texture?.type ?? ""),
     );
@@ -514,7 +514,7 @@ describe("resolveConfigForSize", () => {
 
   it("replaces the config's texture for one size", () => {
     const resolved = resolveConfigForSize(
-      { texture: { type: "grain" } },
+      { texture: { type: "waves" } },
       { ...square, texture: { type: "dots", gap: 60 } },
     );
 
@@ -531,7 +531,7 @@ describe("resolveConfigForSize", () => {
     assertIdentical(resolveConfigForSize(config, square).textureScale, 1);
     assertIdentical(
       resolveConfigForSize(config, SIZE_PRESETS.thumbnail).textureScale,
-      3,
+      2,
     );
     // What the size names beats the preset it was built from, which is the
     // rule every other override follows.

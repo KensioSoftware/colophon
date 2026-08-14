@@ -2,9 +2,9 @@ import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 import { tile } from "./tile.js";
 
-const dotDefaults = { opacity: 0.08, size: 5, gap: 44 };
-const ruleDefaults = { opacity: 0.06, width: 2, gap: 28, angle: 45 };
-const crossDefaults = { opacity: 0.09, size: 9, width: 1.5, gap: 48 };
+const dotDefaults = { opacity: 0.08, size: 8, gap: 66 };
+const ruleDefaults = { opacity: 0.06, width: 3, gap: 42, angle: 45 };
+const crossDefaults = { opacity: 0.09, size: 14, width: 2, gap: 72 };
 
 /**
  * How much fainter the crossing set of rules is than the first.

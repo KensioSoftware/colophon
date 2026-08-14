@@ -4,8 +4,8 @@ import { contourAt } from "./contours.js";
 
 const contourDefaults = {
   opacity: 0.1,
-  width: 1.5,
-  gap: 34,
+  width: 2,
+  gap: 51,
   relief: 5,
   seed: 1,
 };

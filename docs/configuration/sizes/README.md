@@ -37,7 +37,7 @@ safe area its platform's crop and avatar leave behind; see
 
 A size can also carry its own config overrides, applied only when rendering it.
 See [Per-size config](../per-size-config/). `thumbnail` is the one preset that
-does: it sets `textureScale: 3`, because a thumbnail is looked at in a fraction
+does: it sets `textureScale: 2`, because a thumbnail is looked at in a fraction
 of the space it is uploaded at and a texture at its stated lengths would arrive
 too fine to see. Pair it with the
 [`thumbnail` template](../../templates/#thumbnail).

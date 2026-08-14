@@ -2,7 +2,7 @@ import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 import { tile } from "./tile.js";
 
-const moireDefaults = { opacity: 0.1, width: 1, gap: 16, angle: 4 };
+const moireDefaults = { opacity: 0.1, width: 1.5, gap: 24, angle: 4 };
 
 /**
  * How much fainter the turned grid is than the square one.

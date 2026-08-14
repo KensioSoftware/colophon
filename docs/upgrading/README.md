@@ -66,6 +66,35 @@ still does not fit at that floor.
 Nothing to change, but existing images will look different: titles that were
 losing their last few words now keep them, at a smaller size.
 
+### The `grain` texture has gone
+
+Per-pixel noise is the one thing PNG cannot compress, and film grain took a
+1200×1200 image from around 36KB to a little over 1.7MB. That is not a cost
+worth carrying for a treatment, and no theme ever turned it on.
+
+`texture: { type: "grain" }` now fails validation with a message saying so.
+Every other treatment is a fraction of the size; `halftone` is the nearest in
+look, and [Textures](../configuration/themes/#textures) lists what each one
+costs.
+
+### Textures are coarser by default
+
+Every treatment's lengths went up by half again, because a share image is
+looked at somewhere between a third and a sixth of the size it is rendered at
+and the old defaults were pitched to the full-size picture. Dots are 66px apart
+rather than 44, ruled lines 42px rather than 28, and so on down the list.
+
+Existing images will look different, though they re-render on the upgrade
+anyway. A project that wants the old look names the lengths outright:
+
+```ts
+texture: { type: "dots", size: 5, gap: 44 },
+```
+
+`SIZE_PRESETS.thumbnail` came down from `textureScale: 3` to `2` with it, since
+what that corrects for is the display size and the base it corrects from moved.
+A thumbnail therefore looks exactly as it did.
+
 ### `code.charWidthRatio` has gone
 
 The `code` template lays tokens out on a character grid, and this was the number

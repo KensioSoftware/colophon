@@ -2,7 +2,7 @@ import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 import { tile } from "./tile.js";
 
-const gridDefaults = { opacity: 0.07, width: 1, gap: 32, major: 5 };
+const gridDefaults = { opacity: 0.07, width: 1.5, gap: 48, major: 5 };
 
 /** How much heavier the every-so-often line is than the rest. */
 const majorScale = 2;

@@ -2,7 +2,7 @@ import type { Dimensions, Texture } from "../types.js";
 import { fallbackColor } from "./color.js";
 import { tile } from "./tile.js";
 
-const chevronDefaults = { opacity: 0.07, width: 2, gap: 36 };
+const chevronDefaults = { opacity: 0.07, width: 3, gap: 54 };
 
 /**
  * Rows of chevrons: one V to a tile, meeting its neighbours at the tile edge.
