@@ -24,18 +24,9 @@ export async function highlightCode(
     theme: await loadTheme(options.theme),
   });
 
-  let longestLine = 0;
-
-  const lines = result.tokens.map((tokens) => {
-    const { line, width } = gridLine(tokens);
-    longestLine = Math.max(longestLine, width);
-    return line;
-  });
-
   return {
-    lines,
+    lines: result.tokens.map((tokens) => gridLine(tokens)),
     foreground: result.fg ?? "#ffffff",
     background: result.bg ?? "#000000",
-    longestLine,
   };
 }

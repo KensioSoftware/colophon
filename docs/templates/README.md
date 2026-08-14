@@ -527,7 +527,10 @@ Some notes on writing one:
   width in pixels that a run of text will occupy, read from the font the build
   is rendering with. Widths are exact where the family resolves to a font
   supplied under [`fonts`](../configuration/fonts/) and estimated otherwise, so
-  a template never has to handle the two cases itself. `blockLines` and
+  a template never has to handle the two cases itself. Counting characters is
+  not a substitute, even for a monospace layout: an ideograph is a full em
+  where a Latin letter is a little over half of one, so the same count is two
+  different widths. `blockLines` and
   `fitText` do the usual jobs of breaking a title across lines and shrinking one
   that does not fit; see [the layout toolkit](../layout/).
 

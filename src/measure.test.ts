@@ -114,6 +114,18 @@ describe("createMeasurer", () => {
     );
   });
 
+  it("measures text the face cannot be shaped for", async () => {
+    const measure = await measurer();
+    const style = { fontFamily: "JetBrains Mono", fontSize: 100 };
+
+    // JetBrains Mono shapes `--` to a ligature followed by an empty spacer,
+    // and that spacer is the last glyph in the file, so fontkit reads its
+    // bounding box off the end of the outline table and throws. The sum of
+    // the characters' own advances is the answer instead, which is what the
+    // ligature occupies anyway: two cells.
+    assertIdentical(measure("--", style), measure("00", style));
+  });
+
   it("takes the caller's fallback ratio for text it cannot measure", async () => {
     const measure = await measurer();
     // Devanagari, which nothing bundled covers and which the estimator does

@@ -35,21 +35,6 @@ function promptToken(prompt: string, accent: string): CodeToken {
   };
 }
 
-/** The width of the widest line, in characters. */
-function widest(lines: readonly (readonly CodeToken[])[]): number {
-  let longest = 0;
-
-  for (const tokens of lines) {
-    const last = tokens.at(-1);
-
-    if (last !== undefined) {
-      longest = Math.max(longest, last.column + last.text.length);
-    }
-  }
-
-  return longest;
-}
-
 /**
  * The session as one grid of lines: the commands, then what they printed.
  *
@@ -101,5 +86,5 @@ export async function terminalSession(
 
   const lines = [...(command === "" ? [] : commands), ...printed];
 
-  return { ...highlighted, lines, longestLine: widest(lines) };
+  return { ...highlighted, lines };
 }

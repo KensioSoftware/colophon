@@ -1,6 +1,15 @@
-import type { CodeToken, HighlightedCode } from "../../highlight/index.js";
+import type { CodeToken } from "../../highlight/index.js";
 import type { Dimensions, ResolvedConfig } from "../../types.js";
 import { ellipsis } from "../../text/ellipsis.js";
+
+/**
+ * How much room a snippet wants: how many lines it has, and how wide the
+ * widest of them is as a multiple of the font size.
+ */
+export interface SnippetExtent {
+  readonly lines: number;
+  readonly width: number;
+}
 
 /**
  * Pick the largest font size that fits the snippet in the panel on both axes,
@@ -13,40 +22,20 @@ import { ellipsis } from "../../text/ellipsis.js";
  * counterpart.
  */
 export function fitFontSize(
-  highlighted: HighlightedCode,
+  extent: SnippetExtent,
   area: Dimensions,
   imageWidth: number,
   config: ResolvedConfig,
-  charWidthRatio: number,
 ): number {
   const { lineHeight, maxFontScale, minFontScale } = config.code;
 
-  const byWidth =
-    area.width / (Math.max(1, highlighted.longestLine) * charWidthRatio);
-  const byHeight =
-    area.height / (Math.max(1, highlighted.lines.length) * lineHeight);
+  // A snippet with nothing in it puts no bound on the width, and the clamp
+  // below is what then decides the size.
+  const byWidth = extent.width > 0 ? area.width / extent.width : Infinity;
+  const byHeight = area.height / (Math.max(1, extent.lines) * lineHeight);
 
   const fitted = Math.min(byWidth, byHeight, imageWidth * maxFontScale);
   return Math.max(1, Math.floor(Math.max(fitted, imageWidth * minFontScale)));
-}
-
-/**
- * Width of the laid-out block in characters, measured from the lines actually
- * being drawn. Narrower than the snippet's longest line whenever that line was
- * dropped or clipped, which keeps the panel hugged tight to what is visible.
- */
-export function blockColumns(lines: readonly (readonly CodeToken[])[]): number {
-  let columns = 0;
-
-  for (const tokens of lines) {
-    const last = tokens.at(-1);
-
-    if (last !== undefined) {
-      columns = Math.max(columns, last.column + last.text.length);
-    }
-  }
-
-  return columns;
 }
 
 function ellipsisToken(column: number): CodeToken {

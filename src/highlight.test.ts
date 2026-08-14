@@ -111,7 +111,6 @@ describe("highlightCode", () => {
 
     assertArrayLength(result.lines, 1);
     assertIdentical(result.background, "#24292e");
-    assertIdentical(result.longestLine, 9);
     assertArrayLength(result.lines[0], 2);
     assertIdentical(result.lines[0][0].text, "echo");
     assertIdentical(result.lines[0][1].column, 5);

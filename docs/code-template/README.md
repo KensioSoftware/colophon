@@ -50,9 +50,8 @@ and let the snippet carry the detail.
 
 ## How the font size is chosen
 
-Colophon measures the longest line and the line count against a monospace grid,
-then picks the largest font size that fits on both axes within
-`minFontScale` and `maxFontScale`.
+Colophon measures the widest line and counts the lines, then picks the largest
+font size that fits on both axes within `minFontScale` and `maxFontScale`.
 
 Those bounds are fractions of the image _width_, not its height. Width is what a
 feed scales a share image to, so it is what legibility tracks. If the bounds
@@ -111,11 +110,12 @@ export default defineConfig({
 `lineNumbers` puts a number in front of every line, in the theme's own
 foreground at low opacity.
 
-The gutter is columns of the same monospace grid the code sits on, which is
-what keeps the numbers on the code's baselines. It also means the gutter takes
-width from the snippet: with numbers on, a long line has that much less room
-before it is truncated. The digits reserved are the digits the whole snippet
-needs, so the code does not shift left when a line is dropped.
+The numbers are drawn on the same lines as the code, which is what keeps them
+on its baselines, and the gutter is a count of characters rather than a width,
+since a line number really is digits in a monospace face. It takes that width
+from the snippet: with numbers on, a long line has that much less room before
+it is truncated. The digits reserved are the digits the whole snippet needs, so
+the code does not shift left when a line is dropped.
 
 A snippet cut short is numbered as far as it goes. The line that marks the
 truncation is not numbered, since it stands for the lines that are not there.
@@ -203,10 +203,11 @@ pixels, so a translucent surface shows it as a dark wash rather than as depth.
 
 ## Supply the monospace face
 
-The template positions every token absolutely from its character column, so how
-wide one character is decides where each one sits. That width is measured from
-the font, which means the face has to be one Colophon loaded: supply it as a
-file under [`fonts`](../configuration/fonts/) and name it in `code.fontFamily`.
+The template positions every token absolutely at the measured width of the code
+before it, so what the face draws decides where each token sits. That width is
+measured from the font, which means the face has to be one Colophon loaded:
+supply it as a file under [`fonts`](../configuration/fonts/) and name it in
+`code.fontFamily`.
 
 Without a file there is nothing to measure, and the layout falls back to
 assuming `0.6` of the font size per character. That suits most monospace faces,
@@ -218,3 +219,32 @@ a face on any machine, but not to the same face on every machine.
 
 This used to be a `code.charWidthRatio` setting. It has gone: see
 [Upgrading](../upgrading/).
+
+## Snippets holding CJK
+
+A Chinese, Japanese or Korean character is a full em wide where a Latin one is
+a little over half of one, so a line holding them is wider than its character
+count suggests. Colophon measures the line rather than counting it, so the
+tokens after an ideograph are drawn where the face will put them, and a string
+such as `"银行"` no longer has the bracket after it drawn on top of it.
+
+What that does not fix is which face draws them. The default stack names
+JetBrains Mono, which has no ideographs, so the rasteriser falls back for the
+whole run it cannot draw: a line that is a single token, such as a comment,
+comes out entirely in whatever the system offers, which is usually a
+proportional sans in the middle of a code panel.
+
+A project with CJK in its snippets wants one face covering both scripts, which
+means a CJK monospace such as Sarasa Mono or Noto Sans Mono CJK, supplied as a
+file and named on its own:
+
+```js
+export default defineConfig({
+  fonts: [{ path: "fonts/SarasaMonoSC-Regular.ttf" }],
+  code: { fontFamily: "Sarasa Mono SC" },
+});
+```
+
+These faces set Latin at half an em against a full-em ideograph, which is a
+narrower cell than most monospace fonts use. That is measured off the file like
+anything else, so nothing has to be told about it.

@@ -6,6 +6,7 @@ export interface MarkMetrics {
   /** Where column zero of the code is, past the gutter. */
   readonly originX: number;
   readonly originY: number;
+  /** One cell of the monospace grid, which is what the padding is keyed to. */
   readonly charWidth: number;
   readonly fontSize: number;
   readonly step: number;
@@ -48,7 +49,7 @@ export function markSvg(
   const { y, height } = lineRect(span, metrics);
   const fill = span.color ?? color;
 
-  if (span.length === undefined) {
+  if (span.width === undefined) {
     return box(
       { x: metrics.band.x, y, width: metrics.band.width, height },
       { radius: Math.round(fontSize * 0.2), fill, fillOpacity: 0.16 },
@@ -59,9 +60,9 @@ export function markSvg(
 
   return box(
     {
-      x: Math.round(originX + span.column * charWidth - pad),
+      x: Math.round(originX + span.x * fontSize - pad),
       y,
-      width: Math.round(span.length * charWidth + pad * 2),
+      width: Math.round(span.width * fontSize + pad * 2),
       height,
     },
     {

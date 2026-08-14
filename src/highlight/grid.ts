@@ -8,16 +8,13 @@ const italicFlag = 1;
 const boldFlag = 2;
 
 /**
- * The character grid one tokenised line becomes, and the column it ends at.
+ * The runs one tokenised line becomes.
  *
- * Whitespace-only runs are dropped and each remaining run keeps its starting
- * column, so the renderer can position every run absolutely instead of relying
- * on SVG text flow to preserve indentation.
+ * Whitespace-only runs are dropped and each remaining run keeps the character
+ * column it starts at, so the renderer can position every run absolutely
+ * instead of relying on SVG text flow to preserve indentation.
  */
-export function gridLine(tokens: readonly ThemedToken[]): {
-  line: CodeToken[];
-  width: number;
-} {
+export function gridLine(tokens: readonly ThemedToken[]): CodeToken[] {
   let column = 0;
   const line: CodeToken[] = [];
 
@@ -45,5 +42,5 @@ export function gridLine(tokens: readonly ThemedToken[]): {
     });
   }
 
-  return { line, width: column };
+  return line;
 }
