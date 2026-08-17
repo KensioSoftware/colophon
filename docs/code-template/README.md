@@ -44,9 +44,10 @@ existing frontmatter usually needs no changes.
 A snippet's leading indentation is dropped before anything else happens, so
 lifting a sample out of a nested block costs you no width.
 
-The title is drawn as one line at a fixed size, in the room set aside for it
-above the panel. It is not wrapped or shrunk to fit, so keep it to a few words
-and let the snippet carry the detail.
+The title is drawn above the panel. A title that does not fit on one line wraps
+onto a second, and one that does not fit on two is shrunk until it does. The
+room it takes comes off the panel below it, so a long title leaves the snippet
+less height to be drawn in.
 
 ## How the font size is chosen
 

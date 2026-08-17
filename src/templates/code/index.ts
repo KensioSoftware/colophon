@@ -9,6 +9,7 @@ import { blockWidth } from "./extent.js";
 import { gutterColumns, numberLines } from "./gutter.js";
 import { codeMarks } from "./mark/index.js";
 import { fitSnippet } from "./layout.js";
+import { codeTitleLines, titleRoom } from "./lines.js";
 import { layoutPanel, titleBand } from "./panel.js";
 import { hugPanel, panelSvg } from "./plate.js";
 import { codeBody } from "./spans.js";
@@ -27,9 +28,17 @@ export const codeTemplate: Template = {
   name: "code",
   async render({ props, config, dimensions, measure }): Promise<string> {
     const { width, height } = dimensions;
-    const title = optionalString(props.title);
-    const titleFs = Math.round(height * 0.045);
     const footerFs = footerFontSize(dimensions);
+
+    // Fitted before the panel is placed, because a title that wrapped to two
+    // lines takes room the panel then has to do without.
+    const titleLines = codeTitleLines(props.title, {
+      measure,
+      fontFamily: config.fontFamily,
+      fontSize: Math.round(height * 0.045),
+      dimensions,
+    });
+    const titleHeight = titleRoom(titleLines);
 
     const highlighted = await highlightCode(
       optionalString(props["code"]) ?? "",
@@ -43,9 +52,8 @@ export const codeTemplate: Template = {
     const available = layoutPanel(
       dimensions,
       config,
-      titleFs,
+      titleHeight,
       footerFs,
-      title !== undefined && title !== "",
       hasFooter(config),
     );
     const bar = barRoom(config, available.width);
@@ -123,9 +131,8 @@ export const codeTemplate: Template = {
 
     return (
       codeHeading(
-        title,
-        titleBand(panel, dimensions, titleFs),
-        titleFs,
+        titleLines,
+        titleBand(panel, dimensions, titleHeight),
         config,
       ) +
       plate +

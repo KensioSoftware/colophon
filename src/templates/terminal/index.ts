@@ -32,12 +32,13 @@ export const terminalTemplate: Template = {
     const footerFs = footerFontSize(dimensions);
     const session = await terminalSession(props, config);
 
+    // No room above the window: this template's title goes in its bar rather
+    // than over it.
     const available = layoutPanel(
       dimensions,
       config,
       0,
       footerFs,
-      false,
       hasFooter(config),
     );
     // The bar is measured against the space the window was allotted rather
