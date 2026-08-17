@@ -2,13 +2,16 @@ import {
   assertArrayLength,
   assertIdentical,
   assertNonNullable,
+  assertNumberBetween,
   assertStringIncludes,
   assertStringNotIncludes,
   assertTrue,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
-import { renderTemplate as render, wide } from "../test/template.js";
+import { renderTemplate as render, square, wide } from "../test/template.js";
+import { resolveConfig } from "./config/index.js";
+import { createMeasurer } from "./measure/index.js";
 import { codeTemplate } from "./templates/index.js";
 
 const snippet = "const a = 1;\nconst b = 2;\nconst c = 3;";
@@ -143,6 +146,156 @@ describe("code panel chrome", () => {
     assertStringIncludes(svg, 'fill="#ff5f57"');
     assertStringIncludes(svg, 'fill="#febc2e"');
     assertStringIncludes(svg, 'fill="#28c840"');
+  }, 5000);
+});
+
+/** Every line of the title, which is the bold text drawn at 0.95. */
+function headingLines(
+  svg: string,
+): readonly { text: string; fontSize: number; y: number }[] {
+  return Array.from(
+    svg.matchAll(
+      /<text x="\d+" y="(\d+)"[^>]*font-size="(\d+)" font-weight="700"[^>]*fill-opacity="0\.95"[^>]*>([^<]*)</g,
+    ),
+    (match) => ({
+      y: Number(match[1]),
+      fontSize: Number(match[2]),
+      text: String(match[3]),
+    }),
+  );
+}
+
+/** The top of the panel, which is what the title has to clear. */
+function panelTop(svg: string): number {
+  const match = /<rect x="\d+" y="(\d+)" width="\d+"[^>]*stroke=/.exec(svg);
+  assertNonNullable(match);
+
+  return Number(match[1]);
+}
+
+/** The widest line of the title, measured in the face it is drawn in. */
+async function widestHeading(svg: string): Promise<number> {
+  const config = resolveConfig({});
+  const measure = await createMeasurer(config);
+
+  return headingLines(svg).reduce(
+    (widest, line) =>
+      Math.max(
+        widest,
+        measure(line.text, {
+          fontFamily: config.fontFamily,
+          fontSize: line.fontSize,
+          fontWeight: 700,
+        }),
+      ),
+    0,
+  );
+}
+
+describe("code title", () => {
+  // 68 characters, which is an ordinary length for a post title and half again
+  // what fits on one 54px line across a square.
+  const long =
+    "Debugging CloudFront Functions deployed via simulated CloudFormation";
+
+  // And one past what fits on a line at either size, since the landscape draws
+  // the title at half the square's and so has room for a good deal more of it.
+  const longer = `${long} stacks in a local integration test harness`;
+
+  const props = {
+    template: "code",
+    code: "const x = 1;",
+    language: "typescript",
+    title: long,
+  };
+
+  for (const [name, dimensions] of [
+    ["square", square],
+    ["landscape", wide],
+  ] as const) {
+    it(`wraps a long title inside the ${name} image`, async () => {
+      const svg = await render(
+        codeTemplate,
+        { ...props, title: longer },
+        {},
+        dimensions,
+      );
+      const lines = headingLines(svg);
+      // 5% of the shorter side at each edge, which is what the panel gets too.
+      const margin = Math.round(
+        Math.min(dimensions.width, dimensions.height) * 0.05,
+      );
+      const last = lines.at(-1);
+      assertNonNullable(last);
+
+      assertArrayLength(lines, 2);
+      // Every word still there, none of it past the margin, and the whole
+      // block above the panel.
+      assertIdentical(lines.map((line) => line.text).join(" "), longer);
+      assertTrue((await widestHeading(svg)) <= dimensions.width - margin * 2);
+      assertTrue(last.y < panelTop(svg));
+    }, 5000);
+  }
+
+  it("wraps the title rather than shrinking it away", async () => {
+    const svg = await render(codeTemplate, props, {}, square);
+    const lines = headingLines(svg);
+
+    // Two lines at close to the size a short title gets, rather than one line
+    // at the third of it that would be needed to fit all 68 characters across.
+    assertArrayLength(lines, 2);
+    assertNumberBetween(lines[0].fontSize, 34, 54);
+  }, 5000);
+
+  it("leaves a short title on one line at its full size", async () => {
+    const svg = await render(
+      codeTemplate,
+      { ...props, title: "Listing" },
+      {},
+      square,
+    );
+
+    // 4.5% of the height, undiminished: a title that fits is drawn as it
+    // always was, and the images that have one do not move.
+    assertArrayLength(headingLines(svg), 1);
+    assertIdentical(headingLines(svg)[0]?.fontSize, 54);
+  }, 5000);
+
+  it("gives the panel the room the wrapped title took", async () => {
+    const one = await render(
+      codeTemplate,
+      { ...props, title: "Listing" },
+      {},
+      square,
+    );
+    const two = await render(codeTemplate, props, {}, square);
+
+    const wrapped = headingLines(two);
+    const last = wrapped.at(-1);
+    assertNonNullable(last);
+    // The second line is drawn below the first and still above the panel, so
+    // the block was placed in room that was set aside for it rather than over
+    // the plate.
+    assertTrue(last.y > (wrapped[0]?.y ?? 0));
+    assertTrue(last.y < panelTop(two));
+    // And the panel starts lower than it does under a single-line title, which
+    // is that room being taken off it.
+    assertTrue(panelTop(two) > panelTop(one));
+  }, 5000);
+
+  it("shrinks a title too long to wrap into two lines", async () => {
+    const svg = await render(
+      codeTemplate,
+      { ...props, title: longer },
+      {},
+      square,
+    );
+    const lines = headingLines(svg);
+
+    // Two lines are all this layout has to give, so the rest comes off the
+    // size rather than off the end of the title.
+    assertArrayLength(lines, 2);
+    assertTrue(lines[0].fontSize < 54);
   }, 5000);
 });
 

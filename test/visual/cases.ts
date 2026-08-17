@@ -85,6 +85,26 @@ const regressions: readonly Sample[] = [
     config: { colors: { brand: "#0f766e" } },
   },
   {
+    // A title past what one line of the square holds, so it wraps into room
+    // the panel below it gives up. The square is where this shows: the same
+    // title on a landscape is drawn at half the size and fits.
+    name: "code-long-title",
+    dimensions: { width: 1200, height: 1200 },
+    props: {
+      template: "code",
+      title: "Debugging CloudFront Functions deployed via CloudFormation",
+      language: "typescript",
+      code: [
+        "export function handler(event: CloudFrontEvent) {",
+        "  const request = event.request;",
+        "  request.uri = normalise(request.uri);",
+        "  return request;",
+        "}",
+      ].join("\n"),
+    },
+    config: { colors: { brand: "#1d4ed8" }, footer: "example.com" },
+  },
+  {
     // A snippet holding characters that are a full em wide in a grid sized for
     // Latin. The faces the baselines are pinned to have no ideographs, so what
     // this shows is where the Latin around them lands: the closing quote, the

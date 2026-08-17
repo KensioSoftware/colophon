@@ -20,10 +20,10 @@ export function imageMargin(dimensions: Dimensions): number {
 /**
  * Clear space between the panel and the title above it or the footer below.
  *
- * `layoutPanel` reserves this at each end alongside a line's worth of room, and
- * the bands those lines are then placed in take the room and leave the gap. The
- * two agree because both are measured from here, which is the whole point: a
- * gap that is reserved in one place and drawn in another drifts.
+ * `layoutPanel` reserves this at each end alongside the room the text takes,
+ * and the bands those lines are then placed in take the room and leave the gap.
+ * The two agree because both are measured from here, which is the whole point:
+ * a gap that is reserved in one place and drawn in another drifts.
  */
 function gapAround(dimensions: Dimensions): number {
   return Math.round(Math.min(dimensions.width, dimensions.height) * 0.028);
@@ -32,13 +32,16 @@ function gapAround(dimensions: Dimensions): number {
 /**
  * Place the code panel within the image, leaving room above for a title and
  * below for a footer when either is present.
+ *
+ * The title's room is passed in already measured rather than worked out from a
+ * font size here, because how much room it wants depends on how many lines it
+ * wrapped to. A title of no room at all is one there is nothing to reserve for.
  */
 export function layoutPanel(
   dimensions: Dimensions,
   config: ResolvedConfig,
-  titleFontSize: number,
+  titleRoom: number,
   footerFontSize: number,
-  hasTitle: boolean,
   hasFooter: boolean,
 ): Panel {
   const { width, height } = dimensions;
@@ -46,7 +49,7 @@ export function layoutPanel(
   const pad = imageMargin(dimensions);
   const gap = gapAround(dimensions);
 
-  const top = pad + (hasTitle ? titleFontSize + gap : 0);
+  const top = pad + (titleRoom > 0 ? titleRoom + gap : 0);
   const bottom = height - pad - (hasFooter ? footerFontSize + gap : 0);
 
   return {
@@ -59,8 +62,8 @@ export function layoutPanel(
 }
 
 /**
- * The band the title was given: one line's worth of room above the panel, with
- * the reserved gap between the two.
+ * The band the title was given: the room reserved for its lines above the
+ * panel, with the reserved gap between the two.
  *
  * It is measured up from the panel rather than down from the top margin, so
  * that it follows the panel when the panel hugs a short snippet and moves
@@ -70,12 +73,12 @@ export function layoutPanel(
 export function titleBand(
   panel: Panel,
   dimensions: Dimensions,
-  fontSize: number,
+  titleRoom: number,
 ): Rect {
   return {
     x: 0,
-    y: panel.y - gapAround(dimensions) - fontSize,
+    y: panel.y - gapAround(dimensions) - titleRoom,
     width: dimensions.width,
-    height: fontSize,
+    height: titleRoom,
   };
 }
