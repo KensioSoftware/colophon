@@ -92,7 +92,7 @@ permissions: {}
 jobs:
   lint:
     name: Release lint
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
@@ -113,7 +113,7 @@ jobs:
 
   test:
     name: Release test
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
