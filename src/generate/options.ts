@@ -55,6 +55,14 @@ export interface GenerateOptions {
   /**
    * How many images to render at once. Defaults to the number of CPUs the
    * process can use. Must be a positive integer.
+   *
+   * The parts of a render that take real time (the rasteriser, the PNG
+   * recompression and the quantiser) all run on the libuv thread pool. That
+   * pool has four threads unless `UV_THREADPOOL_SIZE` says otherwise, so on a
+   * machine with more cores than that a higher concurrency only queues work
+   * up. libuv sizes the pool from the environment before the process starts,
+   * and a build can only read it. Where the pool is the smaller of the two,
+   * `generate` warns.
    */
   readonly concurrency?: number;
   /** Called after each image is written or skipped. */
@@ -66,6 +74,12 @@ export interface GenerateOptions {
  * the process can actually use. Rasterising is CPU-bound, so starting more
  * than that only queues the work up while holding every pending image in
  * memory.
+ *
+ * The real ceiling is the smaller of this and the libuv thread pool. That
+ * pool holds four threads unless `UV_THREADPOOL_SIZE` was set in the
+ * environment, so the default here is reached on a machine of four cores or
+ * fewer, or with the pool sized to match. `generate` warns where the two
+ * disagree.
  */
 export function resolveConcurrency(concurrency: number | undefined): number {
   if (concurrency === undefined) {

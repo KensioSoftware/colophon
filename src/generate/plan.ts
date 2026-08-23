@@ -7,7 +7,7 @@ import type { Stamper } from "../stamp/index.js";
 import { createStamper } from "../stamp/index.js";
 import type { Placer } from "../placement/index.js";
 import { createPlacer } from "../placement/index.js";
-import type { OutputFormat } from "../types.js";
+import type { OutputFormat, ResolvedConfig } from "../types.js";
 import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
@@ -23,6 +23,13 @@ import {
 export interface BuildPlan {
   readonly jobs: readonly RenderJob[];
   readonly stamper: Stamper;
+  /**
+   * The build's own config, before any per-size overrides. Where a build has
+   * something to say about the run as a whole, this is where its `onWarning`
+   * comes from. The per-image handler lives on each job, and a tree with no
+   * images to render has no job to take one from.
+   */
+  readonly config: ResolvedConfig;
   /** What to write down about the build, where a config asked for it. */
   readonly manifest: PlannedManifest | undefined;
 }
@@ -100,6 +107,7 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   return {
     jobs: all,
     stamper,
+    config: resolved,
     manifest: planManifest(options.config?.manifest, all),
   };
 }

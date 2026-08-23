@@ -105,6 +105,20 @@ few hundred posts does not start a few hundred rasterisations. The
 default of one per available CPU suits a build machine with nothing else to do,
 and `--concurrency` lowers it to leave room for whatever else is running.
 
+The number a build actually reaches is capped by the libuv thread pool, which
+holds four threads unless `UV_THREADPOOL_SIZE` says otherwise. Rasterising, PNG
+recompression and quantising all run there, so on a machine with more than four
+cores the default concurrency is above what the pool can serve, and the build
+says so. Node sizes the pool from the environment before the process starts:
+
+```bash
+UV_THREADPOOL_SIZE=16 colophon content
+```
+
+On an eighteen-core machine, 200 pages at 1200x630 took 24 seconds at the
+default pool and 13.8 seconds with the pool at 16. Past about the core count the
+curve flattens. [The command line](../cli/#the-thread-pool) has the detail.
+
 While tuning a template, `colophon preview <file>` renders one post and opens
 it, and `--watch` rebuilds the tree on every change. [The command
 line](../cli/) covers both.

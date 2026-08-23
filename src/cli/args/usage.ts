@@ -29,5 +29,9 @@ Defaults:
   --concurrency         one per available CPU
   --size                the first configured size
 
+Rendering happens on the libuv thread pool, four threads deep unless
+UV_THREADPOOL_SIZE says otherwise. A higher concurrency than that queues, and
+the build warns. Raise the pool by setting the variable in the environment.
+
 The first argument is a command where it names one, so a content directory
 called init, preview or eject has to be written as ./init.`;

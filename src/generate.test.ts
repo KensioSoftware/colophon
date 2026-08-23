@@ -84,12 +84,21 @@ function cardBrand(color: string): Partial<ExtraImage> {
   return { size: { ...tinyOg, colors: { brand: color } } };
 }
 
+/**
+ * At or below the libuv thread pool's default size, so that a build here never
+ * trips the warning about a concurrency the pool cannot serve. Left to the
+ * default it would depend on the core count of whichever machine is running
+ * the suite, and land an extra message in the tests that count warnings.
+ */
+const pooledConcurrency = 4;
+
 function options(
   dir: string,
   overrides: Partial<GenerateOptions> = {},
 ): GenerateOptions {
   return {
     contentDir: dir,
+    concurrency: pooledConcurrency,
     config: { sizes: tinySizes },
     ...overrides,
   };
@@ -423,6 +432,28 @@ describe("generate", () => {
     // Eight images: the six counted ones plus the shared banner fixture.
     assertArrayLength(results, 8);
     assertNumberBetween(peak, 1, 2);
+  }, 10_000);
+
+  it("says when the thread pool is too small for the concurrency asked for", async () => {
+    // The warning is once per process, so a second test asking for more than
+    // the pool has would race this one for the message. This is the only
+    // build in the suite that asks.
+    const warnings: string[] = [];
+
+    await generate(
+      options(dir, {
+        concurrency: 2048,
+        config: {
+          sizes: [tinyOg],
+          onWarning: (message) => {
+            warnings.push(message);
+          },
+        },
+      }),
+    );
+
+    assertArrayLength(warnings, 1);
+    assertStringIncludes(warnings[0], "UV_THREADPOOL_SIZE=2048");
   }, 10_000);
 
   it("rejects a concurrency that is not a positive integer", async () => {
