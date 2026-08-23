@@ -31,7 +31,7 @@ env:
 jobs:
   coverage-badge:
     name: Coverage Badge
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     steps:
       # The job needs nothing from git after the checkout, and a later step
       # hands a token to a third-party action. Leaving the checkout credentials
