@@ -7,16 +7,16 @@ colophon preview <file> [options]  Render one post and open it
 colophon eject hugo                Write a Hugo partial that emits the tags
 ```
 
-| Option                | What it does                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------- |
-| `-c`, `--config` path | Load a config module, whose default export is a config or a function returning it  |
-| `-f`, `--force`       | Re-render every image, ignoring the stamps. For `init` and `eject`, replace a file |
-| `-o`, `--overwrite`   | Alias for `--force`                                                                |
-| `-n`, `--dry-run`     | Report what would change and write nothing                                         |
-| `-w`, `--watch`       | Rebuild whenever a content file changes                                            |
-| `--concurrency` n     | How many images to render at once. Defaults to one per available CPU               |
-| `--size` name         | Which configured size `preview` renders. Defaults to the first one                 |
-| `-h`, `--help`        | Show the help text                                                                 |
+| Option                | What it does                                                                                                        |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `-c`, `--config` path | Load a config module, whose default export is a config or a function returning it                                   |
+| `-f`, `--force`       | Re-render every image, ignoring the stamps. For `init` and `eject`, replace a file                                  |
+| `-o`, `--overwrite`   | Alias for `--force`                                                                                                 |
+| `-n`, `--dry-run`     | Report what would change and write nothing                                                                          |
+| `-w`, `--watch`       | Rebuild whenever a content file changes                                                                             |
+| `--concurrency` n     | How many images to render at once. Defaults to one per available CPU, capped by [the thread pool](#the-thread-pool) |
+| `--size` name         | Which configured size `preview` renders. Defaults to the first one                                                  |
+| `-h`, `--help`        | Show the help text                                                                                                  |
 
 The first argument is read as a command only where it names one, so a content
 directory called `init`, `preview` or `eject` has to be written as `./init`. Everything
@@ -218,3 +218,47 @@ Two things it does not do:
 
 A build that fails is reported and the watch carries on, since the mistake is
 usually in the file that was just saved.
+
+## The thread pool
+
+`--concurrency` says how many images a build has open at once, and defaults to
+one per available CPU. How many of those make progress at a time is a separate
+number, and it belongs to Node.
+
+Everything a render spends real time on happens off the main thread. The
+rasteriser, the `zlib` calls behind PNG recompression and the `sharp` calls
+behind quantising all hand their work to the libuv thread pool. That pool holds
+four threads unless `UV_THREADPOOL_SIZE` says otherwise, so on a machine with
+more than four cores the default concurrency asks for more than the pool can
+serve. The extra images sit in the queue, and the build warns:
+
+```text
+colophon: Rendering 18 images at once, but the libuv thread pool has 4
+threads. Rasterising, PNG recompression and quantising all run on that pool,
+so only 4 renders make progress at a time. Set UV_THREADPOOL_SIZE=18 in the
+environment before the process starts to lift the ceiling.
+```
+
+Node sizes the pool the first time anything uses it, reading the environment as
+it does. By then a build is already running, and setting the variable from
+inside the process arrives too late. It has to be in the environment the build
+starts in:
+
+```bash
+UV_THREADPOOL_SIZE=16 colophon content
+```
+
+Measured on an eighteen-core machine over 200 pages at 1200x630, PNG with
+`quantise` on:
+
+| `UV_THREADPOOL_SIZE` | Wall clock |
+| -------------------- | ---------- |
+| 4 (the default)      | 24.0 s     |
+| 8                    | 18.5 s     |
+| 16                   | 13.8 s     |
+| 24                   | 13.7 s     |
+| 32                   | 13.8 s     |
+
+The curve flattens once the pool is about the size of the machine. That is the
+number `--concurrency` already defaults to. Above it the threads compete for
+the same cores, and the remaining gains are noise.

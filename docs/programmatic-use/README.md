@@ -76,7 +76,11 @@ Two `generate` options deliberately live outside `ColophonConfig`:
 
 - **`concurrency`** is a property of the machine doing the build rather than of
   the images. Putting it in config would drag it into the rebuild stamp, so
-  changing it would re-render the tree.
+  changing it would re-render the tree. What a build reaches is capped by the
+  libuv thread pool, which holds four threads unless `UV_THREADPOOL_SIZE` was
+  set in the environment the process started in. `generate` warns once where
+  the concurrency is above it. [The command line](../cli/#the-thread-pool) has
+  the measurements.
 - **`outputPath`** is a callback that decides where each image is written. It
   takes precedence over [`placement`](../configuration/placement/), and when it
   is used there is no URL, because the placement no longer describes where the

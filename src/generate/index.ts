@@ -5,6 +5,7 @@ import type { GeneratedImage, GenerateOptions } from "./options.js";
 import { resolveConcurrency } from "./options.js";
 import { planBuild } from "./plan.js";
 import { renderImage } from "./render-image.js";
+import { warnIfPoolIsSmaller } from "./thread-pool.js";
 
 export { defaultOutputPath } from "./output-path.js";
 export type { GeneratedImage, GenerateOptions } from "./options.js";
@@ -21,7 +22,10 @@ export type { GeneratedImage, GenerateOptions } from "./options.js";
  * everything. Sizes with no image to render are never rasterised.
  *
  * Rendering runs `concurrency` images at a time rather than all of them, so a
- * large tree does not start hundreds of rasterisations at once.
+ * large tree does not start hundreds of rasterisations at once. How many of
+ * those make progress at a time is the libuv thread pool's business, and a
+ * build asking for more than the pool has says so in a warning. See
+ * {@link GenerateOptions.concurrency}.
  *
  * `dryRun` stops short of writing: the plan is built and the stamps are read,
  * so the results say which images are out of date, but nothing is rendered and
@@ -32,6 +36,7 @@ export async function generate(
 ): Promise<GeneratedImage[]> {
   const concurrency = resolveConcurrency(options.concurrency);
   const plan = await planBuild(options);
+  warnIfPoolIsSmaller(concurrency, plan.config.onWarning);
 
   const results = await mapConcurrent(plan.jobs, concurrency, async (job) => {
     const isSkipped =
