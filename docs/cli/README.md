@@ -4,6 +4,8 @@
 colophon [contentDir] [options]    Render the images for a content tree
 colophon init [contentDir]         Write a starter config module
 colophon preview <file> [options]  Render one post and open it
+colophon playground [file] [options]
+                                   Print a configured playground link
 colophon eject hugo                Write a Hugo partial that emits the tags
 ```
 
@@ -15,11 +17,12 @@ colophon eject hugo                Write a Hugo partial that emits the tags
 | `-n`, `--dry-run`     | Report what would change and write nothing                                                                          |
 | `-w`, `--watch`       | Rebuild whenever a content file changes                                                                             |
 | `--concurrency` n     | How many images to render at once. Defaults to one per available CPU, capped by [the thread pool](#the-thread-pool) |
-| `--size` name         | Which configured size `preview` renders. Defaults to the first one                                                  |
+| `--size` name         | Which configured size `preview` renders, or the playground link opens. Defaults to the first one                    |
 | `-h`, `--help`        | Show the help text                                                                                                  |
 
 The first argument is read as a command only where it names one, so a content
-directory called `init`, `preview` or `eject` has to be written as `./init`. Everything
+directory called `init`, `preview`, `playground` or `eject` has to be written as
+`./init`. Everything
 else stays as it was: with no command, the first argument is the content
 directory, and `content` is the default.
 
@@ -97,6 +100,43 @@ colophon preview content/posts/hello.md --size og
 
 A post that declares no image props is an error here, because the run named that
 file, whereas in a build the same post is skipped.
+
+## colophon playground
+
+```bash
+colophon playground
+```
+
+Prints a [colophonjs.dev playground](https://colophonjs.dev/playground/) URL
+that carries the project's config and a sample post. The command finds a
+`colophon.config.ts`, `.mts`, `.js` or `.mjs` in the working directory. Pass
+`--config` when the config has another name.
+
+The sample comes from the first post with image props in one of the content
+directories that `colophon init` recognises. Name a post to use that one:
+
+```bash
+colophon playground content/posts/hello.md
+```
+
+The command runs `content.props` before it builds the link. It writes the
+resulting props into the shared frontmatter, under the configured `propsKey`
+and `templateField`. The browser can therefore render a post whose props
+normally come from JavaScript. If no content directory or image post is found,
+the link contains a small `banner` sample.
+
+The playground has no filesystem and cannot run functions from a config
+module. The link leaves out fonts, logos, image backgrounds, custom templates,
+callbacks, placement, manifests and extra images. File paths in a post's
+`avatar` and `image` props are left out too. The command writes a warning to
+stderr that names every omitted field. The URL itself is the only line written
+to stdout, so it can be captured by another command.
+
+`--size` opens the link on one configured size:
+
+```bash
+colophon playground content/posts/hello.md --size square
+```
 
 ## colophon eject
 

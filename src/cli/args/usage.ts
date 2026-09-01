@@ -5,6 +5,8 @@ Usage:
   colophon [contentDir] [options]    Render the images for a content tree
   colophon init [contentDir]         Write a starter config module
   colophon preview <file> [options]  Render one post and open it
+  colophon playground [file] [options]
+                                     Print a playground link for this project
   colophon eject hugo                Write a Hugo partial that reads the
                                      manifest and emits the meta tags
 
@@ -21,7 +23,8 @@ Options:
   -n, --dry-run         Report what would change and write nothing
   -w, --watch           Rebuild whenever a content file changes
   --concurrency <n>     How many images to render at once
-  --size <name>         Which configured size preview renders
+  --size <name>         Which configured size preview renders, or the
+                        playground link opens
   -h, --help            Show this help
 
 Defaults:
@@ -34,4 +37,4 @@ UV_THREADPOOL_SIZE says otherwise. A higher concurrency than that queues, and
 the build warns. Raise the pool by setting the variable in the environment.
 
 The first argument is a command where it names one, so a content directory
-called init, preview or eject has to be written as ./init.`;
+called init, preview, playground or eject has to be written as ./init.`;
