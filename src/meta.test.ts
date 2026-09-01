@@ -1,6 +1,6 @@
 import {
+  assertArrayEmpty,
   assertArrayEquals,
-  assertArrayLength,
   assertIdentical,
   assertNonNullable,
   assertStringIncludes,
@@ -186,7 +186,7 @@ describe("metaTags", () => {
   it("gives a page it has never heard of no tags at all", () => {
     // Not every page has a share image, and a template asking about one should
     // not have to know which in advance.
-    assertArrayLength(metaTags(manifest, "blog/draft", site), 0);
+    assertArrayEmpty(metaTags(manifest, "blog/draft", site));
   });
 
   it("complains about a page whose image has no URL", () => {
@@ -216,7 +216,7 @@ describe("metaTags", () => {
 
 describe("metaTags and inherited keys", () => {
   it("treats a slug that names an Object property as absent", () => {
-    assertArrayLength(metaTags(manifest, "toString"), 0);
+    assertArrayEmpty(metaTags(manifest, "toString"));
   });
 });
 
@@ -328,14 +328,14 @@ describe("metaTagsForPath", () => {
   });
 
   it("gives a path with no image no tags at all", () => {
-    assertArrayLength(metaTagsForPath(manifest, "/blog/nothing/", site), 0);
+    assertArrayEmpty(metaTagsForPath(manifest, "/blog/nothing/", site));
   });
 
   it("does not mistake an inherited property for a page", () => {
     // A manifest is parsed JSON, so `pages.toString` is a function rather than
     // undefined. A page at that route is unlikely and a TypeError from inside a
     // layout is not the way to find out.
-    assertArrayLength(metaTagsForPath(manifest, "/toString", site), 0);
-    assertArrayLength(metaTagsForPath(manifest, "/blog/constructor", site), 0);
+    assertArrayEmpty(metaTagsForPath(manifest, "/toString", site));
+    assertArrayEmpty(metaTagsForPath(manifest, "/blog/constructor", site));
   });
 });

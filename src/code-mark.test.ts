@@ -1,4 +1,5 @@
 import {
+  assertArrayEmpty,
   assertArrayLength,
   assertStringIncludes,
   assertStringNotIncludes,
@@ -87,7 +88,7 @@ describe("code marks", () => {
     const warnings: string[] = [];
     const svg = await renderMarked("const z", warnings);
 
-    assertArrayLength(marks(svg), 0);
+    assertArrayEmpty(marks(svg));
     assertArrayLength(warnings, 1);
     assertStringIncludes(
       warnings[0],
@@ -99,7 +100,7 @@ describe("code marks", () => {
     const warnings: string[] = [];
     const svg = await renderMarked({ colour: "red" }, warnings);
 
-    assertArrayLength(marks(svg), 0);
+    assertArrayEmpty(marks(svg));
     assertStringIncludes(warnings[0] ?? "", "says nothing to mark");
   }, 5000);
 
@@ -112,7 +113,7 @@ describe("code marks", () => {
       ).join("\n")}\nconst last = true;`,
     });
 
-    assertArrayLength(marks(svg), 0);
+    assertArrayEmpty(marks(svg));
     // Two warnings: the snippet did not fit, and the mark went with it.
     assertArrayLength(warnings, 2);
   }, 5000);

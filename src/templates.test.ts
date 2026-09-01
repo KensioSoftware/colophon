@@ -1,4 +1,5 @@
 import {
+  assertArrayEmpty,
   assertArrayLength,
   assertIdentical,
   assertNonNullable,
@@ -474,7 +475,7 @@ describe("codeTemplate", () => {
       },
     );
 
-    assertArrayLength(warnings, 0);
+    assertArrayEmpty(warnings);
   }, 5000);
 
   it("dedents a snippet lifted out of a nested block", async () => {

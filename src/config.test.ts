@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import {
+  assertArrayEmpty,
   assertArrayEquals,
   assertArrayLength,
   assertFalse,
@@ -217,7 +218,7 @@ describe("resolveConfig", () => {
       dear.has(resolveConfig({ theme }).texture?.type ?? ""),
     );
 
-    assertArrayLength(costly, 0);
+    assertArrayEmpty(costly);
   });
 
   it("lets the config win over the theme, field by field", () => {
@@ -301,7 +302,7 @@ describe("resolveConfig", () => {
   it("loads no fonts and allows system ones by default", () => {
     const resolved = resolveConfig();
 
-    assertArrayLength(resolved.fonts, 0);
+    assertArrayEmpty(resolved.fonts);
     assertTrue(resolved.systemFonts);
   });
 

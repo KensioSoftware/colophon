@@ -1,4 +1,5 @@
 import {
+  assertArrayEmpty,
   assertArrayLength,
   assertIdentical,
   assertStringIncludes,
@@ -65,7 +66,7 @@ describe("createThreadPoolWarner", () => {
     warn(4, onWarning, 4);
     warn(2, onWarning, 16);
 
-    assertArrayLength(warnings, 0);
+    assertArrayEmpty(warnings);
   });
 
   it("says it once, however many builds ask", () => {

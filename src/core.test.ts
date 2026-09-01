@@ -14,9 +14,9 @@
  * file to the graph.
  */
 import {
+  assertArrayEmpty,
   assertArrayEquals,
   assertArrayIncludes,
-  assertArrayLength,
   assertArrayNotEmpty,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
@@ -66,7 +66,7 @@ describe("the meta and layout entry points", () => {
   it("stay free of dependencies altogether", () => {
     // A site's `<head>` should not load a rasteriser, and a template author
     // importing the layout toolkit should not either.
-    assertArrayLength(importGraph("dist/meta/index.js").external, 0);
-    assertArrayLength(importGraph("dist/layout/index.js").external, 0);
+    assertArrayEmpty(importGraph("dist/meta/index.js").external);
+    assertArrayEmpty(importGraph("dist/layout/index.js").external);
   });
 });

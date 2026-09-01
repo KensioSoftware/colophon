@@ -95,7 +95,7 @@
     "conventional-changelog-conventionalcommits": "9.3.1",
     "dejavu-fonts-ttf": "^2.37.3",
     "fta-cli": "^3.0.0",
-    "oxfmt": "^0.64.0",
+    "oxfmt": "^0.65.0",
     "oxlint": "^1.77.0",
     "oxlint-tsgolint": "^7.0.2001",
     "semantic-release": "25.0.9",
