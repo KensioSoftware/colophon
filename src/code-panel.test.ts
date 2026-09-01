@@ -1,4 +1,5 @@
 import {
+  assertArrayEmpty,
   assertArrayLength,
   assertIdentical,
   assertNonNullable,
@@ -47,7 +48,7 @@ describe("code line numbers", () => {
       wide,
     );
 
-    assertArrayLength(fadedTokens(plain), 0);
+    assertArrayEmpty(fadedTokens(plain));
     assertIdentical(fadedTokens(numbered).join(""), "123");
     // The gutter takes its width from the grid, so the code starts further in
     // than it does without one.
