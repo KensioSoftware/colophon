@@ -84,6 +84,21 @@ describe("parseCliArgs", () => {
     assertUndefined(args.contentDir);
   });
 
+  it("takes an optional post after the playground command", () => {
+    const args = parseCliArgs([
+      "playground",
+      "content/post.md",
+      "--size",
+      "og",
+    ]);
+
+    assertObjectMatches(args, {
+      command: "playground",
+      file: "content/post.md",
+      size: "og",
+    });
+  });
+
   it("passes a content directory to init", () => {
     const args = parseCliArgs(["init", "src/content"]);
 

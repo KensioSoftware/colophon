@@ -17,7 +17,7 @@ export interface CliArgs {
    * `generate` reads as the default and `init` as an invitation to guess.
    */
   readonly contentDir: string | undefined;
-  /** The post `preview` renders. */
+  /** The post `preview` renders or `playground` includes. */
   readonly file: string | undefined;
   /** What `eject` writes, naming the generator it is for. */
   readonly adapter: string | undefined;
@@ -26,7 +26,7 @@ export interface CliArgs {
   readonly dryRun: boolean;
   readonly watch: boolean;
   readonly concurrency: number | undefined;
-  /** Which configured size `preview` renders. */
+  /** Which configured size `preview` renders or `playground` opens. */
   readonly size: string | undefined;
 }
 
@@ -47,7 +47,8 @@ function target(
   const empty = { contentDir: undefined, file: undefined, adapter: undefined };
 
   switch (command) {
-    case "preview": {
+    case "preview":
+    case "playground": {
       return { ...empty, file: first };
     }
     case "eject": {

@@ -84,6 +84,8 @@ one URL prefix, see [Placement](../configuration/placement/).
 colophon [contentDir] [options]    Render the images for a content tree
 colophon init [contentDir]         Write a starter config module
 colophon preview <file> [options]  Render one post and open it
+colophon playground [file] [options]
+                                   Print a configured playground link
 
   -c, --config <path>   Config module whose default export is a ColophonConfig,
                         or a function returning one
@@ -92,7 +94,8 @@ colophon preview <file> [options]  Render one post and open it
   -n, --dry-run         Report what would change and write nothing
   -w, --watch           Rebuild whenever a content file changes
   --concurrency <n>     How many images to render at once
-  --size <name>         Which configured size preview renders
+  --size <name>         Which configured size preview renders, or the
+                        playground link opens
   -h, --help            Show help
 
   contentDir            defaults to "content"

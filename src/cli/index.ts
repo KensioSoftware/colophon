@@ -5,6 +5,7 @@ import { runBuild } from "./build.js";
 import { runEject } from "./eject/index.js";
 import { runInit } from "./init/index.js";
 import { messageOf } from "./message.js";
+import { runPlayground } from "./playground/index.js";
 import { runPreview } from "./preview/index.js";
 
 /** Run whichever command the arguments asked for. */
@@ -15,6 +16,9 @@ async function run(args: CliArgs): Promise<void> {
     }
     case "preview": {
       return runPreview(args);
+    }
+    case "playground": {
+      return runPlayground(args);
     }
     case "eject": {
       return runEject(args);
