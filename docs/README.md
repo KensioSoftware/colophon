@@ -15,7 +15,7 @@ project. The [README](../README.md) has the install steps and a short example.
 - [The layout toolkit](./layout/ "The primitives templates are built from")
 - [Rebuilds](./rebuilds/ "How Colophon decides what to render again")
 - [Programmatic use](./programmatic-use/ "The API behind the CLI")
-- [Upgrading](./upgrading/ "The breaking changes in 2.0 and 3.0")
+- [Upgrading](./upgrading/ "What an upgrade costs, and the breaking changes in 2.0 and 3.0")
 
 ## Configuration
 

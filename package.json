@@ -59,7 +59,8 @@
     "node": ">=22.2.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node scripts/render-digest.ts && tsc -p tsconfig.build.json",
+    "render-digest": "node scripts/render-digest.ts",
     "prepack": "pnpm build",
     "build:check": "tsc -p tsconfig.json --noEmit",
     "fmt": "oxlint --fix && oxfmt",

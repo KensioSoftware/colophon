@@ -26,10 +26,14 @@ export async function createStamper(config: ResolvedConfig): Promise<Stamper> {
   const templateDigests = new Map<string, string>();
 
   // A custom template is config the project controls, so its source counts as
-  // part of the input. Built-in templates are covered by the package version.
-  // Source text is all there is to go on: a template that reads something its
-  // own code does not name, such as a closed-over value or a file it loads,
-  // can change without the stamp noticing, and needs `overwrite` to pick it up.
+  // part of the input. A built-in is hashed here as well: `resolveConfig`
+  // merges `builtinTemplates` into `config.templates`, and this reads the two
+  // the same way. Source text is all there is to go on: a template that reads
+  // something its own code does not name, such as a closed-over value or a
+  // file it loads, can change without the stamp noticing, and needs
+  // `overwrite` to pick it up. That gap is where a built-in differs. The
+  // modules its `render` calls are outside its own source text, and
+  // `RENDER_DIGEST` in the base digest is what reaches them.
   const templateDigest = (name: string): string => {
     const cached = templateDigests.get(name);
 
