@@ -1,13 +1,30 @@
 # Upgrading
 
+## Everything re-renders once on this upgrade
+
+The [rebuild stamp](../rebuilds/) carried the installed package version until
+this release, and now carries a digest of the rendering code the package ships.
+Changing what goes into a stamp changes every stamp, so the first build after
+upgrading renders every image again.
+
+From here the cost of an upgrade follows what the release changed. A release
+that leaves the templates, the layout, the measuring, the encoding, the bundled
+fonts and the drawing libraries alone now produces the stamps a project already
+has, and its next build skips every image. Four of the eleven releases before
+this one were in that position and re-rendered everything anyway.
+
+Nothing to change in a config or in any code. Budget one full render, which
+[`--dry-run`](../cli/#dry-runs) will count for you first.
+
 ## From 2.x
 
 Text is measured against the fonts a build actually renders with, instead of
 being estimated from a per-template fudge factor. Wrapping and fitting change as
 a result, and so do several pieces of the API.
 
-Every image re-renders on the first build after the upgrade, as it does on any
-upgrade: the package version is part of the [rebuild stamp](../rebuilds/).
+Every image re-renders on the first build after the upgrade, since the
+[rebuild stamp](../rebuilds/) covers the code that draws them and most of it
+moved.
 
 ### `renderSvgToPng` is `renderSvgToImage`
 

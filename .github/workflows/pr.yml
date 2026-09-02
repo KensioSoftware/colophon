@@ -51,6 +51,12 @@ jobs:
       - run: pnpm lint
       - run: pnpm fta
       - run: pnpm build:check
+      # `src/stamp/render-digest.ts` is generated, and `pnpm build` regenerates
+      # it before compiling, so what is published is right whatever is
+      # committed. This catches the committed copy trailing behind the
+      # rendering code, where a reviewer would read a digest that is not the
+      # one the branch would ship.
+      - run: pnpm render-digest --check
 
   test:
     name: Test

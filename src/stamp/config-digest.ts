@@ -7,20 +7,7 @@ import type {
   ResolvedConfig,
 } from "../types.js";
 import { sha256, stableStringify } from "./digest.js";
-
-/**
- * The installed Colophon version. The built-in templates ship in this package,
- * so an upgrade can change what an image looks like without anything in the
- * project changing; folding the version into the stamp makes that upgrade
- * re-render rather than leave the old images in place.
- */
-async function packageVersion(): Promise<string> {
-  const manifest = await readFile(
-    new URL("../../package.json", import.meta.url),
-    "utf8",
-  );
-  return (JSON.parse(manifest) as { version: string }).version;
-}
+import { RENDER_DIGEST } from "./render-digest.js";
 
 /**
  * Digest one configured font by its contents, not its path: replacing the file
@@ -53,6 +40,12 @@ async function backgroundDigest(background: Background): Promise<unknown> {
 /**
  * Digest the config fields that affect what an image looks like.
  *
+ * `RENDER_DIGEST` goes in ahead of any of them. The package draws with code no
+ * project supplies, and a release that changes that code has to re-render what
+ * it changed. The package version stood here before it, and moved on every
+ * release, including the ones that touched no drawing at all.
+ * `test/render-digest.ts` says what goes into the replacement.
+ *
  * `onWarning` is left out because it cannot change a pixel. So are `sizes` and
  * `templates`: the one size and the one template an image actually uses go into
  * its own stamp, so adding a third size or an unrelated custom template does
@@ -77,8 +70,9 @@ async function backgroundDigest(background: Background): Promise<unknown> {
  * few config changes that alters every pixel of every image. It is hashed the
  * way a custom template is, with the same gap: source text cannot see a value
  * the function closed over, so a rasteriser configured by something outside
- * itself needs `--force`. For the default it adds nothing the package version
- * was not already saying, which is why there is no special case for it.
+ * itself needs `--force`. `RENDER_DIGEST` already covers the default, down to
+ * the version of resvg the package was built against, and there is no special
+ * case for it here.
  */
 export async function configDigest(config: ResolvedConfig): Promise<string> {
   const fonts = await Promise.all(
@@ -89,7 +83,7 @@ export async function configDigest(config: ResolvedConfig): Promise<string> {
 
   return sha256(
     stableStringify({
-      version: await packageVersion(),
+      renderDigest: RENDER_DIGEST,
       colors: config.colors,
       background: await backgroundDigest(config.background),
       texture: config.texture,

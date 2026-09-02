@@ -29,8 +29,8 @@ export { bundledFonts } from "../platform/bundled-fonts.node.js";
  * means what the project supplied, which is what makes it worth showing in an
  * error message, and three things read it on that understanding: the rebuild
  * stamp hashes it, `shouldLoadSystemFonts` counts it, and `fontFamily` takes
- * its default from it. The bundled fonts change only when the package version
- * does, and the version is in the stamp already.
+ * its default from it. The bundled font files reach the stamp another way.
+ * `RENDER_DIGEST` is computed over them when the package is built.
  *
  * A custom {@link Rasteriser} that resolves font files itself wants this
  * rather than `config.fonts`, or it will draw without the fonts the measurer

@@ -137,6 +137,19 @@ describe("createStamper", () => {
     );
   });
 
+  it("hashes a built-in template's source like any other", async () => {
+    // `resolveConfig` merges the built-ins into `config.templates`, and the
+    // stamper reads whatever is at the name an image asks for. Replacing one
+    // of them at its own name moves the stamp for the images that use it.
+    assertRestamped(
+      await stampFor({}, { template: "banner" }),
+      await stampFor(
+        { templates: { banner: { name: "banner", render: () => "<g/>" } } },
+        { template: "banner" },
+      ),
+    );
+  });
+
   it("changes the stamp when the rasteriser changes", async () => {
     // Swapping the backend changes every pixel of every image, which is the
     // one thing about it a stamp has to notice.

@@ -30,12 +30,15 @@ plugins:
   # further down and fail the run.
   #
   # docs, test, chore, ci and style are absent on purpose: they change nothing
-  # a consumer installs, so they release nothing. That matters more here than
-  # it does for most packages, because the package version is part of the
-  # rebuild stamp: every version published re-renders every image on every
-  # site that upgrades, so a release with nothing in it for consumers is not
-  # free to them. build is present because the dependency bumps land under it
-  # and resvg, sharp and shiki are what draw the images.
+  # a consumer installs, so they release nothing. build is present because the
+  # dependency bumps land under it and resvg, sharp and shiki are what draw the
+  # images.
+  #
+  # This used to matter more, because the package version was part of the
+  # rebuild stamp and every version published re-rendered every image on every
+  # site that upgraded. The stamp reads the rendering code itself now, so a
+  # release with nothing in it for consumers costs them nothing either. Keeping
+  # these types out is now about what the version number is worth saying.
   - - "@semantic-release/commit-analyzer"
     - preset: conventionalcommits
       releaseRules:
