@@ -30,6 +30,11 @@ path and the URL, so the two cannot drift apart. It is held in URL form, with
 `posts\my-post\a.png`. A `custom` placement names its own path and URL
 separately, so it can map them however it needs to.
 
+`beside-content` is the one strategy that needs a content directory, since that
+is the root it writes under. A build handed its content through
+[`contentFiles`](../../programmatic-use/) can leave `contentDir` out, and then
+has to place its images by one of the other two.
+
 ## URLs
 
 The URL comes from `urlBase`, prefixed to the image's path under whatever root

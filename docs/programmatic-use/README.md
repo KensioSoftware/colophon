@@ -89,6 +89,59 @@ Two `generate` options deliberately live outside `ColophonConfig`:
 `generate`'s `walk` option is the programmatic equivalent of
 [`config.content`](../configuration/frontmatter/) and wins where both are given.
 
+## Generate from content a project already has
+
+`contentFiles` hands `generate` the content to render, in place of a directory
+to walk:
+
+```ts
+import { generate } from "@kensio/colophon";
+
+await generate({
+  contentFiles: entries.map((entry) => ({
+    contentPath: `cidian/${entry.id}.json`,
+    slug: entry.id,
+    props: { template: "card", title: entry.headword, subtitle: entry.gloss },
+  })),
+  config: {
+    placement: { strategy: "public-dir", dir: "public/og", urlBase: "/og" },
+  },
+});
+```
+
+This is the entry point for a site that keeps its pages somewhere other than a
+tree of markdown files. Rows in a database, an API's responses and the sharded
+JSON a large site packs its entries into all reach a build this way. Everything
+after the content is the same. The images are stamped, skipped, placed and
+written down in the manifest exactly as walked content is.
+
+Each entry is a `ContentFile`, the shape `walkContent` returns:
+
+- `contentPath` is the page's path under the content root. It names the page in
+  warnings and in duplicate-slug messages, and the directories it carries are
+  where [`beside-content`](../configuration/placement/) puts the image. It is
+  never opened, and can name a page with no file behind it.
+- `slug` is the base filename for the page's images, and the key it appears
+  under in the [manifest](../configuration/manifest/).
+- `props` is what to draw, in the shape a post's frontmatter declares.
+- `absolutePath` is the file the page was read from, and can be left out.
+  `defaultOutputPath` is the one thing that reads it, and it refuses a page
+  that has none.
+
+`generate` checks the entries before it renders anything. A page missing its
+`contentPath`, `slug` or `props` stops the build, and so does a path or a slug
+that would write an image outside the tree. The same checks run over a content tree while
+its frontmatter is read.
+
+`contentDir` is optional once `contentFiles` is given. The one build that still
+needs it is a build placing images beside their content, which is the default
+placement and has to be told the root to write under. A `public-dir` or
+`custom` placement, or `generate`'s `outputPath`, says where the images go
+without a content directory at all.
+
+`walk` options describe reading frontmatter out of a file. Passing them
+alongside `contentFiles` stops the build.
+
 ## Walking on its own
 
 `walkContent` finds content files and reads their frontmatter, without rendering

@@ -58,6 +58,28 @@ function under(root: string, relative: string): string {
 }
 
 /**
+ * The content root `beside-content` places under, or a refusal.
+ *
+ * A build whose content came from `generate`'s `contentFiles` need not have a
+ * directory at all, and beside content is the one placement that cannot be
+ * worked out without one: it writes each image next to its post, and there is
+ * no post on disk to be next to. Placing them under the working directory
+ * instead would scatter images through a project that never asked for them.
+ */
+function contentRoot(contentDir: string | undefined): string {
+  if (contentDir === undefined) {
+    throw new Error(
+      `The "beside-content" placement writes each image next to its post, and` +
+        ` this build has no content directory to place them under. Pass a` +
+        ` contentDir, or say where the images go without one: the` +
+        ` "public-dir" or "custom" placement, or generate's outputPath.`,
+    );
+  }
+
+  return contentDir;
+}
+
+/**
  * Build the function that places every image of a build.
  *
  * The strategies differ only in the root an image is placed under and whether
@@ -66,6 +88,11 @@ function under(root: string, relative: string): string {
  * flat directory can be served as one. Either way the same relative path
  * makes the disk path and the URL, so the two cannot drift apart.
  *
+ * `contentDir` is what `beside-content` places under, and the one strategy
+ * that needs it: a build handed its content rather than walking for it may
+ * have no directory to give, and is refused here rather than left to invent
+ * one.
+ *
  * `format` is what the two name-building strategies end a filename with. It
  * defaults to PNG for a caller placing images without having resolved a config,
  * which is the only way there is to be holding a placement and not a format.
@@ -73,7 +100,7 @@ function under(root: string, relative: string): string {
  */
 export function createPlacer(
   placement: Placement | undefined,
-  contentDir: string,
+  contentDir: string | undefined,
   format: OutputFormat = DEFAULT_FORMAT,
 ): Placer {
   if (placement !== undefined) {
@@ -83,6 +110,9 @@ export function createPlacer(
   if (placement === undefined || placement.strategy === "beside-content") {
     const urlBase = placement?.urlBase;
     const isHashes = placement?.hash === true;
+    // Refused while the placer is built rather than while it places, so a
+    // build without a root stops before it renders anything.
+    const root = contentRoot(contentDir);
 
     return (file, size, stamp) => {
       const relative = besideContent(
@@ -92,7 +122,7 @@ export function createPlacer(
         format,
       );
       return {
-        path: under(contentDir, relative),
+        path: under(root, relative),
         url: toUrl(urlBase, relative),
       };
     };
