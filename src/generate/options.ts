@@ -33,8 +33,30 @@ export interface GeneratedImage {
  * Options for `generate`.
  */
 export interface GenerateOptions {
-  /** Root content directory to walk. */
-  readonly contentDir: string;
+  /**
+   * Root content directory. It is walked for the build's content unless
+   * `contentFiles` supplies it, and either way it is the root the
+   * `beside-content` placement writes images under.
+   *
+   * It is optional only because `contentFiles` can stand in for the walk. A
+   * build given neither has nothing to render and says so.
+   */
+  readonly contentDir?: string;
+  /**
+   * Render this content instead of walking a directory for it, for a project
+   * whose pages are not markdown files on disk: rows in a database, an API's
+   * responses, or the sharded JSON a large site keeps its entries in.
+   * `walkContent` is what builds these from a content tree, and this is the
+   * seam a project builds them itself at.
+   *
+   * `absolutePath` may be left off, since content like that has no file behind
+   * it. Everything else is required, and checked, because a slug becomes part
+   * of a filename.
+   *
+   * `walk` describes reading files and has nothing to do here, so passing both
+   * is refused rather than quietly ignored.
+   */
+  readonly contentFiles?: readonly ContentFile[];
   readonly config?: ColophonConfig;
   /** Extra walk options (props key, template field, slug field, extensions). */
   readonly walk?: Omit<WalkOptions, "dir">;

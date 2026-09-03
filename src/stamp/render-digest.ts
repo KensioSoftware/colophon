@@ -10,4 +10,4 @@
  * covers and what it misses.
  */
 export const RENDER_DIGEST =
-  "5feb1fe82f4d7613b4b1c6b245bc7bdc9311051ccbf8fb907ecb78b7539d9201";
+  "913da8f26328cbe0f1c71e4119d8679399d9bda80ebf1d81ce27d809360bef1b";

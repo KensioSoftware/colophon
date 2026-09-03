@@ -689,10 +689,24 @@ export interface ContentOptions {
  * {@link ContentOptions} does.
  */
 export interface ContentFile {
-  /** Path relative to the walk `dir`. */
+  /**
+   * Path relative to the content root. It names the post in warnings and in
+   * the manifest, and the directories it carries are the ones the
+   * `beside-content` placement writes under.
+   */
   readonly contentPath: string;
-  /** Absolute path on disk. */
-  readonly absolutePath: string;
+  /**
+   * Absolute path on disk, for content that came from a file. A walk always
+   * sets it. Content handed to `generate` through `contentFiles` may leave it
+   * out, since a project whose pages live in a database, an API or one bundled
+   * JSON file has no path to give.
+   *
+   * Nothing a build does needs it: images are placed from `contentPath` and
+   * `slug`. `defaultOutputPath` is the exception, because putting an
+   * image beside its content file means knowing where that file is, and it
+   * says so where there is none.
+   */
+  readonly absolutePath?: string;
   /** Base filename for this post's images (frontmatter slug, or path-derived). */
   readonly slug: string;
   readonly props: MetaImageProps;

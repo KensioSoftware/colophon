@@ -16,17 +16,31 @@ import type { ContentFile, OutputFormat, OutputSize } from "../types.js";
  * `format` is optional, and PNG without it, because the signature is one a
  * caller wrapping this already wrote against. A caller that has a config to
  * hand should pass its format, or the extension will not match the bytes.
+ *
+ * Content with no file behind it, which is what `generate`'s `contentFiles`
+ * may carry, has nothing to be placed beside, and is refused rather than
+ * written somewhere arbitrary.
  */
 export function defaultOutputPath(
   file: ContentFile,
   size: OutputSize,
   format: OutputFormat = DEFAULT_FORMAT,
 ): string {
+  const absolutePath = file.absolutePath;
+
+  if (absolutePath === undefined) {
+    throw new Error(
+      `defaultOutputPath writes an image beside its content file, and` +
+        ` "${file.contentPath}" has no file on disk. Name the path yourself,` +
+        ` or use a placement that does not need one: "public-dir" or "custom".`,
+    );
+  }
+
   // `absolutePath` ends with `contentPath` by construction, so dropping it
   // leaves the directory the walk started from.
-  const root = file.absolutePath.slice(
+  const root = absolutePath.slice(
     0,
-    file.absolutePath.length - file.contentPath.length,
+    absolutePath.length - file.contentPath.length,
   );
 
   return path.join(

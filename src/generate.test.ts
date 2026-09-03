@@ -18,6 +18,7 @@ import {
   assertSetSize,
   assertStringIncludes,
   assertStringLength,
+  assertThrowsError,
   assertThrowsErrorAsync,
   assertTrue,
   assertUndefined,
@@ -133,6 +134,22 @@ describe("defaultOutputPath", () => {
       defaultOutputPath(routed, { name: "og", width: 1200, height: 630 }),
       path.join("/root", "services", "iam-og.png"),
     );
+  });
+
+  it("refuses content with no file to be placed beside", () => {
+    // What `contentFiles` carries for a project whose pages are rows or JSON.
+    const fileless: ContentFile = {
+      contentPath: "cidian/hao.json",
+      slug: "hao",
+      props: { template: "card", title: "\u597D" },
+    };
+
+    const error = assertThrowsError(() =>
+      defaultOutputPath(fileless, { name: "og", width: 1200, height: 630 }),
+    );
+
+    assertStringIncludes(error.message, "cidian/hao.json");
+    assertStringIncludes(error.message, "no file on disk");
   });
 
   it("gives each size a distinct filename", () => {
@@ -1010,4 +1027,209 @@ describe("generate", () => {
 
     assertPathNotExists(path.join(dir, "guide", "guide-og.svg"));
   }, 5000);
+});
+
+/** One supplied entry that never was a file: a path, a slug and props. */
+function entry(slug: string, title: string): ContentFile {
+  return {
+    contentPath: `cidian/${slug}.json`,
+    slug,
+    props: { template: "card", title },
+  };
+}
+
+/**
+ * A build handed its content instead of walking for it. It is how a project
+ * that keeps its pages in a database, an API or one bundled JSON file reaches
+ * `generate`.
+ */
+describe("generate from supplied content", () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(path.join(tmpdir(), "colophon-supplied-"));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  /** A build of supplied content, gathered into a directory of its own. */
+  function supplied(
+    files: readonly ContentFile[],
+    overrides: Partial<GenerateOptions> = {},
+  ): GenerateOptions {
+    return {
+      contentFiles: files,
+      concurrency: pooledConcurrency,
+      config: {
+        sizes: [tinyOg],
+        placement: {
+          strategy: "public-dir",
+          dir: path.join(dir, "og"),
+          urlBase: "/og",
+        },
+      },
+      ...overrides,
+    };
+  }
+
+  it("renders content it was handed, with no tree to walk", async () => {
+    const results = await generate(
+      supplied([entry("hao", "好"), entry("ma", "吗")]),
+    );
+
+    assertArrayLength(results, 2);
+    assertFileExists(path.join(dir, "og", "hao-og.png"));
+    assertFileExists(path.join(dir, "og", "ma-og.png"));
+    const urls = results.map((result) => result.url ?? "").toSorted(byPath);
+    assertArrayEquals(urls, ["/og/hao-og.png", "/og/ma-og.png"]);
+  }, 5000);
+
+  it("skips supplied content it has already rendered", async () => {
+    const files = [entry("hao", "好")];
+    await generate(supplied(files));
+
+    const [result] = await generate(supplied(files));
+
+    // The stamp is read off the image, so content with no file behind it
+    // rebuilds on the same terms as content with one.
+    assertObjectMatches(result, { skipped: true });
+  }, 10_000);
+
+  it("re-renders supplied content whose props have changed", async () => {
+    await generate(supplied([entry("hao", "好")]));
+
+    const [result] = await generate(supplied([entry("hao", "Corrected")]));
+
+    assertObjectMatches(result, { skipped: false });
+  }, 10_000);
+
+  it("writes a manifest of the pages it was handed", async () => {
+    const manifest = path.join(dir, "colophon.json");
+
+    await generate(
+      supplied([entry("hao", "好")], {
+        config: {
+          sizes: [tinyOg],
+          manifest,
+          placement: {
+            strategy: "public-dir",
+            dir: path.join(dir, "og"),
+            urlBase: "/og",
+          },
+        },
+      }),
+    );
+
+    const written = await readManifest(manifest);
+    const page = written.pages["hao"];
+    assertNonNullable(page);
+    assertObjectMatches(page, { widest: "og", alt: "\u597D" });
+    assertObjectMatches(page.images["og"] ?? {}, { url: "/og/hao-og.png" });
+  }, 5000);
+
+  it("places supplied content beside a content directory that says where", async () => {
+    const results = await generate(
+      supplied([entry("hao", "好")], {
+        contentDir: dir,
+        config: { sizes: [tinyOg] },
+      }),
+    );
+
+    // The directories the content path carries are the ones it is placed in,
+    // whether or not anything of the sort is on disk.
+    assertArrayLength(results, 1);
+    assertIdentical(
+      results[0].outputPath,
+      path.join(dir, "cidian", "hao-og.png"),
+    );
+  }, 5000);
+
+  it("refuses to place supplied content beside content it cannot find", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(supplied([entry("hao", "好")], { config: { sizes: [tinyOg] } })),
+    );
+
+    assertStringIncludes(error.message, "beside-content");
+    assertStringIncludes(error.message, "contentDir");
+  });
+
+  it("refuses a build with nothing to walk and nothing to render", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate({ config: { sizes: [tinyOg] } }),
+    );
+
+    assertStringIncludes(error.message, "contentDir");
+    assertStringIncludes(error.message, "contentFiles");
+  });
+
+  it("refuses walk options alongside content that is already read", async () => {
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(supplied([entry("hao", "好")], { walk: { slugField: "id" } })),
+    );
+
+    assertStringIncludes(error.message, "not both");
+    assertPathNotExists(path.join(dir, "og", "hao-og.png"));
+  });
+
+  it("refuses supplied content with no slug to name its images", async () => {
+    const nameless = { ...entry("hao", "好"), slug: "" };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(supplied([nameless])),
+    );
+
+    assertStringIncludes(error.message, "contentFiles[0]");
+    assertStringIncludes(error.message, "cidian/hao.json");
+  });
+
+  it("refuses supplied content with no path to name it by", async () => {
+    const anonymous = { slug: "hao", props: { template: "card", title: "好" } };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(supplied([anonymous as unknown as ContentFile])),
+    );
+
+    assertStringIncludes(error.message, "contentFiles[0]");
+    assertStringIncludes(error.message, "contentPath");
+  });
+
+  it("refuses supplied content with nothing to draw", async () => {
+    const empty = { contentPath: "cidian/hao.json", slug: "hao" };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(supplied([empty as unknown as ContentFile])),
+    );
+
+    assertStringIncludes(error.message, "props");
+  });
+
+  it("refuses a supplied path that would write outside the tree", async () => {
+    const escaping = {
+      ...entry("hao", "\u597D"),
+      contentPath: "../../etc/hao.json",
+    };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(
+        supplied([escaping], { contentDir: dir, config: { sizes: [tinyOg] } }),
+      ),
+    );
+
+    assertStringIncludes(error.message, "../../etc/hao.json");
+  });
+
+  it("refuses a supplied slug that would write outside the tree", async () => {
+    // Nothing read a frontmatter slug here, so this is the only pass that
+    // stands between a hand-built entry and an image written anywhere at all.
+    const escaping = { ...entry("hao", "好"), slug: "../../etc/hao" };
+
+    const error = await assertThrowsErrorAsync(async () =>
+      generate(supplied([escaping])),
+    );
+
+    assertStringIncludes(error.message, "../../etc/hao");
+    assertPathNotExists(path.join(dir, "og"));
+  });
 });

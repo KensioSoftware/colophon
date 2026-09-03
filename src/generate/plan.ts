@@ -1,6 +1,5 @@
 import { resolveConfig } from "../config/index.js";
 import { resolveConfigForSize } from "../config/size.js";
-import { walkContent } from "../content/index.js";
 import type { PlannedManifest } from "../manifest/index.js";
 import { planManifest } from "../manifest/index.js";
 import type { Stamper } from "../stamp/index.js";
@@ -8,6 +7,7 @@ import { createStamper } from "../stamp/index.js";
 import type { Placer } from "../placement/index.js";
 import { createPlacer } from "../placement/index.js";
 import type { OutputFormat, ResolvedConfig } from "../types.js";
+import { contentSource } from "./content.js";
 import { extraJobs } from "./extra.js";
 import type { RenderJob } from "./job.js";
 import type { GenerateOptions } from "./options.js";
@@ -60,6 +60,7 @@ function placer(options: GenerateOptions, format: OutputFormat): Placer {
  */
 export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
   const resolved = resolveConfig(options.config);
+  const readContent = contentSource(options);
   const place = placer(options, resolved.format);
 
   const configBySize = new Map(
@@ -71,13 +72,7 @@ export async function planBuild(options: GenerateOptions): Promise<BuildPlan> {
 
   const [stamper, files] = await Promise.all([
     createStamper(resolved),
-    // Content options can come from the config module, which is the only route
-    // a CLI user has to them; `walk` is the programmatic override and wins.
-    walkContent({
-      dir: options.contentDir,
-      ...options.config?.content,
-      ...options.walk,
-    }),
+    readContent(),
   ]);
 
   const jobs = files.flatMap((file) =>

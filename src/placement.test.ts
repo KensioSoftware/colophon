@@ -127,6 +127,34 @@ describe("createPlacer", () => {
     assertIdentical(placed.url, "/img/2026/guide.og.png");
   });
 
+  it("refuses to place beside content with no content directory", () => {
+    // What a build handed its content through `contentFiles` may have: pages
+    // to draw, and nowhere on disk they came from.
+    const error = assertThrowsError(() => createPlacer(undefined, undefined));
+
+    assertStringIncludes(error.message, "beside-content");
+    assertStringIncludes(error.message, "public-dir");
+  });
+
+  it("needs no content directory to gather images into a public one", () => {
+    const placed = createPlacer(
+      { strategy: "public-dir", dir: "public/og", urlBase: "/og" },
+      undefined,
+    )(bundled, og, stamp);
+
+    assertIdentical(placed.path, path.join("public/og", "guide-og.png"));
+    assertIdentical(placed.url, "/og/guide-og.png");
+  });
+
+  it("needs no content directory for a placement that names its own paths", () => {
+    const placed = createPlacer(
+      { strategy: "custom", path: (file) => `build/${file.slug}.png` },
+      undefined,
+    )(bundled, og, stamp);
+
+    assertIdentical(placed.path, "build/guide.png");
+  });
+
   it("puts the image's digest in its name when asked to", () => {
     const placed = createPlacer(
       { strategy: "public-dir", dir: "public/og", urlBase: "/og", hash: true },

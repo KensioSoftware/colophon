@@ -15,6 +15,9 @@ export type { GeneratedImage, GenerateOptions } from "./options.js";
  * props, writing PNGs to disk. Images the config declares outright under
  * `extra` are rendered by the same pass, on the same terms.
  *
+ * A project whose pages are not files on disk can hand the content over
+ * instead of being walked for it: see {@link GenerateOptions.contentFiles}.
+ *
  * Each image is stamped with a digest of the props, config and size it came
  * from, so a rebuild renders only what has actually changed: an image whose
  * stamp still matches is left alone, and one whose title, colours or template

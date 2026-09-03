@@ -61,13 +61,18 @@ export async function sampleFrontmatter(
   file: ContentFile,
   config: ColophonConfig | undefined,
 ): Promise<PlaygroundFrontmatter> {
-  const parsed = matter(await readFile(file.absolutePath, "utf8"));
+  // The playground's post always comes from a walk, so it has a file. Content
+  // built by hand may not, and then its props are all there is to show.
+  const declared: Record<string, unknown> =
+    file.absolutePath === undefined
+      ? {}
+      : matter(await readFile(file.absolutePath, "utf8")).data;
   const propsKey = config?.content?.propsKey ?? defaultPropsKey;
   const browser = browserProps(file.props);
 
   return {
     text: matter.stringify("", {
-      ...parsed.data,
+      ...declared,
       [propsKey]: declaredProps(browser.props, config),
     }),
     omitted: browser.omitted,
