@@ -306,3 +306,4 @@ dmypy.json
 .localstack-volume/
 .docker/
 .dockervolumes/
+.agents/
