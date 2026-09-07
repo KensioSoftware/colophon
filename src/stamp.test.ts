@@ -6,6 +6,7 @@ import { crc32 } from "node:zlib";
 import {
   assertArrayIncludes,
   assertIdentical,
+  assertNotEqual,
   assertStringIncludes,
   assertThrowsError,
   assertTrue,
@@ -63,7 +64,7 @@ async function stampFor(
 
 /** Assert two stamps differ, i.e. that the image would be rendered again. */
 function assertRestamped(a: string, b: string): void {
-  assertTrue(a !== b, "expected the stamp to change");
+  assertNotEqual(a, b, "expected the stamp to change");
 }
 
 /**

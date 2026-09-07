@@ -1,7 +1,7 @@
 import {
   assertArrayLength,
-  assertFalse,
   assertIdentical,
+  assertNotEqual,
   assertObjectEquals,
   assertStringIncludes,
   assertStringNotIncludes,
@@ -281,7 +281,7 @@ describe("textureSvg", () => {
     // Nothing here rolls dice: the rebuild stamp assumes one config draws one
     // picture, so a seeded texture has to be a function of its seed.
     assertIdentical(first, same);
-    assertFalse(other === same);
+    assertNotEqual(other, same);
   });
 
   it("renders moire as one grid turned against another", () => {
