@@ -307,3 +307,4 @@ dmypy.json
 .docker/
 .dockervolumes/
 .agents/
+.pnpm-store/
