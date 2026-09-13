@@ -1,9 +1,12 @@
+---
+description: Render Colophon images as SVG in a browser or worker with the browser-safe core API.
+---
+
 # The browser-safe core
 
-`buildSvg` builds a string: it takes props, a config and a size, and returns an
-SVG document. Everything in this package that needs Node sits on one side of it
-or the other, so the middle of it will run in a browser or anywhere else without
-a filesystem, such as a worker or a request handler.
+Import `@kensio/colophon/core` to build SVG images in a browser, worker or
+request handler. `buildSvg` takes image props, resolved config and dimensions,
+and returns an SVG string:
 
 ```js
 import { buildSvg, resolveConfig } from "@kensio/colophon/core";
@@ -20,17 +23,16 @@ const svg = await buildSvg(
 );
 ```
 
-It is the same code the root entry point runs, and imported from Node it behaves
-identically. Imported into a bundle it swaps two modules, through
-`package.json`'s `browser` field, for versions that cannot touch a filesystem or
-a native binary.
+The core uses the same rendering code as the Node entry point. When bundled
+for a browser, the package's `browser` field replaces modules that use the
+filesystem or native binaries with browser versions.
 
-## Frontmatter, without a content tree
+<a id="frontmatter-without-a-content-tree"></a>
 
-Finding posts needs a filesystem, but understanding one does not. `extractProps`
-takes a parsed frontmatter object and returns the props a template renders from,
-so something handed a post rather than going and looking for one gets the same
-reading of `meta_img_props` that a build does:
+## Reading frontmatter
+
+Use `extractProps` when you already have a parsed frontmatter object. It
+applies the same props rules as a content build:
 
 ```js
 import { extractProps } from "@kensio/colophon/core";
@@ -38,17 +40,16 @@ import { extractProps } from "@kensio/colophon/core";
 const props = extractProps(frontmatter, { defaultTemplate: "card" });
 ```
 
-It returns `undefined` for a post that should not have an image, which is the
-same signal the [`props` mapper](../configuration/frontmatter/) gives. The rest
-of the content layer, which walks a tree, reads files and derives slugs, is on
-`@kensio/colophon/content` and stays in Node.
+`extractProps` returns `undefined` when the post should be skipped, as a
+[props mapper](../configuration/frontmatter/) does. To read files or walk a
+directory in Node, use `@kensio/colophon/content`.
 
-## Problems, rather than an exception
+<a id="problems-rather-than-an-exception"></a>
 
-`resolveConfig` validates what it is given and throws, which is what a build
-wants: there is nowhere to put a problem but the end of the run. Somewhere with
-a place to put them, such as an editor rendering a config as it is typed, wants
-the list instead:
+## Validating config
+
+`resolveConfig` throws on invalid config. For an editor or live preview, use
+`configProblems` to get a list of validation messages:
 
 ```js
 import { configProblems } from "@kensio/colophon/core";
@@ -60,74 +61,63 @@ for (const problem of configProblems(config)) {
 
 An empty array means the config is one `resolveConfig` will accept.
 
-## Two things it cannot do
+<a id="two-things-it-cannot-do"></a>
 
-**Fonts and images have to be bytes.** There is no filesystem to resolve a path
-against, so `{ data }` works and `{ path }` does not. It says so when the config
-is resolved rather than later:
+## Browser requirements
+
+Supply fonts and images as bytes with `{ data }`. Browser config cannot load
+filesystem paths. Using `{ path }` causes a config error:
 
 ```text
 fonts[0]: cannot read the font file at "./Inter.ttf" here, since there is no
 filesystem. Supply the bytes as "data" instead.
 ```
 
-The fonts that ship with the package are files, so they are not here either: the
-core measures by estimate and leaves the drawing to whatever the host has, as it
-did before there were bundled fonts. Inlining them would put half a megabyte of
-font into every bundle that imports the core, whether or not it draws any text.
-Pass the bytes yourself where the widths matter.
+Browser bundles omit the bundled font files. Supply font bytes to measure
+text accurately. Without them, Colophon estimates character widths and the
+host chooses the fonts used to display the SVG.
 
-**There is no rasteriser.** resvg is a native module, so a browser build does
-not include it, and nothing here turns the SVG into pixels. Two ways on:
+The browser bundle also omits the native resvg rasteriser. You can use the
+SVG directly or supply a browser-compatible renderer:
 
-- Take the SVG as it is, since browsers draw it, and it is often what was wanted
-  anyway.
-- Set [`config.rasteriser`](../configuration/rasteriser/) to something that runs
-  where you are, such as a wasm build of resvg. It returns a `Uint8Array`, so a
-  backend with no `Buffer` to hand back still works.
+- Display the SVG in the browser or pass it to another service.
+- Supply [`config.rasteriser`](../configuration/rasteriser/) with a renderer
+  such as resvg compiled to WebAssembly. It must return a `Uint8Array`.
 
-Asking for pixels without one is an error rather than a blank image.
+Requesting raster output without a compatible rasteriser causes an error.
 
-## What it weighs
+<a id="what-it-weighs"></a>
 
-About 10 MB bundled, of which 9.5 MB is [Shiki](https://shiki.style)'s grammars
-and themes. The templates, the layout toolkit and the measuring are the
-remaining half a megabyte.
+## Bundle size
 
-That is the price of the `code` template rendering any language in any theme. A
-build that does not need it, or needs two languages rather than every language,
-should use Shiki's own fine-grained bundle to narrow what is included.
+A measured browser bundle was about 10 MB. [Shiki](https://shiki.style)
+grammars and themes accounted for about 9.5 MB, with the remaining 0.5 MB used
+by rendering and layout code.
+
+The code template can load many languages and themes. Bundle size depends on
+your build tool and which Shiki resources it includes.
 
 ## Themes on a site that already highlights code
 
-Colophon resolves `code.theme` through a registry of its own rather than through
-Shiki's. That looks like duplication, so it is worth saying why it is there.
+Colophon uses its own registry for `code.theme`. It continues to work when a
+site's code highlighter removes unused Shiki themes.
 
-A tool that highlights a site's own code blocks may narrow what Shiki bundles by
-rewriting Shiki's modules during the build. [Expressive
-Code](https://expressive-code.com), which a
-[Starlight](https://starlight.astro.build) site runs by default, does that under
-an option called `removeUnusedThemes`: it strips every theme from Shiki's theme
-module except the ones its own configuration names. The rewrite applies to the
-file rather than to whichever importer asked for it, so a second Shiki caller in
-the same build, which is what Colophon is on a site rendering images in the
-browser, was left with no themes at all and rejected every theme name, the
-default included.
+For example, [Expressive Code](https://expressive-code.com), used by
+[Starlight](https://starlight.astro.build), can rewrite Shiki's theme module
+through `removeUnusedThemes`. This leaves Colophon's theme registry intact.
 
-Colophon's own registry is not affected by that rewrite, and there is nothing to
-configure. Languages are still Shiki's, so a site that has narrowed those the
-same way through `shiki.bundledLangs` will find a language Colophon does not
-have falls back to plain text, which is what an unrecognised language has always
-done.
+Languages still come from Shiki. If `shiki.bundledLangs` excludes a language,
+Colophon renders snippets in that language as plain text.
 
-Emitting [meta tags](../configuration/meta-tags/) needs none of this: the
-`@kensio/colophon/meta` subpath bundles to about 4 KB and depends on nothing.
+If you only need [meta tags](../configuration/meta-tags/), import
+`@kensio/colophon/meta`. That subpath has no dependencies and measured about
+4 KB bundled.
 
 ## Rendering on demand
 
-An endpoint that turns a query string into an image will render whatever anyone
-who finds it asks for, on your domain and at your expense, so the parameters
-need signing.
+For a public image endpoint, sign the query parameters before including the
+URL in a page. Verify the signature before rendering. Create signatures on
+the server or at build time, and keep the secret out of browser code.
 
 ```js
 import { signedQuery } from "@kensio/colophon/core";
@@ -167,25 +157,21 @@ export default async function handler(request) {
 }
 ```
 
-The signature covers the parameters and nothing else, so anything that must not
-be tampered with has to be one of them. A template name or a size left outside
-the parameters is one that anyone can change. The signature is HMAC-SHA256 over
-the parameters sorted by name, so the order they arrive in does not matter, and
-the check is `crypto.subtle.verify` rather than a string comparison that would
-stop at the first wrong byte.
+The signature covers the supplied parameters, sorted by name, using
+HMAC-SHA256. Parameter order in the URL does not matter. Include every
+user-controlled rendering option, such as template or size, in the signed
+parameters. Verification uses `crypto.subtle.verify`.
 
-A query string that repeats a parameter is refused rather than resolved.
-`URLSearchParams.get` takes the first value of a repeated key and building an
-object from the pairs takes the last, so appending a second copy of a key to a
-signed URL is how a check like this is usually got round. A legitimate signed
-URL has no reason to repeat one.
+Duplicate query parameters are rejected. Different URL parsers can select
+different values for repeated keys, so accepting them would make signature
+verification ambiguous.
 
-`signParams` and `verifyParams` are there for a URL shape of your own.
+Use `signParams` and `verifyParams` when building your own signed URL format.
 
 ### On a Cloudflare Worker
 
-The same handler, with the two things a worker does differently: the font is
-imported as bytes rather than read, and the secret comes from the environment.
+In a Cloudflare Worker, import the font as bytes and read the secret from the
+Worker environment:
 
 ```js
 import fontData from "./Inter.ttf";
@@ -208,14 +194,15 @@ export default {
 rules = [{ type = "Data", globs = ["**/*.ttf"] }]
 ```
 
-Caching matters more here than in a build: a signed URL is stable, so the
-`immutable` header above means each image is rendered once per edge location
-rather than once per request.
+The response's `Cache-Control` header allows clients to reuse the image. To
+cache generated responses at Cloudflare's edge, configure caching or use
+[the Cache API](https://developers.cloudflare.com/workers/runtime-apis/cache/).
+The example above does not add responses to the edge cache. Keep every
+rendering input in the cache key, and change the URL when the image changes.
 
 ## Building images at build time
 
-None of this replaces the [CLI](../cli/) or
-[`generate`](../programmatic-use/). Rendering at build time is cheaper, since
-the [rebuild stamps](../rebuilds/) mean most images are not rendered again at
-all, and it produces files a CDN can serve without running anything. On-demand
-rendering is for pages that do not exist until somebody asks for them.
+Use the [CLI](../cli/) or [`generate`](../programmatic-use/) for images you
+can create during a build. They produce static files and skip unchanged images
+using [rebuild stamps](../rebuilds/). Use on-demand rendering when image inputs
+are available only at request time.

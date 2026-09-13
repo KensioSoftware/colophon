@@ -1,7 +1,11 @@
+---
+description: Install Colophon and generate social images from Markdown frontmatter.
+---
+
 # Getting started
 
-Colophon reads image props from a post's frontmatter and renders a PNG for each
-output size you have configured.
+Colophon generates social images from the YAML frontmatter at the start of a
+Markdown post. This guide installs the package and renders your first images.
 
 ## Install
 
@@ -9,13 +13,15 @@ output size you have configured.
 pnpm add @kensio/colophon
 ```
 
-Two dependencies come with it: `@resvg/resvg-js`, which rasterises the SVG to
-PNG, and `shiki`, which provides the grammars and themes for the
-[code template](../code-template/). There is no headless browser to install.
+The command examples below use `colophon`. For a local pnpm installation,
+prefix each command with `pnpm exec`, or run it from a package script.
 
-You can hand the renderer font files rather than relying on what the machine has
-installed, so that a build renders the same image wherever it runs. See
-[Fonts](../configuration/fonts/).
+Colophon uses `@resvg/resvg-js` to convert SVG to PNG and `shiki` to highlight
+[code snippets](../code-template/). Both are installed with the package. A
+headless browser is not required.
+
+Colophon includes fonts for consistent rendering across machines. You can also
+[supply your own font files](../configuration/fonts/).
 
 ## Describe the image in frontmatter
 
@@ -30,14 +36,15 @@ meta_img_props:
 ---
 ```
 
-`meta_img_props` is the default key. [Frontmatter](../configuration/frontmatter/)
-covers how to change it, and how to build props from fields your posts already
-carry so you do not have to edit every file.
+`meta_img_props` contains the properties passed to the image template. You can
+[change this key or map existing frontmatter fields](../configuration/frontmatter/)
+to image properties.
 
 ## Add a config file
 
-Config is optional. Without one, Colophon renders with neutral defaults.
-`colophon init` writes a starter one, and guesses where your content lives:
+A config file lets you set branding and output options. You can omit it to use
+the defaults. Run `colophon init` to create a starter config and detect the
+content directory:
 
 ```bash
 colophon init
@@ -71,12 +78,12 @@ Every option is listed in [Configuration](../configuration/).
 colophon content --config colophon.config.ts
 ```
 
-For every file that declares `meta_img_props`, Colophon writes one PNG per
-output size next to the post, named `<slug>-<size>.png`. So `post/index.md`
-produces `post/post-og.png` and `post/post-square.png`.
+For each file with `meta_img_props`, Colophon writes one PNG per output size
+next to the post. Filenames follow `<slug>-<size>.png`. With the defaults,
+`post/index.md` produces `post/post-og.png` and `post/post-square.png`.
 
-To write them somewhere else, such as a single `public/` directory served under
-one URL prefix, see [Placement](../configuration/placement/).
+Use [placement settings](../configuration/placement/) to write images to a
+shared directory such as `public/og/` and assign their public URLs.
 
 ## Command line options
 
@@ -103,28 +110,26 @@ colophon playground [file] [options]
   --size                defaults to the first configured size
 ```
 
-Images are rendered a few at a time rather than all at once, so that a tree of a
-few hundred posts does not start a few hundred rasterisations. The
-default of one per available CPU suits a build machine with nothing else to do,
-and `--concurrency` lowers it to leave room for whatever else is running.
+`--concurrency` limits how many images Colophon renders at once. It defaults
+to the number of available CPUs. Lower it when the machine also runs other
+workloads.
 
-The number a build actually reaches is capped by the libuv thread pool, which
-holds four threads unless `UV_THREADPOOL_SIZE` says otherwise. Rasterising, PNG
-recompression and quantising all run there, so on a machine with more than four
-cores the default concurrency is above what the pool can serve, and the build
-says so. Node sizes the pool from the environment before the process starts:
+Node's libuv thread pool runs rasterisation, PNG recompression and
+quantisation. It defaults to four threads, which can limit rendering on
+machines with more cores. Set its size before starting Colophon:
 
 ```bash
 UV_THREADPOOL_SIZE=16 colophon content
 ```
 
-On an eighteen-core machine, 200 pages at 1200x630 took 24 seconds at the
-default pool and 13.8 seconds with the pool at 16. Past about the core count the
-curve flattens. [The command line](../cli/#the-thread-pool) has the detail.
+In a benchmark of 200 pages at 1200x630 on an eighteen-core machine, increasing
+the pool from 4 to 16 threads reduced the build time from 24 to 13.8 seconds.
+See [the thread pool](../cli/#the-thread-pool) for the benchmark and tuning
+guidance.
 
-While tuning a template, `colophon preview <file>` renders one post and opens
-it, and `--watch` rebuilds the tree on every change. [The command
-line](../cli/) covers both.
+Use `colophon preview <file>` to render and open one post's image. Use `--watch`
+to rebuild when content changes. [The command line](../cli/) explains these
+commands and their options.
 
 ## Where to go next
 

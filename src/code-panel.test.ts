@@ -1,7 +1,9 @@
 import {
   assertArrayEmpty,
   assertArrayLength,
+  assertGreaterThan,
   assertIdentical,
+  assertLessThan,
   assertNonNullable,
   assertNumberBetween,
   assertStringIncludes,
@@ -104,7 +106,7 @@ describe("code line numbers", () => {
     // The marker stands for lines that are not shown, so numbering it would
     // give a line of its own to something that is not a line.
     assertArrayLength(fadedTokens(svg), drawn.length - 1);
-    assertTrue(warnings.length > 0);
+    assertGreaterThan(warnings.length, 0);
   }, 5000);
 });
 
@@ -296,7 +298,7 @@ describe("code title", () => {
     // Two lines are all this layout has to give, so the rest comes off the
     // size rather than off the end of the title.
     assertArrayLength(lines, 2);
-    assertTrue(lines[0].fontSize < 54);
+    assertLessThan(lines[0].fontSize, 54);
   }, 5000);
 });
 

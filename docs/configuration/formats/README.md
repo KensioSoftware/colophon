@@ -1,7 +1,11 @@
+---
+description: Choose an image format and set output quality and file size limits in Colophon.
+---
+
 # Output formats
 
-Colophon writes PNG unless you say otherwise. WebP, JPEG and AVIF are each one
-setting:
+Set `format` to choose PNG, WebP, JPEG or AVIF. PNG is the default. For lossy
+formats, `quality` controls encoding quality from 1 to 100:
 
 ```ts
 export default defineConfig({
@@ -10,14 +14,12 @@ export default defineConfig({
 });
 ```
 
-The rasteriser still draws the picture, and the finished raster is encoded into
-the format you asked for. So this works with a custom
-[rasteriser](../rasteriser/) as well as with the default one.
+Colophon renders the image, then encodes it in the requested format. This also
+applies when you use a custom [rasteriser](../rasteriser/).
 
 ## What it saves
 
-The two-post site the numbers below come from, at four sizes each, with the
-default quality:
+This benchmark rendered two posts at four sizes each, using default quality:
 
 | Format | Whole build | A 1200x630 landscape |
 | ------ | ----------- | -------------------- |
@@ -26,28 +28,24 @@ default quality:
 | `webp` | 112KB       | 18KB                 |
 | `avif` | 92KB        | 16KB                 |
 
-WebP is the usual choice. It is read by current browsers and by the crawlers
-these images are for, it comes out at about a quarter of the size of the PNG,
-and it is no slower to write, because a lossy encoding is cheaper than the
-level-9 zlib pass a PNG gets. AVIF is smaller again but slower to encode, and
-most of the platforms these images are made for will not display it. See
-[What the platforms read](#what-the-platforms-read).
+In this benchmark, WebP used about a quarter of the PNG space with similar
+encoding time. AVIF produced smaller files but took longer to encode. Check
+[platform support](#what-the-platforms-read) before choosing a format for
+shared links.
 
-The pictures are the same to look at. At `80` the gradients these templates are
-mostly made of hold up; below about `50` they start to band.
+The sample gradients retained their appearance at quality `80`. Below about
+`50`, banding became visible. Compare your own images before lowering quality.
 
-JPEG has no transparency, so a template that left any gets it flattened onto
-black. Every built-in template paints its background edge to edge, so this only
-comes up in a custom one.
+JPEG flattens transparent areas onto black. The built-in templates fill the
+entire background, but custom templates may include transparency.
 
-### PNG is not always the largest
+<a id="png-is-not-always-the-largest"></a>
 
-The ordering in that table is the usual one rather than a fixed one. PNG loses
-to JPEG on photographs and on long gradients, and can win on flat colour,
-because a run of identical pixels is what PNG compresses best and what JPEG
-spends bits on. Two samples from the gallery in this repository show it:
-`card-wide-solid` is 19KB as a PNG against 24KB as a JPEG, and `theme-slate` is
-7KB against 6KB, near enough the same file either way.
+### Flat-colour images
+
+File size depends on the image. PNG can compress flat colour more efficiently
+than JPEG. In the sample gallery, `card-wide-solid` was 19KB as PNG and 24KB as
+JPEG. `theme-slate` was 7KB as PNG and 6KB as JPEG.
 
 Across all 30 samples, at the default quality of 80:
 
@@ -58,58 +56,43 @@ Across all 30 samples, at the default quality of 80:
 | `webp` | 539KB              |
 | `avif` | 496KB              |
 
-So JPEG is the smaller by a wide margin over a mixed set of images, most of
-which have a gradient or a mesh in them. A site whose template is a flat
-background with a line of text on it is the case where that gap closes, and
-where the PNG can be the smaller file.
+JPEG was smaller across this mixed set of images. For a flat background with
+a small amount of text, compare both formats before choosing.
 
 ## What the platforms read
 
-Browsers read all four of these formats. The crawlers behind link previews are
-a different set of programs, and they are some way behind.
+Browser support does not guarantee support in social link previews. Test the
+platforms your readers use.
 
-AVIF is not a safe choice for a share image today.
-[Testing by Joost de Valk](https://joost.blog/use-avif-webp-share-images/),
-published in December 2024, covered eleven platforms. AVIF rendered on Facebook,
-Pinterest, Threads and WhatsApp. It did not render on Bluesky, Discord,
-iMessage, LinkedIn, Mastodon, Slack or X.
-[Separate testing by Darek Kay](https://darekkay.com/blog/open-graph-image-formats/),
-last updated in November 2025, found only Facebook rendering AVIF at all, with
-WhatsApp showing it in the wrong colours. A platform that cannot read the file
-posts the link with no image on it, which is the outcome the image is there to
-prevent.
+[Joost de Valk's December 2024 tests](https://joost.blog/use-avif-webp-share-images/)
+found AVIF previews on Facebook, Pinterest, Threads and WhatsApp. AVIF failed
+on Bluesky, Discord, iMessage, LinkedIn, Mastodon, Slack and X.
+[Darek Kay's tests](https://darekkay.com/blog/open-graph-image-formats/), updated
+in November 2025, reported AVIF support only on Facebook, with incorrect
+colours on WhatsApp.
 
-Both dates are given so you can judge how far those results have aged. Support
-does move, and if you are reading this a long way after them it is worth
-checking rather than assuming the position still holds.
+These are dated test results. Recheck support before relying on AVIF for link
+previews.
 
-WebP came out of both sets of tests working: all eleven platforms in the first,
-and every platform except Xing in the second. That is further than the
-documentation goes. Facebook's `og:image` reference still asks for
-`image/jpeg`, `image/gif` or `image/png` and says nothing about WebP, and it is
-not alone in that. So WebP here is a choice made on tested behaviour rather than
-on a documented guarantee. PNG and JPEG are the two formats every platform both
-documents and reads, which is the conservative answer if you would rather not
-rest on someone else's testing.
+WebP worked on all eleven platforms in de Valk's tests and all except Xing
+in Kay's tests. Tested support can exceed what a platform documents. Use PNG
+or JPEG when your target platform's documented requirements call for them.
 
 ## The filenames follow
 
-An image is named after the format it holds, so a build writing WebP writes
-`my-post-og.webp`. `jpeg` is written `.jpg`, which is what the web settled on.
+Filenames use the selected format's extension. WebP produces
+`my-post-og.webp`, and JPEG uses `.jpg`.
 
-Changing the format therefore renames every image, and the files already written
-are left where they are. Nothing here knows whether something is still serving
-them, and deleting a URL somebody has shared is not a decision to make on a
-project's behalf. Clear the output directory yourself if you want them gone.
+Changing the format creates new filenames. Colophon keeps the old files,
+which may still be used by existing links. Clear the output directory yourself
+when those files are no longer needed.
 
-A [`custom` placement](../placement/#custom-placements) names its own files and
-is not told the format, so it is the one place the extension is yours to keep in
-step.
+A [`custom` placement](../placement/#custom-placements) supplies its own
+filename. Keep that filename's extension consistent with `format`.
 
 ## Capping the size
 
-Some platforms have a ceiling of their own, such as X, which refuses an upload
-over 5MB. `maxBytes` records that ceiling:
+Set `maxBytes` to a target output file size in bytes:
 
 ```ts
 export default defineConfig({
@@ -119,13 +102,11 @@ export default defineConfig({
 });
 ```
 
-An image over the cap is encoded again ten quality points lower, and again, down
-to a floor of `30`. Stepping rather than searching for the best quality that
-fits is deliberate: each step is a whole encoding, and a search would cost
-several more of them for a difference nobody can see.
+If a lossy image exceeds the cap, Colophon encodes it again at progressively
+lower quality, in steps of ten points, down to `30`.
 
-An image that will not fit even at `30` is written anyway and reported through
-[`onWarning`](../warnings/):
+If the image still exceeds the cap at `30`, Colophon writes it and reports an
+[`onWarning`](../warnings/) message:
 
 ```text
 colophon: blog/post.md: Image is 31KB, over the 20KB maxBytes cap. Quality was
@@ -133,16 +114,12 @@ stepped down to 30, which is as far as it goes before the picture stops being
 worth having. A smaller output size would do what quality no longer can.
 ```
 
-That is a warning rather than an error because the image is still the right
-image. A build that renders nothing is a worse answer than one that renders
-something too big and says which post it was.
+The warning identifies an oversized image without stopping the build.
 
-PNG is lossless and has no quality to trade, so under `format: "png"` a cap only
-ever reports. [`compressionLevel`](../compression/) is the PNG equivalent, and it
-is already at its strongest by default. The setting that will actually bring a
-PNG down is [`quantise`](../compression/), which reduces it to a palette, though
-it is a decision to take once for a site rather than a step an encoder can take
-on its own when an image comes out over the cap.
+For PNG, `maxBytes` only reports a warning because PNG has no quality setting.
+Use [`compressionLevel` or `quantise`](../compression/) to reduce PNG file
+size. Compression is already at its strongest by default. Quantisation is
+optional and reduces the number of colours.
 
 ## Writing the SVG too
 
@@ -152,28 +129,27 @@ export default defineConfig({
 });
 ```
 
-Each image gets its source document beside it, under the same name with an
-`.svg` extension: `my-post-og.png` and `my-post-og.svg`. Under a
-[hashed placement](../placement/#content-hashed-filenames) the hash is kept, so
-`my-post-og.ecd0aab2.svg` sits next to its own image.
+`emitSvg` writes the source SVG beside each image using the same base name.
+For example, `my-post-og.png` gets `my-post-og.svg`.
+[Hashed filenames](../placement/#content-hashed-filenames) keep the hash in
+both filenames.
 
-That is the document to hand to a vector editor, to diff when a template
-changes, or to serve to anything that would rather have vectors. It is not in
-the [manifest](../manifest/) and it carries no
-[rebuild stamp](../../rebuilds/), since the image is what a build tracks and the
-document follows it.
+Use the SVG in a vector editor or compare it when changing a template. SVG
+files are excluded from the [manifest](../manifest/) and have no
+[rebuild stamp](../../rebuilds/). They are written when the corresponding image
+is rendered.
 
-## They all change every image's stamp
+<a id="they-all-change-every-images-stamp"></a>
 
-`format`, `quality`, `maxBytes` and `emitSvg` are each part of every image's
-rebuild stamp, so changing one re-renders the tree once. `emitSvg` is in for a
-version of the same reason: turning it on has to write the documents for images
-that are already on disk, and without it they would appear only as each post
-next changed.
+## Rebuilds
 
-## They are not per-size
+`format`, `quality`, `maxBytes` and `emitSvg` are included in rebuild stamps.
+Changing any of them regenerates the images. Enabling `emitSvg` therefore
+writes SVG files for existing images too.
 
-Like [`fonts`](../fonts/) and the [rasteriser](../rasteriser/), these are shared
-build inputs rather than something an individual output size can override. They
-are about how an image is encoded rather than what it shows. See
-[Per-size config](../per-size-config/).
+<a id="they-are-not-per-size"></a>
+
+## Shared output settings
+
+These encoding settings apply to the whole build. Individual sizes cannot
+override them. See [Per-size config](../per-size-config/).

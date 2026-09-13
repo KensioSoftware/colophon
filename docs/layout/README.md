@@ -1,27 +1,28 @@
+---
+description: Build custom Colophon templates with functions for arranging text and images in SVG.
+---
+
 # The layout toolkit
 
-Writing a template means returning a string of SVG, which is manageable by hand
-for a heading and a rectangle, and much less so once the layout has a photo
-behind the text with a gradient over it and a row of chips along the top.
+The layout toolkit provides functions for arranging text and images in a
+custom SVG template.
 
-The toolkit is the set of small functions the built-in templates are made from.
-Nothing in it holds state: each function takes values and returns them, whether
-that is a rectangle, a list of lines or a string of SVG. A template that would
-rather write its own SVG by hand still can.
+The built-in templates use these functions too. Each function takes values
+and returns geometry, text lines or SVG. You can combine the helpers with
+your own SVG markup.
 
 ```ts
 import { box, drawLines, inset } from "@kensio/colophon/layout";
 ```
 
-The subpath loads no rasteriser, no syntax highlighter and nothing from Node, so
-a template built on it is a plain function over strings. Everything is exported
-from the root entry point too, if you are importing `defineConfig` anyway and
-would rather have one import.
+Import from `@kensio/colophon/layout` to use the toolkit without Node, the
+rasteriser or the syntax highlighter. The package root also exports these
+functions.
 
 ## Rectangles
 
-Every primitive takes a rectangle, and the one a template starts with is the
-image itself. `inset` is how you get from there to somewhere sensible:
+Use rectangles to describe areas in the image. `inset` reduces a rectangle
+by the requested margins:
 
 ```ts
 const full = { x: 0, y: 0, ...dimensions };
@@ -29,16 +30,16 @@ const content = inset(full, Math.round(dimensions.width * 0.08));
 const belowHeader = inset(content, { top: 120 });
 ```
 
-One number brings every edge in. An object brings in the edges it names. An
-inset bigger than the rectangle collapses it rather than turning it inside out.
+A number applies the same inset to every edge. An object sets individual
+edges. If the insets exceed the available space, the resulting dimensions are
+clamped to zero.
 
 ## Text
 
-Text goes in two steps, because the two questions are separate: how many lines
-does this become, and where do they go.
+First calculate the text lines and their sizes, then position and draw them.
 
-`blockLines` answers the first. It reads a prop, fits it to a width, shrinks it
-if it does not fit, and gives back the lines with the size they ended up at:
+`blockLines` reads a prop and fits it to a width. It can shrink text to fit
+and returns the lines with their final font sizes:
 
 ```ts
 const lines = blockLines(props.title, measure, config.fontFamily, {
@@ -51,12 +52,11 @@ const lines = blockLines(props.title, measure, config.fontFamily, {
 });
 ```
 
-`measure` comes in on the template context rather than from this module, because
-only the build knows which fonts it loaded. See
-[Fonts](../configuration/fonts/) for what it can and cannot measure exactly.
+Use `measure` from the template context. It measures text with the fonts
+loaded for the build. See [Fonts](../configuration/fonts/) for measurement
+and fallback behaviour.
 
-`drawLines` answers the second, placing the lines as one block and writing the
-`<text>` elements:
+`drawLines` positions the lines as a block and returns SVG `<text>` elements:
 
 ```ts
 drawLines(lines, content, {
@@ -66,36 +66,30 @@ drawLines(lines, content, {
 });
 ```
 
-Concatenate the lines from several calls to lay out a title and a subtitle
-together, giving the second group a `gapBefore` to separate them. That is all
-the `banner` template does.
+Combine results from several `blockLines` calls to lay out a title and
+subtitle together. Set `gapBefore` on the second group to separate them.
 
-For finer control there is `placeLines`, which returns the baselines and leaves
-the drawing to you, and `baselineFor`, which is the single-line case: give it
-the top of a band one font size tall and it returns the baseline to draw at.
+For control over the SVG markup, use `placeLines` to calculate baselines
+without drawing. For one line, `baselineFor` takes the top of a band one font
+size tall and returns its baseline:
 
 ```ts
 const heading = { x: 0, y: 60, width, height: 54 };
 textElement(title, { y: baselineFor(heading.y, 54), fontSize: 54, ...attrs });
 ```
 
-Reach for it wherever a template has reserved a strip for one line, since
-picking the baseline by eye is how the clear space around a line stops matching
-the space that was set aside for it. The descender takes what is left of the
-band below the baseline, so the room under a line is not the room above it.
+Use `baselineFor` for text in a fixed-height strip. It reserves space below
+the baseline for descenders, such as the bottom of a lowercase `g`.
 
-There is also `measureIn`, which binds a measurer to one family and weight so
-you can ask how wide something is:
+`measureIn` binds a measurer to one font family and weight:
 
 ```ts
 const widthOf = measureIn(measure, config.fontFamily, 700);
 const chipWidth = widthOf("release", 32) + 48;
 ```
 
-`linesHeight` says how tall a block of lines will be before it is drawn, which
-is what a template needs when the words are one item in a group rather than the
-whole of it. The `wordmark` template uses it to `stack` a logo above a name:
-both have to be measured before either can be placed.
+`linesHeight` calculates a text block's height before drawing. Use it when
+placing text alongside other items, such as a logo stacked above a name:
 
 ```ts
 const [markSlot, textSlot] = stack(
@@ -104,9 +98,7 @@ const [markSlot, textSlot] = stack(
 );
 ```
 
-`fillLines` is `blockLines` with the question turned round. Instead of a size to
-draw at and a line budget to shrink into, it takes a box, and gives back the
-largest size the whole of the text fits in it:
+`fillLines` finds the largest font size that fits all the text inside a box:
 
 ```ts
 const lines = fillLines(props.title, measure, config.fontFamily, {
@@ -120,50 +112,37 @@ const lines = fillLines(props.title, measure, config.fontFamily, {
 });
 ```
 
-Reach for it where the text _is_ the picture rather than a heading in one, so
-that three words are drawn much larger than twelve. That is a narrow case, and
-the `thumbnail` template is the built-in it exists for: a video thumbnail is
-looked at in a fraction of the space it is rendered at, so the words have to
-take the room they are given. Everywhere else `blockLines` is right, because a
-heading that grew to fill its space would stop looking like a heading.
+Use `fillLines` when the text should fill the available space, as in the
+`thumbnail` template. Use `blockLines` when headings should keep a preferred
+size and shrink only as needed.
 
-Two things it does that are worth knowing. More lines set larger beats one line
-set small, so a long title wraps rather than shrinking. And it will not break a
-word in half to fill the box, which a search measuring only the height it filled
-would happily do. `fillText` is the same thing without the prop reading, for
-text you already have in hand.
+`fillLines` wraps onto more lines when that permits larger text. It keeps
+words together when fitting them. Use `fillText` for the same behaviour when
+you already have a string.
 
-`clampLine` is the other way to make text fit: it cuts one line to the width it
-has and marks the cut with an ellipsis. Shrinking is the better answer wherever
-there is room for it, which is what `blockLines` does. Reach for this where a
-line cannot shrink on its own without looking like a mistake, such as one item
-in a list set at the same size as the rest.
+`clampLine` shortens a single line to fit its width and adds an ellipsis.
+Use it when the font size must stay fixed, such as in a list whose items all
+use the same size:
 
 ```ts
 clampLine(change, content.width - indent, widthOf, 44);
 ```
 
-`trackingFor` goes the other way again: rather than fitting text to a box, it
-stretches one line to the width of another by spacing its characters out. Give
-it the line, the width it has and the width it wants, and it returns the spacing
-to put on `TextLine.letterSpacing`; `trackedWidth` says how wide the result will
-be, which is what a layout centring the block needs.
+`trackingFor` calculates letter spacing to expand a line to a target width.
+Assign the result to `TextLine.letterSpacing`. `trackedWidth` calculates the
+final width for positioning:
 
 ```ts
 const spacing = trackingFor(tagline, widthOf(tagline, 40), nameWidth);
 ```
 
-The arithmetic is exact because of how the renderer applies it: SVG puts the
-space between characters and not after the last one, so a line of `n` characters
-has `n - 1` gaps, the tracked width lands on the target, and `middle` and `end`
-anchors stay where they were put. That was checked by rendering rather than read
-from a specification. Nothing is returned for a line already at the target, since
-that would mean negative tracking, or for a line of one character, which has no
-gaps to put the space in. The `cover` template is the built-in that uses it; see
-[its `tracking` prop](../templates/#tracking-the-tagline-to-the-name).
+Letter spacing is applied between characters. A line of `n` characters has
+`n - 1` gaps. `trackingFor` returns `0` if the line already meets or
+exceeds the target width, or if it has only one character. The `cover`
+template uses it to [align a tagline with a name](../templates/#tracking-the-tagline-to-the-name).
 
-And `stringList` reads a prop that may be a YAML sequence or a single value,
-which is what a hand-written `tags:` or `breadcrumb:` field turns out to be:
+`stringList` reads a prop supplied as a YAML sequence or a single value.
+Use it for fields such as `tags` or `breadcrumb`:
 
 ```ts
 stringList(props["tags"]); // ["typescript", "testing"], or [] for nothing usable
@@ -171,29 +150,25 @@ stringList(props["tags"]); // ["typescript", "testing"], or [] for nothing usabl
 
 ## Boxes and panels
 
-`box` is a rectangle with a fill, corners and a stroke. Attributes you do not
-name are left out.
+`box` draws a rectangle with optional fill, rounded corners and stroke.
+Omitted attributes are left out of the SVG.
 
 ```ts
 box(rect, { radius: 20, fill: "#ffffff", fillOpacity: 0.16 });
 ```
 
-`panel` is a box that casts a shadow, so that it reads as sitting on top of the
-image rather than as part of it:
+`panel` draws a box with a shadow:
 
 ```ts
 panel(rect, { radius: 24, fill: "#0d1117", shadow: 12 });
 ```
 
-The shadow is a second rectangle offset downwards rather than a blur filter,
-which is much cheaper for the rasteriser and reads as depth just as well at
-these sizes.
+The shadow is a second rectangle offset downwards.
 
 ## Images
 
-`image` draws a raster image within a rectangle. Pass a `data:` URI: an image
-read at build time and inlined renders the same wherever the build runs, with
-nothing to fetch.
+`image` draws an image inside a rectangle. Supply a `data:` URI to embed its
+bytes in the SVG:
 
 ```ts
 import { readFile } from "node:fs/promises";
@@ -202,28 +177,28 @@ const bytes = await readFile("hero.jpg");
 image(full, `data:image/jpeg;base64,${bytes.toString("base64")}`);
 ```
 
-`fit` defaults to `cover`, which fills the rectangle and crops the overflow.
-Pass `contain` for a logo, since cropping a wordmark ruins it. `radius` rounds
-the corners and needs an `id` to hang its clip path on.
+The default `fit` is `cover`, which fills the rectangle and crops overflow.
+Use `contain` to show a complete logo. Set `radius` for rounded corners and
+provide a unique `id` for the clip path.
 
 ## Scrims
 
-A scrim is a wash of colour over an image so the text on top of it can be read.
-Photographs have light and dark in them wherever they like, and white text over
-a bright sky is invisible.
+A scrim is a translucent colour layer over an image. It improves contrast
+between a photograph and text:
 
 ```ts
 scrim(full, "hero-scrim", { from: 0.1, to: 0.8 });
 ```
 
-That shades from nearly clear at the top to mostly dark at the bottom, which
-suits a headline sitting low. Pass the same value for `from` and `to` for a flat
-wash, which needs no gradient and so ignores the id.
+This example darkens the image more at the bottom. Use equal `from` and `to`
+values for a uniform overlay. A uniform overlay ignores `id` because it needs
+no gradient.
 
 ## Rows and stacks
 
-`stack` places items down an area and `row` places them across one. Both return
-a rectangle per item, and both take an alignment of `start`, `centre` or `end`.
+`stack` arranges items vertically, and `row` arranges them horizontally.
+Both return one rectangle per item and accept `start`, `centre` or `end`
+alignment:
 
 ```ts
 const chips = row(
@@ -233,17 +208,17 @@ const chips = row(
 );
 ```
 
-A group larger than the space it was given starts at the edge and runs over
-rather than being squeezed, so a template that has overflowed can see that it
-has. Both are the same function underneath, `distribute`, which is exported for
-laying something out along an axis that is neither.
+If a group exceeds its available space, it starts at the leading edge and
+overflows. Items are not resized. Both helpers use `distribute`, which is
+also exported for custom axis layouts.
 
-## Ids have to be unique
+<a id="ids-have-to-be-unique"></a>
 
-Gradients and clip paths are referenced by id, and an image is one SVG document,
-so two scrims sharing an id means the second one wins in both places. Name them
-after what they are for rather than after the primitive, and add the size name
-if a template draws several.
+## Unique SVG ids
+
+Give each gradient and clip path a unique id within the SVG. Reusing an id
+can make multiple elements reference the same definition. Name ids for their
+purpose, and distinguish repeated instances.
 
 ## A whole template
 
@@ -285,4 +260,5 @@ export const photo: Template = {
 };
 ```
 
-Register it under `config.templates` as [Templates](../templates/) describes.
+Register the template under `config.templates`. See
+[Templates](../templates/) for registration.

@@ -1,11 +1,14 @@
+---
+description: Render code snippets as social images with syntax highlighting and automatic text sizing.
+---
+
 # The code template
 
-The `code` template renders a syntax-highlighted snippet on a rounded panel over
-the background. The colours come from a real VS Code theme, by way of
-[Shiki](https://shiki.style).
+The `code` template renders a syntax-highlighted snippet on a rounded panel.
+[Shiki](https://shiki.style) supplies the language grammars and VS Code themes.
 
-The [`terminal` template](../templates/) is this one with window chrome around
-it, so everything on this page applies to it too.
+The [`terminal` template](../templates/) uses the same code rendering with
+window chrome. The sizing and styling options below apply to both.
 
 Put the snippet in frontmatter and name its language:
 
@@ -37,43 +40,32 @@ meta_img_props:
 
 [Shiki language]: https://shiki.style/languages
 
-Pygments-style names carried over from an older pipeline (`text`, `console`,
-`html+handlebars` and so on) are mapped onto their Shiki equivalents, so
-existing frontmatter usually needs no changes.
+Common Pygments language names, including `text`, `console` and
+`html+handlebars`, are mapped to Shiki equivalents.
 
-A snippet's leading indentation is dropped before anything else happens, so
-lifting a sample out of a nested block costs you no width.
+Common leading indentation is removed from the snippet before rendering.
 
-The title is drawn above the panel. A title that does not fit on one line wraps
-onto a second, and one that does not fit on two is shrunk until it does. The
-room it takes comes off the panel below it, so a long title leaves the snippet
-less height to be drawn in.
+The title sits above the panel. It wraps onto up to two lines and shrinks if
+needed. A taller title leaves less vertical space for the snippet.
 
 ## How the font size is chosen
 
 Colophon measures the widest line and counts the lines, then picks the largest
 font size that fits on both axes within `minFontScale` and `maxFontScale`.
 
-Those bounds are fractions of the image _width_, not its height. Width is what a
-feed scales a share image to, so it is what legibility tracks. If the bounds
-were fractions of the height, a landscape image would render the same snippet at
-around half the size of its square counterpart.
+`minFontScale` and `maxFontScale` are fractions of the image width. Sizes with
+the same width therefore use the same font-size limits, regardless of height.
 
-Code that will not fit at the floor is truncated with an ellipsis rather than
-shrunk to a size nobody can read. The panel then shrinks onto what is left, so
-the remaining code is not sitting in a box built for more of it.
+Code that cannot fit at the minimum font size is truncated with an ellipsis.
+The panel then shrinks to fit the visible code.
 
-That trade matters most on the landscape sizes, which have around half the
-vertical room of the square. At the default floor an Open Graph image fits
-roughly nine lines of about sixty characters. A snippet written to that budget
-renders identically at every size, whereas a longer one keeps its opening lines
-and loses the tail. Lower `minFontScale` if you would rather show the whole
-snippet small, or set it per size so that only the landscape shrinks; see
+Landscape images have less vertical space than square images. At the default
+minimum font size, an Open Graph image fits roughly nine lines of sixty
+characters. Longer snippets can lose their final lines. Lower `minFontScale`
+to show more code, or override it for the landscape size only. See
 [Per-size config](../configuration/per-size-config/).
 
-A finished image gives no sign that the sample continued, so a snippet that had
-to lose lines is reported through [`onWarning`](../configuration/warnings/)
-instead:
+Truncation is reported through [`onWarning`](../configuration/warnings/):
 
 ```text
 colophon: content/post/index.md: code snippet does not fit the 1200x630 image at
@@ -83,7 +75,7 @@ code.minFontScale to fit it in smaller.
 
 ## Styling
 
-Styling comes from `config.code`:
+Set code styling under `config.code`:
 
 ```ts
 export default defineConfig({
@@ -108,24 +100,19 @@ export default defineConfig({
 
 ### Line numbers
 
-`lineNumbers` puts a number in front of every line, in the theme's own
-foreground at low opacity.
+`lineNumbers` adds line numbers using the theme's foreground colour at low
+opacity.
 
-The numbers are drawn on the same lines as the code, which is what keeps them
-on its baselines, and the gutter is a count of characters rather than a width,
-since a line number really is digits in a monospace face. It takes that width
-from the snippet: with numbers on, a long line has that much less room before
-it is truncated. The digits reserved are the digits the whole snippet needs, so
-the code does not shift left when a line is dropped.
+Numbers align with the code baselines. Their gutter reduces the width
+available for code. Its width uses the original snippet's line count, even
+if some lines are truncated.
 
-A snippet cut short is numbered as far as it goes. The line that marks the
-truncation is not numbered, since it stands for the lines that are not there.
+The ellipsis line marking truncated content has no line number.
 
 ### Window chrome
 
-`chrome` draws a bar across the top of the panel, with the buttons every reader
-has seen on a window. `"mono"` draws them in one neutral tone and `"macos"`
-draws the traffic lights.
+`chrome` adds a window title bar. Use `"mono"` for neutral buttons or
+`"macos"` for red, yellow and green buttons.
 
 <img src="../samples/code-window.png" alt="code template with window chrome and line numbers" width="60%" />
 
@@ -140,16 +127,15 @@ meta_img_props:
     await fetch("/search", { method: "QUERY" });
 ```
 
-`title` is unaffected and still sits above the panel. The two say different
-things: a title is what the image is about, and a filename is where the code
-lives.
+For `code`, the optional `title` remains above the panel. `filename` labels the code file
+inside the bar.
 
-The [`terminal` template](../templates/) always draws the bar, with the traffic
-lights, since a terminal is a window rather than a decorated panel.
+The [`terminal` template](../templates/) always shows the bar with macOS-style
+buttons.
 
 ### Marking a token or a line
 
-A post can point at the part of the snippet it is about, with a `mark` prop:
+Use the `mark` prop to highlight text or a line:
 
 ```yaml
 meta_img_props:
@@ -162,12 +148,9 @@ meta_img_props:
 
 <img src="../samples/code-mark.png" alt="a boxed token and a highlighted line" width="60%" />
 
-A string is text to find, and it is boxed where it first appears. Naming the
-text rather than the place is what survives the snippet being edited above the
-line it is on.
+A string marks the first visible occurrence of that text with a box.
 
-An object names the place instead, for when the same text appears twice or the
-thing worth marking is a whole line:
+Use an object to select a specific line or column:
 
 ```yaml
 mark:
@@ -177,67 +160,56 @@ mark:
   - { text: JSON, color: "#facc15" }
 ```
 
-Lines and columns are one-based, as an editor counts them. A mark naming a line
-and no column draws a band across it rather than a box around it, which is the
-difference between highlighting something and pointing at it.
+Lines and columns are one-based. A mark with a line but no column draws a
+band across the whole line.
 
-Marks take `colors.brandWarm` unless one names a `color` of its own, so they
-are the one thing on the image that is neither the code theme's colours nor the
-site's brand.
+Marks use `colors.brandWarm` by default. Set a mark's `color` to override it.
 
-A mark is looked for in the snippet **as drawn**, after fitting. Text on a line
-that did not fit, or past the width where the line was clipped, is reported
-through [`onWarning`](../configuration/warnings/) rather than passed over: an
-image cannot show that it is missing a mark, so nothing else would say the post
-asked for one.
+Marks are applied after the snippet is fitted. If the requested text or
+position is missing from the visible code, Colophon reports an
+[`onWarning`](../configuration/warnings/) message.
 
 ### The panel itself
 
-`borderColor` and `borderOpacity` are the panel's edge, which is there so that
-a dark theme has an edge against a dark background. Set `borderOpacity: 0` for
-none.
+`borderColor` and `borderOpacity` control the panel border. Set
+`borderOpacity: 0` to remove it.
 
-`panelOpacity` lets the background through the panel, which reads best over a
-[texture](../configuration/themes/#textures) worth seeing. Below `1` the
-panel's drop shadow is dropped: the shadow is the same rectangle offset a few
-pixels, so a translucent surface shows it as a dark wash rather than as depth.
+Set `panelOpacity` below `1` to show the background through the panel. This
+also disables the panel's offset-rectangle shadow. See
+[Textures](../configuration/themes/#textures) for background options.
 
-## Supply the monospace face
+<a id="supply-the-monospace-face"></a>
 
-The template positions every token absolutely at the measured width of the code
-before it, so what the face draws decides where each token sits. That width is
-measured from the font, which means the face has to be one Colophon loaded:
-supply it as a file under [`fonts`](../configuration/fonts/) and name it in
-`code.fontFamily`.
+## Choosing a monospace font
 
-Without a file there is nothing to measure, and the layout falls back to
-assuming `0.6` of the font size per character. That suits most monospace faces,
-including Source Code Pro, Menlo and DejaVu Sans Mono, but Consolas is nearer
-`0.55`, and a mismatch shows up as columns drifting across the line.
+Colophon includes JetBrains Mono and measures code using its glyph widths.
+To use a different font, supply its file under [`fonts`](../configuration/fonts/)
+and set `code.fontFamily` to its family name.
 
-The default stack ends in the generic `monospace` family, which will resolve to
-a face on any machine, but not to the same face on every machine.
+When no loaded font can measure a character, layout estimates its width as
+`0.6` times the font size. A font with different proportions can cause columns
+to drift. Supplying the font file avoids this mismatch.
 
-This used to be a `code.charWidthRatio` setting. It has gone: see
+The default stack ends in generic `monospace`, which can resolve to different
+fonts on different machines. The bundled JetBrains Mono is used first.
+
+The former `code.charWidthRatio` option has been removed. See
 [Upgrading](../upgrading/).
 
-## Snippets holding CJK
+<a id="snippets-holding-cjk"></a>
 
-A Chinese, Japanese or Korean character is a full em wide where a Latin one is
-a little over half of one, so a line holding them is wider than its character
-count suggests. Colophon measures the line rather than counting it, so the
-tokens after an ideograph are drawn where the face will put them, and a string
-such as `"银行"` no longer has the bracket after it drawn on top of it.
+## Chinese, Japanese and Korean code
 
-What that does not fix is which face draws them. The default stack names
-JetBrains Mono, which has no ideographs, so the rasteriser falls back for the
-whole run it cannot draw: a line that is a single token, such as a comment,
-comes out entirely in whatever the system offers, which is usually a
-proportional sans in the middle of a code panel.
+CJK characters are usually wider than Latin characters. Colophon measures
+their glyph widths when a loaded font covers them and positions following
+tokens accordingly.
 
-A project with CJK in its snippets wants one face covering both scripts, which
-means a CJK monospace such as Sarasa Mono or Noto Sans Mono CJK, supplied as a
-file and named on its own:
+JetBrains Mono has no CJK ideographs. The rasteriser falls back to another
+font for a run containing unsupported characters. A whole comment may
+therefore appear in a proportional system font.
+
+For consistent mixed-script code, supply a CJK monospace font such as Sarasa
+Mono or Noto Sans Mono CJK and select it explicitly:
 
 ```js
 export default defineConfig({
@@ -246,6 +218,5 @@ export default defineConfig({
 });
 ```
 
-These faces set Latin at half an em against a full-em ideograph, which is a
-narrower cell than most monospace fonts use. That is measured off the file like
-anything else, so nothing has to be told about it.
+These fonts use half-em Latin characters and full-em ideographs. Colophon
+reads these widths from the font file.

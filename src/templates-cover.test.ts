@@ -1,5 +1,6 @@
 import {
   assertArrayLength,
+  assertGreaterThan,
   assertStringIncludes,
   assertStringNotIncludes,
   assertTrue,
@@ -100,7 +101,7 @@ describe("coverTemplate", () => {
 
     assertArrayLength(shortXs, 1);
     assertArrayLength(longXs, 1);
-    assertTrue(shortXs[0] > 0);
+    assertGreaterThan(shortXs[0], 0);
     assertTrue(longXs[0] < shortXs[0]);
   });
 

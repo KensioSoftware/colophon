@@ -1,10 +1,13 @@
+---
+description: Override Colophon settings for individual output sizes within one build.
+---
+
 # Per-size config
 
-Some settings only make sense per size. `code.minFontScale` is the clearest
-case: a 1:1 square and a 1.91:1 landscape have very different amounts of
-vertical room, so a snippet that fits one gets truncated in the other.
+An output size can override the settings used to render it. For example, a
+landscape code image may need a smaller minimum font size than a square image.
 
-A size can carry its own overrides, applied only when rendering it:
+Add overrides to the size object:
 
 ```ts
 import { defineConfig, SIZE_PRESETS } from "@kensio/colophon";
@@ -19,39 +22,33 @@ export default defineConfig({
 });
 ```
 
-That is one pass over the content tree and one config file. The alternative is
-running `generate` once per size with a different config each time, which
-re-walks and re-parses everything for every size.
+Colophon reads the content tree once and applies each size's settings while
+rendering that size.
 
 ## What can be overridden
 
-Overridable: `theme`, `colors`, `background`, `texture`, `textureScale`,
-`safeArea`, `fontFamily`, `footer`, `badge` and `code`. These are what a
-template reads while drawing, plus two that a size is the natural home for.
-`textureScale` corrects for how small the image will be looked at, and
-`safeArea` for how much of it the platform will show; both are properties of
-where the image ends up rather than of the picture. See
-[Textures](../themes/#textures-at-thumbnail-size) and
-[Cover images](../cover-images/).
+A size can override `theme`, `colors`, `background`, `texture`,
+`textureScale`, `safeArea`, `fontFamily`, `logo`, `footer`, `badge` and `code`.
+Use [`textureScale`](../themes/#textures-at-thumbnail-size) for images shown
+at a reduced size and [`safeArea`](../cover-images/) for platform cropping.
 
-Not overridable:
+The following settings are shared by the whole build:
 
-- **`fonts`, `systemFonts` and `templates`**, which are shared build inputs
-  rather than part of the picture.
-- **`onWarning`**, which is where messages go rather than what they say.
+- Font files and loading (`fonts` and `systemFonts`).
+- Custom templates and the rasteriser.
+- Encoding settings, including format, compression and quality.
+- The `onWarning` callback.
 
-A size naming one of those is an unknown-option error rather than a setting that
-quietly does nothing.
+Putting a shared setting in a size object causes an unknown-option error.
 
-`fontFamily` is overridable because it picks from the fonts already loaded.
-Supplying different font _files_ per size is not the same thing, and is not
-supported.
+An individual size can change `fontFamily` to choose from loaded fonts. It
+cannot load a different set of font files.
 
 ## Merging and replacing
 
-`colors` and `code` merge over their config-level counterparts, so the example
-above keeps `github-dark` and changes only the minimum font size. Any single
-shade can be overridden on its own:
+`colors` and `code` merge with the top-level config. The example above keeps
+`github-dark` and changes only `minFontScale`. You can also override a single
+colour:
 
 ```ts
 sizes: [
@@ -60,32 +57,25 @@ sizes: [
 ];
 ```
 
-That keeps the brand palette and changes only the text colour.
+This changes only the square image's text colour and preserves the brand
+palette.
 
-That keeps a [theme's](../themes/) palette too, where the config names one and
-no colours of its own, so a size asking for whiter text does not drop the rest
-of the theme back to the neutral default.
+Colour overrides also preserve colours supplied by a [theme](../themes/).
 
-The other options replace rather than merge. A `background` is a union whose
-variants have different keys, so merging half of one onto half of another would
-produce a background that is neither. A `badge` carries a required `text` that a
-partial override could not supply. A `safeArea` describes one platform's crop as
-a whole, so half of X's over half of YouTube's would be a safe area for nowhere.
+Other settings replace the entire value. For example, a size's `background`,
+`badge` or `safeArea` must describe the complete replacement.
 
-A post declaring [its own badge](../../templates/) wins over a size's, since
-that one describes the post rather than the shape of the image.
+A post's [badge prop](../../templates/) takes priority over a size's badge.
 
-A size's `theme` replaces the config's and then applies as defaults, exactly as
-it would at the top level. So a config naming its own `background` keeps it
-whatever theme a size asks for, and a size wanting the whole look of one has the
-same answer a config does: stop naming the fields the theme should fill in.
+A size's `theme` replaces the top-level theme. Theme values are defaults, so
+explicit top-level settings still take priority. Omit those settings if you
+want the size's theme to supply them.
 
 ## Overrides and rebuilds
 
-An override is part of that image's [rebuild stamp](../../rebuilds/), so
-changing one re-renders that size and leaves the others alone.
+Overrides are included in the [rebuild stamp](../../rebuilds/) for that size.
+Changing an override regenerates that size's image only.
 
-A size's overrides are folded into the user config and the whole thing is
-resolved again, rather than being patched onto an already-resolved config. That
-is what keeps derived values consistent: a size overriding `colors.brand` gets
-the default gradient rebuilt around its new colour.
+Colophon resolves the merged config for each size, including derived values.
+For example, overriding `colors.brand` also updates a default gradient derived
+from that colour.

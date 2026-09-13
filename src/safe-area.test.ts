@@ -1,4 +1,5 @@
 import {
+  assertGreaterThanOrEqual,
   assertIdentical,
   assertObjectEquals,
   assertStringIncludes,
@@ -130,8 +131,8 @@ describe("imageFrame with a safe area", () => {
   it("keeps the content inside the safe area", () => {
     const area = contentArea(imageFrame(banner, config, undefined));
 
-    assertTrue(area.x >= 507);
-    assertTrue(area.y >= 509);
+    assertGreaterThanOrEqual(area.x, 507);
+    assertGreaterThanOrEqual(area.y, 509);
     assertTrue(area.x + area.width <= 507 + 1546);
     assertTrue(area.y + area.height <= 509 + 423);
   });
