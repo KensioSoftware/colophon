@@ -1,5 +1,6 @@
 import {
   assertArrayLength,
+  assertGreaterThan,
   assertNumberBetween,
   assertStringIncludes,
   assertStringNotIncludes,
@@ -99,7 +100,7 @@ describe("docsTemplate", () => {
     const title = /<text x="\d+" y="(\d+)"[^>]*>t</.exec(svg);
     // The logo is 90 tall from a 90 margin, so a title above 180 would be
     // sitting on top of it.
-    assertTrue(Number(title?.[1]) > 180);
+    assertGreaterThan(Number(title?.[1]), 180);
   });
 });
 

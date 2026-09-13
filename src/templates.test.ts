@@ -2,6 +2,7 @@ import {
   assertArrayEmpty,
   assertArrayLength,
   assertIdentical,
+  assertLessThan,
   assertNonNullable,
   assertNumberBetween,
   assertStringIncludes,
@@ -435,7 +436,7 @@ describe("codeTemplate", () => {
     const rightmost = Math.max(...tspanColumns(svg));
 
     assertStringIncludes(svg, "\u{2026}</tspan>");
-    assertTrue(rightmost < 1200);
+    assertLessThan(rightmost, 1200);
     assertArrayLength(warnings, 1);
     assertStringIncludes(warnings[0], "1 line clipped to the panel width");
   }, 5000);
@@ -457,7 +458,7 @@ describe("codeTemplate", () => {
     );
 
     assertStringIncludes(svg, ">…</tspan>");
-    assertTrue((svg.match(/<text /g) ?? []).length < 400);
+    assertLessThan((svg.match(/<text /g) ?? []).length, 400);
     assertArrayLength(warnings, 1);
     assertStringIncludes(warnings[0], "the 1200x1200 image");
     assertStringIncludes(warnings[0], "of 400 lines dropped");

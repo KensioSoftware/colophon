@@ -10,6 +10,7 @@ import {
   assertArrayIncludes,
   assertArrayLength,
   assertBufferEqual,
+  assertGreaterThan,
   assertIdentical,
   assertStringIncludes,
   assertThrowsError,
@@ -169,7 +170,11 @@ describe("maxBytes", () => {
     });
 
     const size = image.length;
-    assertTrue(size > 200, `expected ${String(size)} to exceed the 200B cap`);
+    assertGreaterThan(
+      size,
+      200,
+      `expected ${String(size)} to exceed the 200B cap`,
+    );
     assertArrayLength(warnings, 1);
     assertStringIncludes(warnings[0], "over the 0KB maxBytes cap");
     assertStringIncludes(warnings[0], "Quality was stepped down to 30");

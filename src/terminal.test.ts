@@ -1,9 +1,9 @@
 import {
   assertArrayIncludes,
   assertArrayLength,
+  assertGreaterThan,
   assertStringIncludes,
   assertStringNotIncludes,
-  assertTrue,
 } from "@kensio/smartass";
 import { describe, it } from "vitest";
 
@@ -79,7 +79,7 @@ describe("terminalTemplate", () => {
     // The same words, coloured where they were typed and not where they were
     // printed: the output line is one run in the theme's own foreground.
     assertStringIncludes(svg, 'fill-opacity="0.68"');
-    assertTrue(new Set(tokenFills(svg)).size > 2);
+    assertGreaterThan(new Set(tokenFills(svg)).size, 2);
   }, 5000);
 
   it("takes the window's colours from the code theme", async () => {
