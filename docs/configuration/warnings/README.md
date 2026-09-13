@@ -1,15 +1,19 @@
+---
+description: Handle Colophon warnings about truncated code, invalid badges and image file size limits.
+---
+
 # Warnings
 
-Some inputs cannot be honoured exactly. There are three cases: a snippet too long
-to render legibly, described in [the code template](../../code-template/) and
-reported the same way for a `terminal` session; a post whose `badge` prop is
-neither a badge nor `false`, described in [Templates](../../templates/); and an
-image that will not fit its [`maxBytes`](../formats/#capping-the-size) cap even
-at the lowest quality.
+Colophon renders an image and reports a warning when it has to:
 
-Colophon renders anyway and reports the compromise through `onWarning`, which
-defaults to `console.warn`. Pass your build's logger to route the messages
-somewhere else, or a no-op to silence them:
+- Truncate a [code snippet](../../code-template/) or `terminal` session.
+- Omit a code mark whose text or position is outside the visible snippet.
+- Ignore an invalid [badge](../../templates/).
+- Exceed a [`maxBytes`](../formats/#capping-the-size) limit at the lowest
+  quality.
+
+Warnings go to `onWarning`, which defaults to `console.warn`. Supply a
+callback to use your build's logger, or a no-op function to silence warnings:
 
 ```ts
 export default defineConfig({
@@ -17,8 +21,7 @@ export default defineConfig({
 });
 ```
 
-`generate` prefixes each message with the content file it came from, so a build
-over a whole tree still names the post to fix:
+`generate` prefixes each warning with the content file's path:
 
 ```text
 colophon: content/post/index.md: code snippet does not fit the 1200x630 image at
@@ -26,6 +29,6 @@ a legible size: 4 of 13 lines dropped. Shorten the sample, or lower
 code.minFontScale to fit it in smaller.
 ```
 
-`onWarning` is left out of the [rebuild stamp](../../rebuilds/), because where a
-message goes cannot change a pixel. It cannot be overridden per size for the
-same reason.
+`onWarning` is shared by all output sizes and excluded from
+[rebuild stamps](../../rebuilds/). Changing the callback does not trigger
+image regeneration.

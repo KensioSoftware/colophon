@@ -1,9 +1,11 @@
+---
+description: Generate standalone social images from Colophon config without a Markdown post.
+---
+
 # One-off images
 
-Not every image belongs to a post. A package card or a repository social preview
-wants the same brand and the same templates as the rest of the site, without
-having a markdown file behind it. Listing them under `extra` has the build
-render them alongside the tree:
+Use `extra` to generate standalone images, such as a package card or repository
+social preview. Each entry supplies its own props and output path:
 
 ```ts
 export default defineConfig({
@@ -38,34 +40,31 @@ export default defineConfig({
 
 ## `output` is the whole path
 
-It is the path to write, relative to the working directory, and any directories
-it names are created.
+`output` is the complete output path, relative to the working directory.
+Colophon creates any missing parent directories.
 
-An extra image has no post to sit beside, so `generate`'s `outputPath` callback
-is not consulted and nothing is appended to the filename.
+Extra images use the supplied filename exactly. They bypass `generate`'s
+`outputPath` callback.
 
-An extra that would land on another image in the same build stops it before
-anything is written. Two images sharing a path do not merely lose one of
-themselves: they each stamp the file, so neither stamp ever matches again and
-both re-render on every build afterwards.
+If an extra image would share an output path with another image, Colophon
+stops the build before writing any images.
 
 ## `size` is an output size like any other
 
-That includes [per-size overrides](../per-size-config/), which is how the
-preview above gets its own footer without adding an entry to `sizes` that every
-post would then be rendered at.
+The `size` object accepts [per-size overrides](../per-size-config/). The
+example above gives the repository preview its own footer without changing
+the sizes generated for posts.
 
-Leave `size` out and the image takes the first configured size, which for the
-card above is the default `og` at 1200x630.
+If `size` is omitted, the extra image uses the first configured size. With the
+default config, this is `og` at 1200x630.
 
 ## Extras in the rest of the build
 
-They are stamped and skipped exactly as content images are, so editing one
-card's title re-renders that card and leaves the rest of the build alone.
+Extra images use rebuild stamps. Changing one card's title renders that card
+again while leaving unchanged images alone.
 
-They are reported by `onResult` too, with `contentPath` left `undefined`. There
-is no post behind them to name, and naming them after their output path would
-quietly break anything grouping results by post.
+`onResult` receives results for extra images with `contentPath` set to
+`undefined`.
 
-They are not listed in [the manifest](../manifest/), which is a map of pages. A
-project that named the output path of an extra already knows where it is.
+Extra images are excluded from [the manifest](../manifest/). Use their
+configured output paths directly.

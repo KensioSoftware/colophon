@@ -1,8 +1,11 @@
+---
+description: Supply font files and control system font loading for Colophon image rendering.
+---
+
 # Fonts
 
-Colophon ships with two typefaces and uses them out of the box, so a project
-that configures nothing still renders the same image on a laptop, in CI and in
-a container.
+Colophon includes Outfit for text and JetBrains Mono for code. These fonts are
+used by default:
 
 | Family             | Cuts                    | Drawn by                         |
 | ------------------ | ----------------------- | -------------------------------- |
@@ -14,14 +17,12 @@ Both are under the [SIL Open Font License][ofl], and the licence text ships in
 
 [ofl]: https://openfontlicense.org/
 
-Only the cuts the built-in templates draw are included, since the whole of
-either family would be most of a megabyte for weights nothing asks for. A weight
-that is not there is drawn in the nearest one that is, which is what the
-rasteriser does anyway.
+The package includes the weights used by its built-in templates. When a
+requested weight is unavailable, the renderer uses the nearest loaded weight.
 
 ## Supplying your own
 
-`fonts` points at font files, and yours are used ahead of the bundled ones:
+List your font files under `fonts`. They take priority over the bundled fonts:
 
 ```ts
 export default defineConfig({
@@ -36,72 +37,64 @@ export default defineConfig({
 
 ## One entry per file
 
-Weight and style are read from the font itself, so a regular and a bold face are
-two entries and the template's `font-weight` picks between them.
+Add a separate entry for each font file, including regular and bold faces.
+Colophon reads the weight and style from the file and selects the face using
+the template's `font-weight`.
 
-Supply the bold face. Templates ask for weights up to `900` for titles and
-badges, and a missing weight is drawn with the face you did supply rather than
-being synthesised into a fake bold.
+Include a bold face for headings and badges, which can request weights up to
+`900`. The renderer uses a loaded face for missing weights and does not
+synthesise bold text.
 
 ## `family` is optional
 
-It does not affect matching, since the family name inside the file does that.
-Naming it on the first font saves setting `fontFamily`, which otherwise stays on
-the default stack.
+The renderer matches fonts using the family name stored inside each file.
+Setting `family` on the first configured font also sets the default
+`fontFamily`. Otherwise, `fontFamily` keeps its default stack.
 
 ## Paths are files
 
-`.ttf`, `.otf`, `.ttc` and `.otc`, resolved from the working directory when
-relative.
+Supported font files are `.ttf`, `.otf`, `.ttc` and `.otc`. Relative paths are
+resolved from the working directory.
 
-A path that is not there is an error. The renderer ignores a font file it cannot
-read and draws the text in whatever else it holds, so without the check a
-mistyped path would surface as a blank image much later.
+A missing file causes an error. Supply a valid font file to avoid the renderer
+falling back to another loaded font.
 
-To load a font you already have in memory, fetched at build time or bundled,
-pass `{ data }` with its bytes instead of a path.
+To use font bytes already in memory, supply `{ data }` in place of `{ path }`.
 
 ## System fonts
 
-Installed fonts are loaded as well by default, behind the bundled ones. The
-bundled faces are Latin, so a Japanese or Arabic title has only the machine's
-own to be drawn in, and turning them off by default would render such a title as
-nothing at all.
+System fonts are loaded by default as fallbacks after the bundled fonts. They
+can provide characters outside the bundled fonts' Latin coverage, such as
+Japanese or Arabic text.
 
-As soon as you configure any font of your own, installed fonts stop being
-loaded, since a family you did not supply should not quietly resolve to
-something that happens to be on the machine. Set `systemFonts: true` to have
-both.
+Configuring your own fonts disables system font loading by default. Set
+`systemFonts: true` to load system fonts as well.
 
-`systemFonts: false` with no fonts of your own is the way to ask for a build
-that cannot depend on the machine without supplying any files. It used to be an
-error, because it left nothing to render with; the bundled fonts are what it
-leaves now.
+Set `systemFonts: false` to use only the bundled fonts and any files you
+supply. This makes font selection independent of the machine's installed fonts.
 
-An unknown family falls back to a loaded font rather than rendering nothing, so
-a mismatched name shows up as the wrong typeface rather than a blank image. With
-nothing configured that fallback is Outfit.
+An unknown family name falls back to a loaded font. With the default config,
+that fallback is Outfit.
 
-## Measuring rather than guessing
+<a id="measuring-rather-than-guessing"></a>
 
-A configured font is also the font Colophon measures against when it decides
-where a line of text breaks and how large it can be drawn. Glyph advances come
-out of the file itself, so a title wraps where it really runs out of room, and a
-long one is shrunk to fit rather than cut short.
+## Text measurement
 
-The bundled fonts are measured the same way, so Latin text is measured rather
-than estimated even when you configure nothing. Where no loaded face covers a
-character, which for the bundled pair means anything outside Latin, Colophon
-estimates instead: a fixed fraction of the font size per character, with
-full-width characters counted as a whole em. That is rough, and supplying a file
-for the script you are setting is what fixes it.
+Colophon reads glyph widths from loaded font files to calculate line breaks
+and text size. It uses these measurements to fit text into the template.
 
-Weights follow the same rule as drawing does. A title asks for weight `800`, and
-whichever of your faces is nearest that weight is both what gets drawn and what
-gets measured, so the two agree.
+The bundled fonts provide measurements for Latin text. If no loaded font
+covers a character, Colophon estimates its width from the font size. Full-width
+characters count as one em. Supply a font covering your text's script for more
+accurate layout.
 
-## Fonts are not per-size
+Measurement and rendering select the same available weight. For example, a
+title requesting weight `800` uses the loaded face nearest to `800` for both.
 
-`fonts` and `systemFonts` are shared build inputs, so they cannot be overridden
-by an individual output size. `fontFamily` can be, because it picks from the
-fonts already loaded. See [Per-size config](../per-size-config/).
+<a id="fonts-are-not-per-size"></a>
+
+## Fonts across output sizes
+
+All output sizes share `fonts` and `systemFonts`. An individual size can
+override `fontFamily` to select from the loaded fonts. See
+[Per-size config](../per-size-config/).

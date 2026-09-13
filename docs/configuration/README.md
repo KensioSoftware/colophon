@@ -1,14 +1,18 @@
+---
+description: Configure Colophon social image generation with a JavaScript or TypeScript module.
+---
+
 # Configuration
 
-Colophon is configured with a module whose default export is a
-`ColophonConfig`. The CLI loads it with `--config`:
+Create a JavaScript or TypeScript module that exports a `ColophonConfig`.
+Pass its path to the CLI with `--config`:
 
 ```bash
 colophon content --config colophon.config.ts
 ```
 
-Every field is optional and every one has a default, so a project that only
-wants its own brand colours can stop after `colors`.
+All config fields are optional. Set only the values you want to change from
+the defaults, such as your brand colours:
 
 ```ts
 // colophon.config.ts
@@ -21,9 +25,8 @@ export default defineConfig({
 });
 ```
 
-`defineConfig` is an identity function. It exists for the type checking and
-editor completion, so you can drop it if you would rather annotate the export
-yourself.
+`defineConfig` provides TypeScript checking and editor completion. It returns
+the object unchanged. You can also annotate the export with `ColophonConfig`.
 
 ## Options
 
@@ -58,12 +61,11 @@ yourself.
 
 ## Computing config at build time
 
-The default export can also be a function returning the config, async or not.
+The default export can be a function that returns a config object or a promise
+of one.
 
-Some configs cannot be written as a literal. Brand colours might be read out of
-the site's own stylesheet, a version pulled from `package.json`, or a footer
-that names the current build. Without this, such a project has to give up the
-CLI and drive `generate` from a script of its own.
+Use a function to load settings from other files or compute values at build
+time. For example, this config reads brand colours from a stylesheet:
 
 ```ts
 // colophon.config.ts
@@ -81,35 +83,27 @@ export default defineConfig(async () => {
 });
 ```
 
-The function takes no arguments. Everything it might be handed is either already
-on the command line or a decision the config itself is making.
+The function takes no arguments.
 
-It is called once per run, before anything is walked or rendered, and what it
-returns is the config, validated and stamped exactly as a literal one would be.
-A config whose output changes therefore re-renders like any other edit, and one
-that merely reads a file that has not changed does not.
+Colophon calls it once per run, before reading content or rendering images.
+The returned config is validated and included in rebuild stamps. Images are
+rendered again when the resulting settings change.
 
-A module that exports neither an object nor a function is an error rather than a
-run with the defaults. The command line asked for that file, so quietly
-rendering the whole tree without it would be the worst of both. The same check
-catches a factory whose arrow body forgot to return.
+The module must export an object or a function that returns one. Any other
+value causes an error, including a function that returns `undefined`.
 
 ## Unknown options
 
-The config is closed. An option Colophon does not recognise stops the build
-rather than being ignored, because a key nobody reads is otherwise a build that
-succeeds and images that are wrong, with nothing in the log to say why.
+An unrecognised option stops the build and produces an error message:
 
 ```text
 Unknown option "dimensions". Did you mean "sizes"?
 ```
 
-Where there is an obvious near miss it is named, including options that have
-been renamed between versions. Where there is not, the message lists what is
-valid at that point in the config.
+For likely misspellings or renamed options, the error suggests a replacement.
+Otherwise, it lists the valid options at that location.
 
-An option that has been removed says so, and says what happened instead, since
-there is no name to point at:
+Errors for removed options explain how to update the config:
 
 ```text
 Option "code.charWidthRatio" has been removed: character width is measured from
@@ -117,13 +111,11 @@ the font now. Supply the monospace face under `fonts` to have it measured
 exactly.
 ```
 
-Nested objects are checked too, and named by their path: `code.tabsize`,
-`sizes[1].heigth`, `background.stops[0].ofset`. Everything wrong with a config
-is reported in one go rather than one run at a time.
+Validation includes nested objects and reports each error with its full path,
+such as `code.tabsize` or `sizes[1].heigth`. All errors are reported together.
 
-Two parts stay open on purpose. The names under `templates` are your own, and a
-post's props are read by whichever template understands them.
+Custom template names under `templates` are allowed. Each template defines
+which post props it accepts.
 
-Validation checks keys rather than the shape of what they hold, so
-`colors: "blue"` still gets through to the type checker rather than being caught
-here.
+Runtime validation checks option names but does not check every value's type.
+For example, use TypeScript to catch an invalid value such as `colors: "blue"`.

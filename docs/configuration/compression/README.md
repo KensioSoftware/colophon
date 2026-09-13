@@ -1,16 +1,17 @@
+---
+description: Reduce Colophon PNG file sizes with compression and colour quantisation.
+---
+
 # File size
 
-This page is about PNG, which is what a build writes unless
-[`format`](../formats/) says otherwise. Under WebP, JPEG or AVIF none of it
-applies: those have `quality` instead, and they are a good deal smaller than
-anything here can make a PNG.
+Use these settings to reduce PNG file sizes. For WebP, JPEG or AVIF, use
+[`quality`](../formats/) instead.
 
-There are two settings here. `compressionLevel` makes the file smaller without
-touching the picture, and `quantise` makes it smaller again by reducing the
-colours in it.
+`compressionLevel` reduces file size without changing pixels. `quantise`
+reduces the number of colours for additional savings.
 
-Colophon compresses each rendered PNG again before handing it over, at a level
-you can set:
+Colophon recompresses each rendered PNG. Set `compressionLevel` from 0 to 9,
+with 9 as the default:
 
 ```ts
 export default defineConfig({
@@ -18,33 +19,29 @@ export default defineConfig({
 });
 ```
 
-The images the rasteriser produces are encoded for speed rather than for size.
-Re-encoding them at zlib's strongest setting takes a 1200x1200 gradient from
-about 400KB to about 115KB, and the whole sample gallery in this repository from
-4.4MB to 1.7MB.
+The default rasteriser prioritises encoding speed. Recompressing at level 9
+reduced a sample 1200x1200 gradient from about 400KB to 115KB and the repository's
+sample gallery from 4.4MB to 1.7MB.
 
-## Nothing about the picture changes
+<a id="nothing-about-the-picture-changes"></a>
 
-This is lossless in the strictest sense. The image data is inflated and deflated
-again with the pixels and the row filters untouched, so the file decodes to
-exactly the bytes it did before, and the only difference is how hard the
-deflater looked for matches.
+## Lossless compression
 
-There is no quality setting because there is nothing to trade away. The tests
-decode an image before and after and compare the pixels, and compare the
-inflated scanlines byte for byte as well, so the row filters are covered along
-with them.
+Recompression preserves the decoded pixels and PNG row filters. It changes
+only how the image data is compressed.
+
+There is no quality setting for lossless compression. Tests compare decoded
+pixels and decompressed scanlines before and after recompression.
 
 ## What it costs
 
-About 150ms per 1200x1200 image, on top of rendering it.
+In the sample benchmark, level 9 added about 150ms per 1200x1200 image.
 
-That is paid once per image rather than once per build, because an image whose
-[rebuild stamp](../../rebuilds/) still matches is not rendered at all. A site
-whose posts rarely change pays it on the posts that changed.
+This cost applies only when an image is rendered. Images with matching
+[rebuild stamps](../../rebuilds/) are skipped.
 
-If a large first build is the thing you care about, `6` is most of the saving
-for about a tenth of the time:
+For a faster initial build, try level `6`. In the benchmark, it provided most
+of the size reduction at about a tenth of the compression time:
 
 | Level | Sample gallery | Time for the gallery |
 | ----- | -------------- | -------------------- |
@@ -52,15 +49,16 @@ for about a tenth of the time:
 | `6`   | 2.1MB          | 0.3s                 |
 | `9`   | 1.7MB          | 3.1s                 |
 
-`0` writes the rasteriser's own bytes unchanged. So does any level when the
-bytes are not a PNG that can be taken apart and put back together, which covers
-both another format entirely and a PNG whose chunks do not read. Anything
-outside 0 to 9 is a config error rather than a value clamped into range.
+Level `0` keeps the rasteriser's bytes unchanged. Values outside 0 to 9 cause
+a config error. Recompression also leaves bytes unchanged if they are not a
+PNG with readable chunks.
 
-## Going further, with a palette
+<a id="going-further-with-a-palette"></a>
 
-Lossless is where a PNG runs out of room. The larger saving is to reduce the
-image to a palette of at most 256 colours, which is off by default:
+## Palette quantisation
+
+Set `quantise: true` to reduce each PNG to a palette of at most 256 colours.
+It is disabled by default:
 
 ```ts
 export default defineConfig({
@@ -68,63 +66,57 @@ export default defineConfig({
 });
 ```
 
-That takes the sample gallery from 1.7MB to 0.7MB, each image landing between
-28% and 61% of the size zlib alone got it to. It costs less time than the pass
-it replaces rather than more, around 46ms per image against 151ms, because
-indexing the colours leaves a great deal less data to compress.
+Quantisation reduced the sample gallery from 1.7MB to 0.7MB. Individual files
+were 28% to 61% of their recompressed sizes. In that benchmark, quantisation
+took about 46ms per image compared with 151ms for lossless recompression.
 
-### What it trades away is the gradients
+<a id="what-it-trades-away-is-the-gradients"></a>
 
-This is the one setting on this page that changes the picture. A meta image is
-mostly a smooth wash of two or three brand colours, and 256 shades cannot always
-hold one. The flat backgrounds in the gallery come through with no pixel changed
-at all, while the mesh and gradient ones move a channel by up to about 17 levels
-out of 255, which on a long fade is visible if you go looking for it.
+### Image quality
 
-So look at an image before turning this on across a site. It is a trade, and
-which way it should go depends on the picture rather than on the number. Where a
-template draws translucent pixels they survive quantisation, since a PNG palette
-carries alpha of its own.
+Quantisation can change pixels. The sample gallery's flat backgrounds kept
+their exact colours, but gradients and meshes changed by up to about 17 levels
+per colour channel out of 255. This can produce visible banding.
 
-Quantising uses [sharp](https://sharp.pixelplumbing.com/), which is already
-installed as a dependency for the [other formats](../formats/). The lossless
-path does not, so a machine sharp has no binary for can still write PNGs at any
-`compressionLevel`.
+Inspect representative images before enabling quantisation for the whole
+site. Transparent and translucent pixels are supported by the PNG palette.
 
-### The rebuild stamp survives it
+Quantisation uses the installed [sharp](https://sharp.pixelplumbing.com/)
+dependency. Lossless recompression works without sharp, including on machines
+where its native binary is unavailable.
 
-An encoder that reads a picture and writes a new file around it drops what the
-old file said about itself, which here would mean the `tEXt` chunk holding the
-[rebuild stamp](../../rebuilds/). An image that came back without one would be
-an image every later build rendered again, quietly and for ever, so Colophon
-moves those chunks into the file it gets back. A `gAMA` from a custom
-[rasteriser](../rasteriser/) is kept for the same reason: what a file says about
-how it is meant to be shown is part of the image. Where the palette encoder
-wrote a chunk of its own it keeps that one, since it describes the file it has
-just produced rather than the one it read.
+<a id="the-rebuild-stamp-survives-it"></a>
 
-## Both settings change every image's stamp
+### Image metadata
 
-They are part of each image's rebuild stamp, so changing either re-renders the
-tree once.
+Colophon preserves metadata chunks omitted by the palette encoder, including
+the `tEXt` chunk containing the [rebuild stamp](../../rebuilds/) and a custom
+rasteriser's `gAMA` chunk. If the encoder writes its own version of a chunk,
+that version takes precedence.
 
-For `quantise` that is the ordinary rule, since it changes the pixels. For
-`compressionLevel` it is against the rule the stamp otherwise follows, which is
-that only what changes a pixel belongs in it: that one changes no pixel but
-every byte, and without it turning compression up would appear to do nothing
-until each post next changed.
+<a id="both-settings-change-every-images-stamp"></a>
 
-## They apply wherever an image is produced
+## Rebuilds
 
-`generate`, the CLI, `colophon preview` and `renderMetaImages` all go through
-the same step, so a script taking the bytes away to write them itself gets the
-same file a build would have written.
+Both settings are included in rebuild stamps. Changing either regenerates
+the images.
 
-They apply to a custom [rasteriser](../rasteriser/) too, as long as what it
-returns is a PNG. Anything else is handed back untouched.
+This applies to `compressionLevel` even though it preserves pixels. An image
+must be written again to apply a different compression level.
 
-## They are not per-size
+<a id="they-apply-wherever-an-image-is-produced"></a>
 
-Like `fonts`, these are shared build inputs rather than something an individual
-output size can override: they are about how an image is encoded rather than
-what it shows. See [Per-size config](../per-size-config/).
+## Rendering entry points
+
+The same PNG processing runs for `generate`, the CLI, `colophon preview` and
+`renderMetaImages`.
+
+It also processes PNGs from a custom [rasteriser](../rasteriser/). Other output
+formats pass through this step unchanged.
+
+<a id="they-are-not-per-size"></a>
+
+## Shared output settings
+
+Compression and quantisation settings apply to all sizes in a build. They
+cannot be overridden [per size](../per-size-config/).

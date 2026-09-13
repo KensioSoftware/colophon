@@ -1,36 +1,41 @@
+---
+description: Changes to rendering and configuration when upgrading Colophon from earlier versions.
+---
+
 # Upgrading
 
-## Everything re-renders once on this upgrade
+This page lists changes that may affect projects using older Colophon APIs or
+rendering settings. Apply the sections relevant to your current code.
 
-The [rebuild stamp](../rebuilds/) carried the installed package version until
-this release, and now carries a digest of the rendering code the package ships.
-Changing what goes into a stamp changes every stamp, so the first build after
-upgrading renders every image again.
+<a id="everything-re-renders-once-on-this-upgrade"></a>
 
-From here the cost of an upgrade follows what the release changed. A release
-that leaves the templates, the layout, the measuring, the encoding, the bundled
-fonts and the drawing libraries alone now produces the stamps a project already
-has, and its next build skips every image. Four of the eleven releases before
-this one were in that position and re-rendered everything anyway.
+## Rebuild stamps after an upgrade
 
-Nothing to change in a config or in any code. Budget one full render, which
-[`--dry-run`](../cli/#dry-runs) will count for you first.
+Current [rebuild stamps](../rebuilds/) use a digest of Colophon's rendering
+code. Older stamps used the package version. The first build after moving to
+the new stamp format regenerates every image.
 
-## From 2.x
+Later upgrades regenerate images only when the rendering digest changes.
+It covers templates, layout, measurement, encoding, bundled fonts and
+rendering dependencies.
 
-Text is measured against the fonts a build actually renders with, instead of
-being estimated from a per-template fudge factor. Wrapping and fitting change as
-a result, and so do several pieces of the API.
+This stamp change requires no config or API edits. Run
+[`--dry-run`](../cli/#dry-runs) to see how many images the next build will
+regenerate.
 
-Every image re-renders on the first build after the upgrade, since the
-[rebuild stamp](../rebuilds/) covers the code that draws them and most of it
-moved.
+<a id="from-2x"></a>
+
+## Updating rendering APIs and settings
+
+The changes below replace older API names and text-sizing settings. Current
+rendering measures text with loaded fonts.
+
+Changes to rendering code can alter line wrapping and regenerate existing
+images. Inspect representative images after upgrading.
 
 ### `renderSvgToPng` is `renderSvgToImage`
 
-A build writes the format [`format`](../configuration/formats/) names, so the
-function that produces the bytes is named for an image rather than for one of
-the four things it may return.
+Rename calls to `renderSvgToPng` as `renderSvgToImage`:
 
 ```ts
 // Before
@@ -40,13 +45,12 @@ import { renderSvgToPng } from "@kensio/colophon";
 import { renderSvgToImage } from "@kensio/colophon";
 ```
 
-The arguments and the return type are unchanged, and it still returns PNG unless
-`format` says otherwise.
+The arguments and return type are unchanged. Output remains PNG unless you
+set another [format](../configuration/formats/).
 
 ### `RenderedMetaImage.png` is `bytes`
 
-`renderMetaImages` returns the same objects with that one field renamed, for the
-same reason:
+Read `bytes` from each `renderMetaImages` result in place of `png`:
 
 ```ts
 for (const image of await renderMetaImages(props, config)) {
@@ -54,14 +58,13 @@ for (const image of await renderMetaImages(props, config)) {
 }
 ```
 
-`extensionFor(config.format)` is what a build names its own files with, if the
-filename should follow the format too.
+Use `extensionFor(config.format)` when filenames should follow the selected
+format.
 
 ### `stampPng` and `readPngStamp` are `stampImage` and `readImageStamp`
 
-The rebuild stamp goes into JPEG, WebP and AVIF as well as PNG now, so the two
-functions that write and read it are named for images rather than for one
-format. See [Rebuilds](../rebuilds/#where-the-stamp-goes).
+Use `stampImage` and `readImageStamp` for rebuild stamps in any supported
+format:
 
 ```ts
 // Before
@@ -71,69 +74,59 @@ import { readPngStamp, stampPng } from "@kensio/colophon";
 import { readImageStamp, stampImage } from "@kensio/colophon";
 ```
 
-Nothing else changes: the arguments, the return values and the stamps themselves
-are the same, so images already on disk are still recognised.
+The arguments, return values and stamp contents are unchanged. Existing
+image stamps are still recognised.
 
-### Text is fitted to the space it has
+<a id="text-is-fitted-to-the-space-it-has"></a>
 
-A title too long for its lines used to be wrapped at a fixed size and then cut.
-It is now shrunk, down to about two thirds of its usual size, and only cut if it
-still does not fit at that floor.
+### Text fitting
 
-Nothing to change, but existing images will look different: titles that were
-losing their last few words now keep them, at a smaller size.
+Titles now shrink to fit their line allowance before being truncated. The
+minimum is about two thirds of the preferred size.
+
+This requires no config change. Previously truncated titles may now retain
+more words at a smaller size.
 
 ### The `grain` texture has gone
 
-Per-pixel noise is the one thing PNG cannot compress, and film grain took a
-1200×1200 image from around 36KB to a little over 1.7MB. That is not a cost
-worth carrying for a treatment, and no theme ever turned it on.
+The grain texture was removed because of its PNG size cost. In one sample,
+it increased a 1200×1200 image from about 36KB to more than 1.7MB.
 
-`texture: { type: "grain" }` now fails validation with a message saying so.
-Every other treatment is a fraction of the size; `halftone` is the nearest in
-look, and [Textures](../configuration/themes/#textures) lists what each one
-costs.
+Remove `texture: { type: "grain" }`, which now fails validation. Try
+`halftone` for a similar effect or choose another
+[texture](../configuration/themes/#textures).
 
 ### Textures are coarser by default
 
-Every treatment's lengths went up by half again, because a share image is
-looked at somewhere between a third and a sixth of the size it is rendered at
-and the old defaults were pitched to the full-size picture. Dots are 66px apart
-rather than 44, ruled lines 42px rather than 28, and so on down the list.
+Default texture lengths increased by 50% to remain visible at reduced
+display sizes. Dot spacing changed from 44px to 66px, and ruled-line spacing
+from 28px to 42px.
 
-Existing images will look different, though they re-render on the upgrade
-anyway. A project that wants the old look names the lengths outright:
+Set lengths explicitly to keep the previous appearance:
 
 ```ts
 texture: { type: "dots", size: 5, gap: 44 },
 ```
 
-`SIZE_PRESETS.thumbnail` came down from `textureScale: 3` to `2` with it, since
-what that corrects for is the display size and the base it corrects from moved.
-A thumbnail therefore looks exactly as it did.
+At the same time, `SIZE_PRESETS.thumbnail` changed `textureScale` from `3`
+to `2`. These changes cancel out for that preset's texture scale.
 
 ### `code.charWidthRatio` has gone
 
-The `code` template lays tokens out on a character grid, and this was the number
-that said how wide a character is. It is measured from the monospace face now.
+Code character widths now come from loaded font metrics.
 
-Delete it from your config, which otherwise fails validation with a message
-saying the same thing. To have the width measured rather than assumed, supply
-the face as a file under [`fonts`](../configuration/fonts/) and name it in
-`code.fontFamily`. Builds that do neither fall back to the `0.6` that was the
-default here.
+Remove `code.charWidthRatio` from your config. For a custom font, supply its
+file under [`fonts`](../configuration/fonts/) and set `code.fontFamily`.
+The bundled JetBrains Mono is measured by default. Characters without loaded
+metrics use an estimated width.
 
 ### `HighlightedCode.longestLine` has gone
 
-`highlightCode` no longer reports the longest line in characters, because a
-character count is not a width: an ideograph is a full em where a Latin letter
-is a little over half of one, so the same count is two different widths. The
-`code` template measures the lines it is going to draw instead, and nothing was
-left for the field to say.
+`highlightCode` no longer returns a longest-line character count. Character
+counts cannot represent width accurately for mixed scripts or different fonts.
 
-Only code calling `highlightCode` directly has anything to change. A custom
-template wanting the width of a line should measure it, with the `measure` its
-[`TemplateContext`](../templates/) carries, rather than count it.
+If your code used this field, measure line widths with the `measure`
+function on [`TemplateContext`](../templates/).
 
 ### `wrapText` takes a width and a measurer
 
@@ -145,15 +138,13 @@ wrapText(title, estimateCharsPerLine(width, fontSize, 0.58));
 wrapText(title, width, (line) => measure(line, { fontFamily, fontSize }));
 ```
 
-It wraps to a width in pixels rather than to a count of characters, and it
-breaks a word that is too wide for a line of its own rather than letting it run
-off the image. `estimateCharsPerLine` has gone with the factors it existed for.
+The width is now in pixels. `wrapText` also breaks words wider than a line.
+Remove calls to `estimateCharsPerLine`, which has been removed.
 
 ### `TemplateContext` carries a `measure`
 
-Custom templates receive a fourth field, `measure`, and need no changes to keep
-working. What breaks is code that builds a `TemplateContext` itself to call a
-template directly, which is mostly test code. Build one with `createMeasurer`:
+Custom templates receive `measure` automatically. If your code constructs
+a `TemplateContext` directly, add a measurer with `createMeasurer`:
 
 ```ts
 const config = resolveConfig(userConfig);
@@ -167,28 +158,30 @@ const svg = await myTemplate.render({
 
 `buildSvg`, `renderMetaImages` and `generate` all do this for you.
 
-## From 1.x
+<a id="from-1x"></a>
 
-Adding the [code template](../code-template/) made two small breaking changes.
+## Updating older template APIs
+
+These changes were introduced with the [code template](../code-template/).
 
 ### `Template.render` may return a promise
 
 `render` now returns `string | Promise<string>`, and `buildSvg` is async.
 
-A custom template that returns a string still works unchanged. What needs
-updating is any direct call site of `buildSvg`, which now needs an `await`.
+Synchronous custom templates continue to work. Add `await` to direct
+`buildSvg` calls.
 
-`renderMetaImages` and `generate` were already async, so nothing changes for
-code that uses those.
+`renderMetaImages` and `generate` were already asynchronous and require no
+change for this update.
 
 ### `MetaImageProps.title` is optional
 
-`title` is no longer required, and `walkContent` and `extractProps` no longer
-skip a file that declares props without one.
+`MetaImageProps.title` is optional. `walkContent` and `extractProps` accept
+props blocks that omit it.
 
-This is what lets a `code` post describe its image entirely through `code` and
-`language`, with no heading above the panel.
+A code image can therefore contain only `code` and `language` with no
+heading above the panel.
 
-If your project relied on a titleless props block being ignored, those posts
-will now get images. Return `undefined` from a
-[props mapper](../configuration/frontmatter/) to filter them out instead.
+If you previously relied on titleless posts being skipped, return
+`undefined` from a [props mapper](../configuration/frontmatter/) to exclude
+them.

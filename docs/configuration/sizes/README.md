@@ -1,17 +1,18 @@
+---
+description: Set output dimensions and filenames for Colophon social images.
+---
+
 # Output sizes and filenames
 
-Each output size is a named `{ name, width, height }`. The `name` becomes the
-filename suffix, so every image a post produces is distinct:
-`my-post-og.png`, `my-post-square.png`.
+Each output size has a `name`, `width` and `height`. The name becomes a
+filename suffix, such as `my-post-og.png` or `my-post-square.png`.
 
-The default set is one 1.91:1 Open Graph landscape and one 1:1 square. Between
-them they satisfy `og:image` and both `twitter:image` card types, since
-`summary_large_image` reuses the landscape and `summary` uses the square.
+The defaults are a 1.91:1 landscape image for Open Graph and Twitter's
+`summary_large_image` card, and a 1:1 square for Twitter's `summary` card.
 
 ## Choosing sizes
 
-`SIZE_PRESETS` ships the common standards, and you can compose your own set from
-those and anything custom:
+Choose entries from `SIZE_PRESETS` or define custom sizes:
 
 ```ts
 import { defineConfig, SIZE_PRESETS } from "@kensio/colophon";
@@ -28,19 +29,14 @@ export default defineConfig({
 });
 ```
 
-There are five more presets for profile covers: `xCover`, `linkedinCover`,
-`linkedinPageCover`, `blueskyCover` and `youtubeCover`. They are not in the list
-above because a cover is made once for a site rather than once per post, so it
-belongs in [`extra`](../extra-images/) instead of in `sizes`. Each carries the
-safe area its platform's crop and avatar leave behind; see
-[Cover images](../cover-images/).
+Profile cover presets are `xCover`, `linkedinCover`, `linkedinPageCover`,
+`blueskyCover` and `youtubeCover`. Use them under [`extra`](../extra-images/)
+for a single profile image. Each includes a safe area that accounts for
+platform cropping and avatars. See [Cover images](../cover-images/).
 
-A size can also carry its own config overrides, applied only when rendering it.
-See [Per-size config](../per-size-config/). `thumbnail` is the one preset that
-does: it sets `textureScale: 2`, because a thumbnail is looked at in a fraction
-of the space it is uploaded at and a texture at its stated lengths would arrive
-too fine to see. Pair it with the
-[`thumbnail` template](../../templates/#thumbnail).
+Sizes can include [config overrides](../per-size-config/). The `thumbnail`
+preset sets `textureScale: 2` to make textures more visible at reduced display
+sizes. Pair it with the [`thumbnail` template](../../templates/#thumbnail).
 
 ## The base filename
 
@@ -53,8 +49,8 @@ else, or override naming entirely with `generate`'s `outputPath` callback.
 
 ## Slug strategies
 
-There are two ways to derive a slug from a path, for sites that address content
-differently. `basename` is the default:
+Choose how Colophon derives slugs from file paths with `slugStrategy`. The
+default is `basename`:
 
 | Path                    | `basename` | `route`        |
 | ----------------------- | ---------- | -------------- |
@@ -65,9 +61,8 @@ differently. `basename` is the default:
 `basename` suits Hugo-style page bundles, where the image belongs beside its
 post.
 
-`route` suits a site addressed by route. In a docs tree where
-`services/iam/index.md` is served at `/services/iam`, an image named to match is
-easier to look up:
+Use `route` to include parent directories in the slug. For example, a docs
+page at `services/iam/index.md` gets the slug `services/iam`:
 
 ```ts
 export default defineConfig({
@@ -75,12 +70,12 @@ export default defineConfig({
 });
 ```
 
-A slug carrying directories is written from the content root rather than beside
-the file, so `services/iam` becomes `content/services/iam-og.png`. Resolving it
-beside the file would repeat the directories already named in the slug.
+A slug containing directories is resolved from the content root. The slug
+`services/iam` therefore produces `content/services/iam-og.png` with default
+placement.
 
 A frontmatter `slug` still wins over either strategy.
 
-`route` also matters for [placement](../placement/): gathering a whole tree into
-one directory makes filename collisions easy to hit, and route slugs keep each
-post's section in its name.
+Route slugs also help avoid filename collisions when
+[placement](../placement/) collects images in one directory. They retain the
+post's parent directory names.

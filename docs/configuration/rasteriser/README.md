@@ -1,7 +1,11 @@
+---
+description: Replace or wrap the default resvg renderer to turn Colophon SVG documents into image bytes.
+---
+
 # Rasteriser
 
-Colophon builds an SVG document per image and then turns it into bytes. That
-second step is resvg by default, and `rasteriser` is how you replace it.
+A rasteriser converts Colophon's SVG document into image bytes. Colophon uses
+resvg by default. Set `rasteriser` to supply another implementation:
 
 ```ts
 import { defineConfig, type Rasteriser } from "@kensio/colophon";
@@ -14,31 +18,25 @@ const myRasteriser: Rasteriser = async (svg, dimensions, config) => {
 export default defineConfig({ rasteriser: myRasteriser });
 ```
 
-Most projects should not need this. resvg is the default because it keeps the
-output reproducible: it takes explicit font files and can be told to ignore
-whatever is installed on the machine, which is what [Fonts](../fonts/) is built
-around.
+The default resvg rasteriser accepts explicit font files and supports
+disabling system fonts. See [Fonts](../fonts/) for these settings.
 
-## When you would want another
+<a id="when-you-would-want-another"></a>
 
-- **A wasm build**, so the same code runs at the edge or in a browser rather
-  than needing a native binary.
-- **Another encoder**, for something the default cannot do, including another
-  output format: see [what can be stamped](#it-has-to-produce-something-that-can-be-stamped)
-  below. Note that a PNG a rasteriser returns is compressed again afterwards, so
-  the compression resvg does not expose is already handled: see
-  [File size](../compression/).
-- **Post-processing**, where you want the default output and something done to
-  it, or the document changed before it is drawn.
+## When to use a custom rasteriser
+
+Use a custom rasteriser to run a WebAssembly renderer in a browser or worker,
+use another rendering backend, or post-process the SVG or rendered image. For
+output encoding and PNG compression, first check the built-in
+[format](../formats/) and [file size](../compression/) settings.
 
 ## What a rasteriser is given
 
-Three arguments: the finished SVG document, the dimensions to produce, and the
-resolved config for that image.
+The function receives the finished SVG string, the output dimensions and the
+resolved config for the image.
 
-The config is the whole resolved config rather than a shortlist, because which
-parts matter is the backend's business. The ones that usually do are the font
-settings:
+The full resolved config is available. Font settings are often needed by a
+rendering backend:
 
 | Field         | What it is                                                     |
 | ------------- | -------------------------------------------------------------- |
@@ -46,9 +44,8 @@ settings:
 | `systemFonts` | Whether installed fonts should be loaded as well.              |
 | `fontFamily`  | The family to fall back to for a stack that matches no font.   |
 
-A font may be configured as bytes rather than as a path. If your backend takes
-file paths, `fontFilePaths` writes any such font to a temp file and gives you
-the list:
+A font can be supplied as bytes or a path. If your backend requires paths,
+use `fontFilePaths` to write in-memory fonts to temporary files:
 
 ```ts
 import { fontFilePaths } from "@kensio/colophon";
@@ -56,12 +53,12 @@ import { fontFilePaths } from "@kensio/colophon";
 const files = await fontFilePaths(config.fonts);
 ```
 
-The SVG carries the same proportions as `dimensions`, so a backend that scales
-by width alone lands on the right height anyway. That is what the default does.
+The SVG has the same aspect ratio as `dimensions`. A backend can scale it by
+width and derive the corresponding height.
 
 ## Wrapping the default
 
-`resvgRasteriser` is exported, so you can delegate to it:
+Import `resvgRasteriser` to wrap the default renderer:
 
 ```ts
 import { defineConfig, resvgRasteriser } from "@kensio/colophon";
@@ -74,10 +71,9 @@ export default defineConfig({
 
 ## It has to produce something that can be stamped
 
-A build records a rebuild stamp inside each image it writes, which is how it
-knows next time whether anything changed. Bytes it cannot stamp are bytes it
-cannot write, so a rasteriser has to return one of the four containers a stamp
-goes into: PNG, JPEG, WebP or AVIF. Anything else fails with:
+Images written by `generate` must support [rebuild stamps](../../rebuilds/).
+A rasteriser must therefore return PNG, JPEG, WebP or AVIF. Unsupported bytes
+cause this error:
 
 ```text
 Cannot stamp: unrecognised image format. The rebuild stamp goes inside the
@@ -85,29 +81,29 @@ image, so a rasteriser has to produce one of PNG, JPEG, WebP, AVIF for a build
 to be able to skip it.
 ```
 
-See [Rebuilds](../../rebuilds/#where-the-stamp-goes) for where the stamp lands
-in each of them. What a decoder gives back is unchanged in every case: the same
-pixels, at the same size, with the same colour information.
+See [where the stamp goes](../../rebuilds/#where-the-stamp-goes) for each
+format. Adding the stamp preserves the decoded pixels, dimensions and colour
+information.
 
-A backend does not have to produce the format a build writes:
-[`format`](../formats/) is what decides that, and whatever the rasteriser
-returns is encoded into it afterwards. Bytes already in the configured format
-are passed straight through, so a WebP backend under `format: "webp"` means one
-encoding rather than two.
+The [`format`](../formats/) setting controls the final output format. Colophon
+encodes the rasteriser's output into that format if needed. Bytes already in
+the requested format skip this conversion.
 
-`renderMetaImages` has no limit at all here, since nothing stamps there and the
-bytes are handed straight back to you.
+`renderMetaImages` returns bytes without adding stamps, so the stamping format
+restriction applies only when generating files.
 
-## It changes every image
+<a id="it-changes-every-image"></a>
 
-A different backend draws every pixel differently, so the rasteriser is part of
-each image's rebuild stamp and changing it re-renders the whole tree. It is
-recorded by its source text, which cannot see a value the function closed over,
-so a rasteriser configured by something outside itself needs `--force` to pick
-that change up. See [Rebuilds](../../rebuilds/).
+## Rebuilds
 
-## It is not per-size
+The rasteriser's source text is part of each image's rebuild stamp. Changing
+the function regenerates the images. Changes to values captured outside the
+function are not detected. Use `--force` after changing those values. See
+[Rebuilds](../../rebuilds/).
 
-Like `fonts`, a rasteriser is a shared build input rather than something an
-individual output size can override. See
-[Per-size config](../per-size-config/).
+<a id="it-is-not-per-size"></a>
+
+## Shared rasteriser
+
+All output sizes use the same rasteriser. It cannot be overridden
+[per size](../per-size-config/).
