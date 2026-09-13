@@ -1,8 +1,11 @@
+---
+description: Add logos and photographs to Colophon image templates and backgrounds.
+---
+
 # Logos, avatars and photographs
 
-There are four places an image can go into a generated one: a logo in the
-corner, an author's photo beside the footer, the post's own photograph, and a
-picture behind everything else.
+Colophon supports a shared logo, author avatars and post photographs. You can
+also place a photograph behind the template using `background`:
 
 ```ts
 export default defineConfig({
@@ -15,8 +18,8 @@ export default defineConfig({
 });
 ```
 
-A post supplies its own pictures through the `avatar` and `image` props, both
-of which take a path or a `data:` URI:
+Set `avatar` or `image` in a post's image props to use a file path or `data:`
+URI:
 
 ```yaml
 ---
@@ -28,49 +31,40 @@ meta_img_props:
 ---
 ```
 
-The difference between `image` and a background image is where it comes from
-rather than what it looks like. A background is config, so it is the same
-picture on every post; `image` belongs to the post, which is what the
-[`photo` template](../../templates/) exists for.
+A background image is a config setting shared by posts. The `image` prop
+belongs to an individual post and is used by templates such as
+[`photo`](../../templates/).
 
 ## Where they come from
 
-Anywhere `path` appears you can write `data` instead and pass the bytes, which
-is what a config that fetches its logo at build time wants. Paths resolve from
-the working directory, as [`fonts`](../fonts/) do, and are checked when the
-config is resolved rather than when the image is drawn: an unreadable file is a
-blank corner on every image in the build, and a blank corner does not say which
-path was wrong.
+An image source can use `{ path }` or `{ data }`. Use `data` for bytes already
+in memory. Relative paths are resolved from the working directory, as with
+[fonts](../fonts/). Config image paths are checked when the config is resolved.
 
-The bytes are inlined into the SVG as a `data:` URI, so a generated image never
-depends on a file being fetchable later, and they go into the
-[rebuild stamp](../../rebuilds/) by content. Replacing a logo at the same path
-renders every image drawn with it again.
+Image bytes are embedded in the SVG as `data:` URIs. Their contents are also
+included in [rebuild stamps](../../rebuilds/). Replacing a logo at the same
+path regenerates images that use it.
 
 ## Formats
 
-PNG, JPEG, GIF, WebP and SVG. The format is read from the bytes rather than the
-file extension, so a `.png` that is really a JPEG is still drawn.
+Supported formats are PNG, JPEG, GIF, WebP and SVG. Colophon detects the format
+from the bytes, even if the file extension differs.
 
-**Text inside an SVG is not rendered.** A nested document is drawn without the
-fonts the build loaded, so a wordmark comes out with its shapes and none of its
-letters. Convert the text to paths before exporting it, or use a PNG.
+Convert text inside an SVG to paths before using it, or supply a PNG. Nested
+SVG text cannot use the build's loaded fonts and may be missing from the
+rendered image.
 
 ## How big they come out
 
-A logo's height is a fraction of the image being drawn, so the same file works
-on a square and a landscape, and its width follows from the proportions of the
-picture. Those are read out of the image's own header, which is why a wide
-wordmark gets a wide slot and a round mark gets a square one.
+Logo height scales with the output image. Width follows the source image's
+aspect ratio, read from its header.
 
-WebP is the exception: its dimensions live in one of three chunk layouts
-depending on how it was encoded, and rather than guess at bit-packed headers
-this treats a WebP as square. A wide WebP logo will sit small in the middle of
-its slot, so supply a wide logo as PNG or SVG.
+WebP logos are treated as square because their dimensions are not read. A wide
+WebP logo can appear too small. Use PNG or SVG for a wide logo.
 
 ## Where they are drawn
 
-That is the template's business, and the built-ins put them here:
+Each template chooses the image positions:
 
 | Template   | Logo                           | Avatar             |
 | ---------- | ------------------------------ | ------------------ |
@@ -87,19 +81,18 @@ That is the template's business, and the built-ins put them here:
 | `docs`     | Top right, beside the trail    | Before the footer  |
 | `event`    | Top centre                     | Before the footer  |
 
-The text moves down to make room for a logo, so a title never runs into it.
+Templates reserve space for logos before placing text.
 
-A [template of your own](../../templates/) is handed all three on its context,
-as `logo`, `avatar` and `picture`, already loaded, along with the `image`
-primitive from [the layout toolkit](../../layout/) to draw them with. The
-post's `image` prop arrives as `picture` because `image` is also the name of
-that primitive, and a template destructuring its context would shadow the
-function it needs to call.
+A [custom template](../../templates/) receives loaded assets as `logo`,
+`avatar` and `picture` in its context. Use the
+[layout toolkit's image function](../../layout/) to draw them. `picture` holds
+the post's `image` prop.
 
 ## Photographs behind the text
 
-A background image takes a `fit`: `cover` fills the image and crops whatever
-does not fit, `contain` fits the whole picture in and shows `color` around it.
+For a background image, `fit: "cover"` fills the output and crops excess
+content. `fit: "contain"` shows the whole image with `color` filling any
+remaining space.
 
 ```ts
 background: {
@@ -113,29 +106,24 @@ background: {
 
 ### The scrim is on by default
 
-A photograph is light and dark wherever it likes, and white text over a bright
-sky cannot be read. The scrim is the wash of colour between the picture and the
-text, which is what keeps the text legible whatever the photograph is doing
-behind it.
+A scrim is a translucent colour layer between the photograph and text. It
+improves contrast when text overlaps bright areas.
 
-It defaults to a quarter of black at the top and about two thirds at the
-bottom. It starts at a quarter rather than at nothing because a template is
-free to put its text anywhere, and a wash that only darkens the bottom leaves a
-centred title sitting on whatever the middle of the photograph happens to be.
+The default scrim is black, with opacity increasing from about one quarter at
+the top to two thirds at the bottom.
 
-Turn it down for a picture that is already dark, or off entirely:
+Reduce the scrim for a dark photograph, or disable it:
 
 ```ts
 scrim: { from: 0, to: 0 }
 ```
 
-Set `color` to tint rather than shade, since a brand colour at a low opacity
-over a photograph will tie a set of images together.
+Set `color` to a brand colour to tint the photograph.
 
 ## Per size
 
-`logo` and `background` are both [per-size overrides](../per-size-config/), so a
-tall Pinterest pin can carry a different photograph, or none:
+`logo` and `background` support [per-size overrides](../per-size-config/).
+This example gives a Pinterest image its own background:
 
 ```ts
 sizes: [

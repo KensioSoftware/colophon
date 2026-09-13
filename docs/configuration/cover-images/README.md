@@ -1,21 +1,20 @@
+---
+description: Generate profile cover images with Colophon presets that account for cropping and avatar placement.
+---
+
 # Cover images
 
-A cover is the header image at the top of a profile: the strip behind your name
-on X, LinkedIn, Bluesky or a YouTube channel. It is a different problem from a
-share card, because the dimensions are only half the specification. Every one of
-these platforms crops the image differently on each of its own clients, and
-three of the four draw a circular avatar over one corner of it. An image that is
-correct at 1500x500 and puts its wordmark bottom-left is still wrong, because
-that is where X draws the profile picture.
+A cover is the header image on a social profile or channel. Platforms may
+crop it or place an avatar over it. Keep text and logos inside a safe area
+that avoids those regions.
 
-So Colophon has a `safeArea`: the part of an image that survives being
-displayed. There is a preset per platform carrying the right one, and the
-[`cover`](../../templates/#cover) template is written for the proportions.
+Colophon provides cover-size presets with `safeArea` insets. Use them with
+the [`cover`](../../templates/#cover) template.
 
 ## Making one
 
-A cover is a site asset rather than a post image, so it goes in
-[`extra`](../extra-images/):
+Declare profile covers under [`extra`](../extra-images/) to generate them
+once per site:
 
 ```ts
 import { defineConfig, SIZE_PRESETS } from "@kensio/colophon";
@@ -50,8 +49,7 @@ export default defineConfig({
 });
 ```
 
-None of the cover presets is in the default sizes, because a cover is made once
-for a site and nothing should start rendering one for every post.
+Cover presets are excluded from the default sizes used for each post.
 
 ## The presets
 
@@ -63,16 +61,13 @@ for a site and nothing should start rendering one for every post.
 | `blueskyCover`      | 3000x1000 | 3:1   | 1MB      | `top/bottom 0.15, left 0.22, right 0.10` |
 | `youtubeCover`      | 2560x1440 | 16:9  | 6MB      | `top/bottom 0.353, left/right 0.198`     |
 
-LinkedIn is two different assets. `linkedinCover` is the background photo on a
-member profile; `linkedinPageCover` is the cover on a company or showcase Page,
-which LinkedIn's own help pages now give as 4200x700. Most size guides still
-quote 1128x191 for it, which is out of date. Do not reuse one image for both:
-4:1 and 6:1 are not close enough.
+Use `linkedinCover` for member profiles and `linkedinPageCover` for company
+or showcase Pages. Their dimensions and aspect ratios differ.
 
-The file-size limits are not carried on the presets, because how an image is
-encoded is not something a size decides. Bluesky's 1MB is the one tight enough
-to hit: a 3000x1000 PNG with a texture on it can clear that. Use
-[`format`](../formats/) and `maxBytes` if you are near one:
+Presets set dimensions and safe areas, but do not enforce file-size limits.
+A textured 3000x1000 PNG can exceed the listed Bluesky limit. Use
+[`format` and `maxBytes`](../formats/) to control encoding and report oversized
+files:
 
 ```ts
 export default defineConfig({ format: "jpeg", maxBytes: 1_000_000 });
@@ -80,46 +75,38 @@ export default defineConfig({ format: "jpeg", maxBytes: 1_000_000 });
 
 ## Where the numbers came from
 
-Worth reading before trusting them, because only one of the five is a published
-figure and the rest are the best reading available.
+YouTube's safe area uses a published figure. The other presets use estimates
+from platform layouts. Treat these as starting points and check the result
+on your target devices.
 
-**YouTube** is the exact one. The safe area for text and logos is 1546x423,
-centred both ways on a 2560x1440 upload, which gives insets of
-`(1440 - 423) / 2 / 1440` and `(2560 - 1546) / 2 / 2560`. It checks out against
-the figure quoted for the 2048x1152 minimum upload, 1235x338, which is the same
-two fractions on a smaller canvas. That is also the argument for holding a safe
-area in fractions rather than pixels.
+The YouTube preset centres a 1546x423 area within a 2560x1440 image. Its
+vertical inset is `(1440 - 423) / 2 / 1440`, and its horizontal inset is
+`(2560 - 1546) / 2 / 2560`. These fractions give approximately 1235x338 on a
+2048x1152 image.
 
-**Bluesky** is the next most solid, because the client is open source and can be
-read instead of guessed at. In `src/screens/Profile/Header/Shell.tsx` the banner
-is a fixed 150px strip drawn with `cover` fit, and the avatar is a 94px
-container at `top: 104, left: 10`. On a 600px web column that means a 3:1 upload
-loses 12.5% off the top and bottom, and the avatar covers the left 17% and the
-bottom 31% of what is left. On a phone the vertical crop goes away and about
-6.7% comes off each side instead. The preset clears both.
+The Bluesky estimate came from `src/screens/Profile/Header/Shell.tsx`. The
+inspected layout used a 150px banner with `cover` fit and a 94px avatar at
+`top: 104, left: 10`. On a 600px web column, a 3:1 image loses 12.5% at its
+top and bottom. The avatar covers about 17% of the remaining width and 31%
+of the remaining height. The mobile estimate loses about 6.7% on each side.
+The preset leaves space for both layouts.
 
-**X** publishes neither. Around 60px comes off the top and bottom on some
-clients, which is the 0.12. For the avatar, published guides range from a
-250x250 corner up to about 370x170 by my own derivation from the web layout, a
-133px avatar on a 600px column; `left: 0.25` is 375px and clears both readings.
-The right inset keeps clear of the interface buttons.
+The X preset allows 60px of vertical crop at each edge (`0.12` of 500px).
+Its left inset of `0.25` reserves 375px for an avatar. This covers the
+250x250 to roughly 370x170 overlap estimates used when creating the preset.
+The right inset reserves space for interface buttons.
 
-**LinkedIn** publishes the dimensions but not the safe area. The widely quoted
-zone is 1128x376 centred, mobile crops to roughly the centre 60% of the width,
-and the avatar takes the bottom-left, at 152x152 on desktop and proportionally
-much more on a phone. `right: 0.20` is the mobile crop and `left: 0.28` clears
-the avatar, which leaves the content sitting slightly right of centre. That is
-what every guide recommends anyway.
+The LinkedIn member-profile estimate combines a centred 1128x376 area,
+mobile cropping to about 60% of the width and an avatar at the bottom-left.
+The left inset of `0.28` reserves avatar space, and the right inset of `0.20`
+allows for mobile cropping.
 
-If you measure better numbers, override them. That is the whole reason this is
-configuration rather than something compiled into a template.
+Override a preset's `safeArea` if your platform layout needs different insets.
 
 ## `safeArea` on its own
 
-The presets are the common cases, but the setting is general and applies to
-every template rather than to `cover`. Each edge is an inset from that edge, as
-a fraction of the width for `left` and `right` and of the height for `top` and
-`bottom`:
+`safeArea` applies to every template. Each edge is a fraction of the image
+dimension. `left` and `right` use width, while `top` and `bottom` use height:
 
 ```ts
 export default defineConfig({
@@ -134,48 +121,38 @@ export default defineConfig({
 });
 ```
 
-Everything a template draws is measured against that rectangle instead of
-against the image: its margins, its content, its logo and its footer. The
-background and any texture still fill the whole image, which is what you want,
-since the part a platform crops is still seen on some of its clients.
+Templates position content, logos and footers inside the resulting rectangle.
+The background and texture still fill the entire image.
 
-It is a [per-size override](../per-size-config/) as well as a config setting,
-and that is usually where it belongs: a crop is a property of the platform an
-image is uploaded to, and a size is what names that. A size's safe area replaces
-the config's rather than merging with it, for the reason `background` does. Half
-of X's crop over half of YouTube's would be a safe area for nowhere.
+Set `safeArea` at the top level or on an [output size](../per-size-config/).
+A size's safe area replaces the entire top-level value.
 
-### One limitation worth knowing
+<a id="one-limitation-worth-knowing"></a>
 
-The safe area moves and constrains everything a template lays out, but a
-template still takes its _font sizes_ from the image unless it was written not
-to. `cover` was; the other thirteen were not, because changing that would move
-the text on every image every existing site has already rendered.
+### Font sizing
 
-Where that matters is the ratio between the safe area's height and the image's.
-`xCover` keeps 76% of its height, `linkedinCover` 80%, `linkedinPageCover` 72%
-and `blueskyCover` 70%, and at those any template lays out normally: a `card` at
-`xCover` sits inside the safe area correctly. `youtubeCover` keeps 29%, because
-the crop is a band across a 16:9 image rather than a trim off a strip, and there
-a template sizing from the image overflows its band badly. A `wordmark` at that
-size sets its name at 158px in a box 423px tall and collides with its own
-footer.
+The `cover` template sizes text from the safe area's dimensions. Other
+templates constrain their layout to the safe area but calculate font sizes
+from the full image.
 
-So: use `cover` for covers. The other templates are worth trying at the three
-strip presets and are not worth trying at `youtubeCover`.
+This distinction matters for `youtubeCover`, whose safe area is only about
+29% of the image height. Other templates can produce text too large for that
+423px strip. The other cover presets retain 70% to 80% of the image height
+and are less likely to overflow.
+
+Use `cover` for profile covers, especially at `youtubeCover` dimensions.
+Inspect the output if you choose another template.
 
 ## Checking one
 
-Covers are `extra` images, so `colophon preview` does not reach them: it renders
-one post at one of the sizes in `sizes`. Run the build and open what it wrote:
+`colophon preview` renders posts and cannot select an `extra` image. Run the
+build and open the generated cover:
 
 ```bash
 npx colophon
 ```
 
-The stamps mean a second run re-renders nothing, so this is cheap to repeat
-while you settle a tagline.
+Rebuild stamps skip unchanged images on later runs.
 
-The honest check is still to upload it and look at your own profile on a phone
-and on a desktop. The numbers above are a starting point that keeps text out of
-the obvious hazards, not a guarantee about a layout somebody else controls.
+Upload the result and inspect your profile on desktop and mobile. A preset
+cannot guarantee how every client will crop or overlay the image.

@@ -1,7 +1,11 @@
+---
+description: Style Colophon images with named themes or custom backgrounds and textures.
+---
+
 # Themes and background treatments
 
-A theme is a named look, made up of a palette, a background and a texture over
-it. Naming one is the shortest config a project can write.
+A theme supplies a colour palette, background and texture. Select one with
+the `theme` setting:
 
 ```ts
 export default defineConfig({
@@ -10,7 +14,9 @@ export default defineConfig({
 });
 ```
 
-## The set
+<a id="the-set"></a>
+
+## Available themes
 
 | Theme       | Look                                                 |
 | ----------- | ---------------------------------------------------- |
@@ -38,14 +44,12 @@ export default defineConfig({
   </tr>
 </table>
 
-Six are dark, because white text on a deep background is what a share image is
-usually asked to be, and two are light for a site whose own pages are.
+The set includes six dark themes and two light themes.
 
 ## What a theme sets
 
-`colors`, `background` and `texture`, and nothing else. Those are
-ordinary config options, so a theme is a set of defaults rather than a fixed
-look, and any of the three you name yourself is the one that is used.
+Themes set `colors`, `background` and `texture`. Explicit config values take
+priority over theme defaults:
 
 ```ts
 export default defineConfig({
@@ -55,21 +59,15 @@ export default defineConfig({
 });
 ```
 
-The consequence worth knowing is the one in that comment. A theme's background
-is written out rather than derived from its palette, so changing `colors`
-changes the accent and the text and leaves the picture behind them alone. That
-is deliberate: `midnight` without its mesh and `slate` without its dot grid are
-the same flat navy image, so a theme that was only a palette would have very
-little to it. Set `background` as well when you want the whole thing to follow
-your own colours, or use `colors` on its own without a theme, which derives the
-usual gradient from your brand.
+Changing `colors` overrides text and accent colours but keeps the theme's
+background. Set `background` too if you want different background colours.
+Without a theme, Colophon derives its default gradient from your brand colours.
 
-An unknown theme name stops the build rather than being ignored, along with
-[every other unrecognised value](../#unknown-options).
+An unknown theme name causes a [validation error](../#unknown-options).
 
 ## Textures
 
-The treatments can be used on their own, over any background:
+Use `texture` independently of a theme to draw a pattern over any background:
 
 ```ts
 export default defineConfig({
@@ -78,9 +76,8 @@ export default defineConfig({
 });
 ```
 
-A texture is drawn over the background and under everything the template draws,
-so it never comes between a headline and the reader. All of them are intended
-to be noticed only in passing, and the defaults are faint.
+Textures are drawn above the background and below the template content.
+Their default opacity is low.
 
 | Texture         | Options                                              |
 | --------------- | ---------------------------------------------------- |
@@ -97,26 +94,18 @@ to be noticed only in passing, and the defaults are faint.
 | `"halftone"`    | `color`, `opacity`, `size`, `gap`, `angle`, `from`   |
 | `"topographic"` | `color`, `opacity`, `width`, `gap`, `relief`, `seed` |
 
-Every texture defaults to the foreground colour, so it shows up on a light
-theme as readily as on a dark one. Lengths are in pixels at the size being
-rendered.
+The default texture colour is the foreground colour. Lengths such as `gap`
+and `size` are pixels at the output resolution.
 
-They are not fine lengths. A share image is looked at somewhere between a third
-and a sixth of the size it was rendered at, so a treatment pitched to look
-right on the full-size picture is not there at all in the feed the picture is
-for. The defaults carry through that, and a project wanting the finer version
-of one lowers `gap` or `size` itself.
+Default spacing is designed to remain visible when a share image is reduced
+in a feed. Lower `gap` or `size` for a finer pattern.
 
 ### Textures at thumbnail size
 
-Pixels at the size being rendered is the right unit as long as the image is
-looked at somewhere near that size. A YouTube thumbnail is not: it is uploaded
-at 1280 wide and shown in a list at a third of that or less, so a dot grid at
-its default 66px spacing arrives at the reader about 15px apart. That is not a
-texture any more, it is a slightly dirty background.
+An image uploaded at 1280px wide may be displayed at a third of that width or
+less. Fine textures can become difficult to see at that size.
 
-`textureScale` multiplies every length in the treatment, so the picture is the
-one it always was and simply larger:
+`textureScale` multiplies every length in the texture:
 
 ```ts
 export default defineConfig({
@@ -125,12 +114,8 @@ export default defineConfig({
 });
 ```
 
-It usually belongs on a [size](../per-size-config/) rather than on the whole
-build, because what it corrects for is where the image ends up rather than
-anything about the treatment: the same dot grid wants its default spacing on an
-Open Graph card and twice that on a thumbnail.
-`SIZE_PRESETS.thumbnail` therefore carries `textureScale: 2` already, and it is
-the only preset that carries an override of its own.
+Set `textureScale` on a [size](../per-size-config/) when that size will be
+displayed smaller. `SIZE_PRESETS.thumbnail` already sets it to `2`.
 
 ```ts
 sizes: [
@@ -140,14 +125,12 @@ sizes: [
 ],
 ```
 
-Below `1` it draws a finer treatment than the numbers say, which is the same
-lever the other way. It costs no more to render and very little to store, since
-what is on the image is the same picture at a different size.
+Values below `1` make the texture finer.
 
 ### Waves
 
-`waves` is two sets of concentric rings, one centred on the middle of each side
-edge:
+`waves` draws two sets of concentric rings, centred on the left and right
+edges:
 
 ```ts
 export default defineConfig({
@@ -158,23 +141,19 @@ export default defineConfig({
 
 <img src="../../samples/texture-waves.png" alt="waves texture" width="50%" />
 
-What you see is not the rings but the interference between the two sets, which
-reads as curves flowing across the image. Unlike the dot grid and the ruled
-lines it is not a tile, so it does not repeat, and its shape follows the
-proportions of the image: a landscape gets flatter curves than a square.
+Overlapping rings create curves across the image. The pattern follows the
+image's aspect ratio, with flatter curves on landscape images.
 
-`opacity` is the set drawn from the left, and the set from the right is drawn
-fainter than that. `gap` is the distance from one ring to the next, and it is
-the setting worth playing with, since it decides how tight the curves are.
-Above about 40 the two sets stop blurring into each other and the image reads
-as what it is, which is a lot of circles.
+`opacity` controls the left-hand rings. The right-hand rings are fainter.
+`gap` sets the distance between rings. Above about `40`, individual circles
+become more visible.
 
-#### Waves costs bytes as well
+<a id="waves-costs-bytes-as-well"></a>
 
-There are only a few dozen circles to draw, but their antialiased edges put a
-different set of colours in every row of the image, which is most of what PNG
-compresses by. Measured on one 1200×1200 card over a gradient, in a single run
-so that the rows are comparable:
+#### Rendering time and file size
+
+Curved, antialiased edges increase PNG file size. This benchmark used one
+1200×1200 card over a gradient:
 
 | Texture             | PNG   |
 | ------------------- | ----- |
@@ -195,20 +174,17 @@ so that the rows are comparable:
 | `moire`             | 324KB |
 | `waves`             | 349KB |
 
-Rendering is around 330ms against 170ms with no texture. If the size matters
-more than the format does, [`format: "webp"`](../formats/) takes the same
-image to a fraction of that, since a lossy encoding does not care how many
-colours a row holds.
+In this benchmark, waves took about 330ms to render, compared with 170ms
+without a texture. Try [`format: "webp"`](../formats/) if you need smaller
+files.
 
-Coarser lengths cost nothing here, and the two dearest treatments they save on:
-a wider stroke puts back roughly what the wider spacing takes away, so `dots`
-and `grid` are unchanged to the kilobyte, while `waves` came down from 450KB
-and `moire` from 385KB.
+Increasing spacing reduced the measured waves and moiré PNG sizes from
+450KB and 385KB respectively. Dots and grids changed little because the wider
+strokes offset the savings from wider spacing.
 
 ### Rays
 
-`rays` is straight lines fanning out from one point, which by default sits just
-below the bottom edge of the image:
+`rays` draws straight lines from an origin just below the image by default:
 
 ```ts
 export default defineConfig({
@@ -219,20 +195,15 @@ export default defineConfig({
 
 <img src="../../samples/texture-rays.png" alt="rays texture" width="50%" />
 
-`x` and `y` move the origin, as fractions of the image, so `{ x: 0, y: 0 }` is
-the top-left corner and `{ y: 0.5 }` is a star in the middle rather than a fan
-across the picture. `count` is rays around the whole circle, of which only
-those pointing into the image are seen, so the spacing stays the same wherever
-the origin goes.
+Set `x` and `y` as fractions of the image dimensions. `{ x: 0, y: 0 }` is the
+top-left corner. `count` sets the number of rays around a full circle,
+including rays outside the visible image.
 
-Of the treatments that cover the whole image rather than repeating a tile, this
-is the cheap one: there are no curves in it and only a few dozen lines, so a
-1200×1200 image goes from 82KB to 164KB. That is nearer the dot grid than
-`waves`.
+In the 1200×1200 benchmark, adding rays increased the PNG from 82KB to 164KB.
 
 ### Chevrons and honeycomb
 
-`chevrons` is rows of V shapes, and `honeycomb` is hexagon outlines:
+`chevrons` draws rows of V shapes. `honeycomb` draws hexagon outlines:
 
 ```ts
 export default defineConfig({
@@ -243,20 +214,16 @@ export default defineConfig({
 
 <img src="../../samples/texture-chevrons.png" alt="chevrons texture" width="49%" /> <img src="../../samples/texture-honeycomb.png" alt="honeycomb texture" width="49%" />
 
-`chevrons` takes `gap`, which is both how wide one chevron is and how far
-apart the rows are. `honeycomb` takes `size`, the length of one side of a
-hexagon, and its repeat is the only one here that is not square: a honeycomb
-fits in a rectangle three sides across and `size × √3` down.
+For `chevrons`, `gap` controls both the chevron width and row spacing. For
+`honeycomb`, `size` is the length of a hexagon side. Its tile is `3 × size`
+wide and `size × √3` high.
 
-Both are tiles, and both cost more than the dot grid without being anywhere
-near `waves`. What they have that dots and squared paper do not is diagonal
-edges, and a diagonal is antialiased differently in every row it passes
-through.
+Both patterns repeat a tile. Their diagonal edges generally produce larger
+PNGs than a dot grid.
 
 ### Halftone
 
-`halftone` is a grid of dots that grow across the image, which is a gradient
-made out of print:
+`halftone` draws a grid of dots that increase in size across the image:
 
 ```ts
 export default defineConfig({
@@ -267,36 +234,30 @@ export default defineConfig({
 
 <img src="../../samples/texture-halftone.png" alt="halftone texture" width="50%" />
 
-`angle` is the direction they grow in, where `0` runs to the right and `90`,
-the default, runs down the image. `from` is how big the smallest dot is as a
-fraction of the largest, so raising it flattens the ramp.
+`angle` controls the direction of growth. `0` goes right and the default
+`90` goes down. `from` is the smallest dot's size as a fraction of the
+largest. Increase it to reduce the difference between small and large dots.
 
-It cannot be a tile, since every dot is a different size, and it is still one
-of the cheaper treatments: the size follows the position rather than chance, so
-a run of dots across the image is a smooth ramp with nothing noisy in it.
+Dot size is determined by position, so the pattern is consistent across
+builds.
 
 ### Scallops and topographic
 
-`scallops` is rows of arcs, each offset by half a scale from the row above.
-`topographic` is contour lines, the height of a made-up landscape drawn every
-`gap` pixels of it.
+`scallops` draws rows of arcs offset by half a scale. `topographic` draws
+contour lines over a generated height field.
 
 <img src="../../samples/texture-scallops.png" alt="scallops texture" width="49%" /> <img src="../../samples/texture-topographic.png" alt="topographic texture" width="49%" />
 
-The contours are the real thing rather than circles pretending: the ground is
-sampled on a grid and each line traces one height through it, so the shapes
-close around a summit, run off the edge where the ground keeps rising, and
-never cross. `relief` is how tall the landscape is, counted in contours between
-a valley and a summit, and `seed` picks which landscape: it moves the phases
-and nothing else, so the same seed always draws the same map.
+Each topographic line follows a constant height. `relief` controls the
+number of contour levels between low and high points. `seed` selects the
+height field. The same seed produces the same pattern.
 
-Nothing here rolls dice, which matters more than it sounds: [rebuilds](../../rebuilds/)
-assume that one config draws one picture, so a texture that was random would
-come out different every time nothing had changed.
+All textures are deterministic. The same inputs produce the same pattern,
+which is required for [rebuild stamps](../../rebuilds/) to remain valid.
 
 ### Crosshatch
 
-`rules` takes a `cross` flag, which draws a second set at the opposite angle:
+Set `cross: true` on `rules` to add lines at the opposite angle:
 
 ```ts
 export default defineConfig({
@@ -307,20 +268,16 @@ export default defineConfig({
 
 <img src="../../samples/texture-crosshatch.png" alt="crosshatch texture" width="50%" />
 
-The crossing set is drawn fainter than the first, which is what makes the two
-read as a weave rather than as two sets of lines.
+The crossing lines are drawn at lower opacity.
 
-It is not the cheap change it looks like. One set of rules costs 94KB on the
-1200×1200 card and two crossing sets cost 294KB, because the crossings put
-tones in the image that neither set has on its own, and they land in a
-different place in every row. A tile keeps the SVG small; it is the picture
-that has to repeat for the file to stay small, and here it does not.
+In the 1200×1200 benchmark, one set of rules produced a 94KB PNG and crossed
+rules produced 294KB. The extra tones at intersections reduce PNG compression
+efficiency.
 
 ### Grids and crosses
 
-`grid` is squared paper: lines both ways, with a heavier one every so often.
-`crosses` is a small cross where each of those lines would meet, which is the
-dot grid with a little more to look at.
+`grid` draws horizontal and vertical lines, with heavier lines at regular
+intervals. `crosses` draws a small cross at each grid point.
 
 ```ts
 export default defineConfig({
@@ -331,17 +288,15 @@ export default defineConfig({
 
 <img src="../../samples/texture-grid.png" alt="grid texture" width="49%" /> <img src="../../samples/texture-crosses.png" alt="crosses texture" width="49%" />
 
-`major` is how many squares apart the heavier lines are, drawn at twice the
-width. Set `major: 0` for a plain grid with none.
+`major` sets the number of squares between heavier grid lines. These lines
+use twice the normal width. Set `major: 0` to disable them.
 
-Both are tiles square to the image, so both are among the cheap ones. Crosses
-cost about what the dot grid costs. The grid costs a little more, since a row
-of the image crosses a great many more lines than it does dots, and the
-heavier lines add a second pass over it.
+Crosses produce file sizes similar to dots. A grid is somewhat larger
+because it contains more line edges.
 
 ### Moiré
 
-`moire` is two square grids, one turned a few degrees against the other:
+`moire` overlays two square grids with a small rotation between them:
 
 ```ts
 export default defineConfig({
@@ -352,26 +307,18 @@ export default defineConfig({
 
 <img src="../../samples/texture-moire.png" alt="moire texture" width="50%" />
 
-What is seen is the interference between them rather than either grid: the
-lines cross at a different offset in every part of the image, which reads as
-broad bands sweeping across it.
+The intersections form broad bands across the image.
 
-`angle` is the whole texture. Below about one degree the bands are wider than
-the image, and it looks like one grid slightly out of true; above about ten
-they tighten into a weave. `gap` is the second lever, and the one that decides
-what the image costs.
+`angle` controls the bands. Below about one degree, the bands can be wider
+than the image. Above about ten degrees, they form a tighter pattern. `gap`
+controls grid spacing.
 
-It is nearly as expensive as `waves`, at around 320KB for a 1200×1200 image,
-which is worth knowing because the reason is not obvious. Being drawn from a
-tile makes the SVG small, but the tile is what repeats, not the picture: a
-turned grid crosses the lines at a different place in every row, so there is
-nothing for the compression to fold up. Raising `gap` is what brings it down.
+A 1200×1200 moiré image measured about 320KB as PNG. Increasing `gap` can
+reduce file size by reducing the number of line intersections.
 
 ## Meshes
 
-A mesh is soft blobs of colour over a flat base, which gives colour that moves
-in more than one direction, unlike a linear gradient. Each blob is a radial
-fade, so it costs no more to render than a gradient does.
+A mesh background draws radial colour fades over a flat base:
 
 ```ts
 export default defineConfig({
@@ -386,16 +333,14 @@ export default defineConfig({
 });
 ```
 
-Positions are fractions of the image and radii are fractions of its longer
-side, so one mesh describes the same picture at every output size. Blobs are
-drawn in order, the later ones over the earlier, and each fades to nothing at
-its radius. Keep them off the base colour if you want it to show: a blob at
-full opacity with a radius near `1` covers everything.
+Blob positions are fractions of the image dimensions. Radii are fractions
+of the longer side. Blobs are drawn in order and fade to transparent at their
+radius. A large, fully opaque blob can hide most of the base colour.
 
 ## Per size
 
-A [size](../per-size-config/) can name its own theme and texture, which is how
-a square gets a different treatment from a landscape:
+Set a theme or texture on an [output size](../per-size-config/) to give it
+a different appearance:
 
 ```ts
 sizes: [
@@ -404,6 +349,5 @@ sizes: [
 ],
 ```
 
-A size's theme applies the same way the config's does, as defaults under
-anything named outright. So a config with its own `texture` keeps it whatever
-theme a size asks for.
+A size's theme supplies defaults. Explicit top-level settings, such as
+`texture`, still take priority over those defaults.

@@ -1,4 +1,11 @@
+---
+description: Colophon command line options for generating and previewing social images.
+---
+
 # The command line
+
+Use the Colophon CLI to generate images from a content directory or preview a
+single post. It also creates starter config files and framework templates.
 
 ```text
 colophon [contentDir] [options]    Render the images for a content tree
@@ -20,17 +27,13 @@ colophon eject hugo                Write a Hugo partial that emits the tags
 | `--size` name         | Which configured size `preview` renders, or the playground link opens. Defaults to the first one                    |
 | `-h`, `--help`        | Show the help text                                                                                                  |
 
-The first argument is read as a command only where it names one, so a content
-directory called `init`, `preview`, `playground` or `eject` has to be written as
-`./init`. Everything
-else stays as it was: with no command, the first argument is the content
-directory, and `content` is the default.
+The first argument selects a command or a content directory. The default
+directory is `content`. Prefix a directory with `./` if its name matches a
+command, such as `./init`, `./preview`, `./playground` or `./eject`.
 
-An option the CLI does not have is an error rather than something it ignores.
-`--dry-runs` would otherwise render and write the whole tree, which is the one
-thing the run was asking it not to do. A value can be joined to its flag or
-follow it, so `--config=colophon.config.ts` and `--config colophon.config.ts`
-are the same thing.
+Unknown options cause an error, including misspellings such as `--dry-runs`.
+Option values can follow the flag or use `=`, as in
+`--config colophon.config.ts` and `--config=colophon.config.ts`.
 
 An option that belongs to another command, such as `--size` on a build, is
 accepted and does nothing.
@@ -41,9 +44,9 @@ accepted and does nothing.
 colophon content --config colophon.config.ts
 ```
 
-Every file that declares image props gets one image per output size. Images
-carry a [stamp](../rebuilds/) of the props, config and size they came from, so a
-second run renders only what has actually changed.
+Colophon writes one image per configured size for each file with image props.
+Each image contains a [stamp](../rebuilds/) recording its inputs. Later builds
+use these stamps to skip unchanged images.
 
 ## colophon init
 
@@ -51,22 +54,19 @@ second run renders only what has actually changed.
 colophon init
 ```
 
-Writes a starter config module in the working directory and prints the command
-to run against it. The config has the fields most projects change, with the rest
-commented out and explained.
+`colophon init` writes a starter config in the working directory and prints
+the command to use it. Common options are enabled, and the remaining options
+are shown as commented examples.
 
-It writes `colophon.config.js` where the project's `package.json` says
-`"type": "module"`, and `colophon.config.mjs` where it does not: a Colophon
-config is an ES module, and in a CommonJS project a `.js` config would fail the
-import that `--config` does.
+The config is an ES module. If `package.json` contains `"type": "module"`,
+the filename is `colophon.config.js`. Otherwise, it is `colophon.config.mjs`.
 
-A config module that is already there is left alone unless `--force` is given,
-and then it is replaced at its own path, so a project that settled on
-`colophon.config.ts` does not end up holding two configs.
+An existing config is preserved unless you pass `--force`. With `--force`,
+Colophon replaces that file at its current path, including a
+`colophon.config.ts` file.
 
-The content directory in the printed command is a guess, taken from the usual
-places (`content`, `src/content`, `posts`, `src/posts`, `_posts`, `src/pages`).
-Name yours to skip the guess:
+The command looks for content in `content`, `src/content`, `posts`,
+`src/posts`, `_posts` and `src/pages`. Pass a directory to choose it explicitly:
 
 ```bash
 colophon init essays
@@ -78,15 +78,12 @@ colophon init essays
 colophon preview content/posts/hello.md --config colophon.config.ts
 ```
 
-Renders that one post and opens the image, which is what tuning a template or a
-palette wants, since the alternative is running the whole build and then picking
-the one image out of it that was being worked on.
+`colophon preview` renders one post and opens the image in your default image
+viewer. Use it while adjusting a template or colours.
 
-The image goes to a temporary directory rather than into the content tree.
-Written beside the post it would land on the real image, which the next build
-would then find unstamped and render again, so previewing would quietly
-invalidate the tree it was previewing against. The path is printed as well as
-opened, so a shell can do something else with the file:
+The image is written to a temporary directory. Previewing leaves the post's
+build output and rebuild stamps unchanged. The command also prints the image
+path for use in a shell:
 
 ```bash
 open "$(colophon preview content/posts/hello.md)"
@@ -98,8 +95,8 @@ One image is rendered, at the first configured size. `--size` picks another:
 colophon preview content/posts/hello.md --size og
 ```
 
-A post that declares no image props is an error here, because the run named that
-file, whereas in a build the same post is skipped.
+Preview requires the selected post to have image props. It reports an error
+for a post that a normal build would skip.
 
 ## colophon playground
 
@@ -119,18 +116,16 @@ directories that `colophon init` recognises. Name a post to use that one:
 colophon playground content/posts/hello.md
 ```
 
-The command runs `content.props` before it builds the link. It writes the
-resulting props into the shared frontmatter, under the configured `propsKey`
-and `templateField`. The browser can therefore render a post whose props
-normally come from JavaScript. If no content directory or image post is found,
-the link contains a small `banner` sample.
+Before creating the link, the command runs `content.props` and writes its
+result into frontmatter using the configured `propsKey` and `templateField`.
+This lets the playground render props computed by your project. If no suitable
+post is found, the link uses a small `banner` sample.
 
-The playground has no filesystem and cannot run functions from a config
-module. The link leaves out fonts, logos, image backgrounds, custom templates,
-callbacks, placement, manifests and extra images. File paths in a post's
-`avatar` and `image` props are left out too. The command writes a warning to
-stderr that names every omitted field. The URL itself is the only line written
-to stdout, so it can be captured by another command.
+The playground runs in the browser and supports JSON config. Links omit
+fonts, logos, image backgrounds, custom templates, callbacks, placement,
+manifests and extra images. They also omit file paths in `avatar` and `image`
+props. The command lists omitted fields on stderr and writes only the URL to
+stdout.
 
 `--size` opens the link on one configured size:
 
@@ -145,69 +140,72 @@ colophon eject hugo
 colophon eject astro
 ```
 
-Writes a template into your site that emits the meta tags for the page being
-rendered. There is one per generator:
+`colophon eject` writes a template that adds image meta tags to your site's
+pages:
 
 | Generator | Written to                          |
 | --------- | ----------------------------------- |
 | `hugo`    | `layouts/partials/colophon.html`    |
 | `astro`   | `src/components/ColophonMeta.astro` |
 
-The Astro one is half of [the Astro integration](../astro/); the rest of this
-section is about the Hugo one.
+See [Astro](../astro/) for the Astro component and build integration. The
+following instructions configure the Hugo partial.
 
-Writes `layouts/partials/colophon.html` into a Hugo site: a partial that looks
-the current page up in the [manifest](../configuration/manifest/) and emits its
-social meta tags. Call it from your head:
+The Hugo partial reads the current page's image from the
+[manifest](../configuration/manifest/). Call it from your head template:
 
 ```go-html-template
 {{ partial "colophon.html" . }}
 ```
 
-and point `manifest` at `data/colophon.json`, which is where Hugo reads site
-data from.
+Set `manifest` to `data/colophon.json` in your Colophon config. Hugo reads
+site data from that directory.
 
-Without it a Hugo site has to do this part itself, globbing for `*-og.png` to
-find the landscape variant and hardcoding 1200 and 630 into the tags, because
-nothing has told it what was generated. The partial was taken from two sites
-that were each doing this by hand, in 50 and 58 lines respectively.
+The manifest supplies the image URL and dimensions used in the tags.
 
 ### What it emits
 
-The same tags [`metaTags`](../configuration/meta-tags/) does, which is the same
-job for a site that renders in JavaScript: `og:image` with its width, height and
-alt text, and the Twitter pair, with `summary_large_image` for a landscape image
-and `summary` for a square one.
+The partial emits the same image tags as [`metaTags`](../configuration/meta-tags/).
+These include `og:image` with its dimensions and alt text, plus `twitter:image`
+and `twitter:card`. Landscape images use `summary_large_image`, and square
+images use `summary`.
 
 ### Finding the page
 
-The manifest is keyed by slug, and which slug depends on the
-[`slugStrategy`](../configuration/sizes/#slug-strategies) the build used. The
-partial tries, in order: a `colophon_key` page parameter, the page's own `slug`,
-the route, and the file's base name. So it covers both strategies without being
-told which, and `colophon_key` is there for a site whose keys are its own.
+The partial searches for a manifest entry using these keys in order:
+
+1. The page's `colophon_key` parameter.
+2. The page's `slug`.
+3. The page route.
+4. The file's base name.
+
+This supports both built-in [slug strategies](../configuration/sizes/#slug-strategies).
+Set `colophon_key` when your site uses a custom key.
 
 ### The fallback chain
 
-An explicit `images` parameter on the page wins, then the generated image, then
-the site's own `images` parameter. Both are Hugo's existing convention, so a
-site that already sets them keeps working. Width, height and alt describe the
-generated image, so they are emitted only for that one.
+The partial chooses the image in this order:
 
-A manifest entry whose image has no URL counts as no image, and falls through to
-the site default. That happens when the [placement](../configuration/placement/)
-has no `urlBase`, which records dimensions and no address.
+1. The page's `images` parameter.
+2. The generated image from the manifest.
+3. The site's `images` parameter.
 
-### It is yours after that
+The `images` parameters follow Hugo's existing convention. Width, height and
+alt tags are emitted only for the generated image.
 
-The file is ejected rather than imported so that the site can change it.
-Colophon writes it once and then leaves it alone, so a site that wants a
-different fallback chain, or one more tag, edits the file itself.
-`colophon eject hugo --force` replaces it, which is worth remembering before
-running that.
+A manifest entry without an image URL uses the site default. This can happen
+when [placement](../configuration/placement/) has no `urlBase`.
 
-It needs Hugo 0.156 or newer for `hugo.Data`. On an older Hugo, change the two
-references in the file to `site.Data`, which the file itself says.
+<a id="it-is-yours-after-that"></a>
+
+### Customising the partial
+
+Edit the generated file to change the fallback order or add tags. Colophon
+leaves it unchanged on later runs. `colophon eject hugo --force` overwrites
+your edits.
+
+The partial uses `hugo.Data`, which requires Hugo 0.156 or newer. For an older
+Hugo version, change its two `hugo.Data` references to `site.Data`.
 
 ## Dry runs
 
@@ -215,8 +213,8 @@ references in the file to `site.Data`, which the file itself says.
 colophon content --config colophon.config.ts --dry-run
 ```
 
-Reports what a real build would do and writes nothing, neither images nor a
-[manifest](../configuration/manifest/):
+`--dry-run` reports which images would be written or skipped. It writes no
+images or [manifest](../configuration/manifest/):
 
 ```text
 write content/hello/hello-og.png
@@ -224,14 +222,12 @@ skip  content/snippet/snippet-og.png
 Dry run: 1 would be written, 1 already up to date. Nothing was written.
 ```
 
-The plan is built and the stamps are read, so every check a real build makes
-still runs: two images written to one path, a manifest two pages would share, a
-font file that is not there. A dry run is therefore also how to find out whether
-a config would build at all.
+A dry run reads the content and rebuild stamps and validates the build plan.
+It catches duplicate output paths, duplicate manifest keys and missing font
+files.
 
-Nothing is rendered, so a compromise a template would have reported, such as a
-[truncated code snippet](../code-template/), is not reported either. Those come
-from rendering, and a dry run does not render.
+Rendering is skipped during a dry run. Rendering warnings, such as
+[truncated code snippets](../code-template/), appear only in a normal build.
 
 ## Watching
 
@@ -239,38 +235,30 @@ from rendering, and a dry run does not render.
 colophon content --config colophon.config.ts --watch
 ```
 
-Builds the tree, then builds it again whenever a content file changes, until you
-stop it. Only the changed post's images are rendered, since the rest still match
-their stamps.
+`--watch` builds the content directory, then rebuilds when a content file
+changes. Rebuild stamps let it skip unchanged images. Stop the process to end
+the watch.
 
-Two things it does not do:
+The watch has two limits:
 
-- **A config change is not picked up.** Restart the watch after editing one.
-  Reloading a module means importing it again under a fresh URL and leaving the
-  old copy behind, and the modules it imports could not be invalidated at all,
-  so a template edited in a config file would appear to change nothing.
-- **Only content files count.** A change is one to a file with an extension the
-  walk reads, which is `.md` and `.markdown` unless
-  [`content.extensions`](../configuration/frontmatter/) says otherwise. That is
-  what stops the images a build writes next to their posts from triggering the
-  next build, and it ignores an editor's own `post.md~` and `.post.md.swp` along
-  the way.
+- Restart it after changing config or a custom template. Config modules and
+  their imports are loaded once.
+- It watches only extensions in
+  [`content.extensions`](../configuration/frontmatter/), which defaults to
+  `.md` and `.markdown`. Generated images and editor files such as `post.md~`
+  and `.post.md.swp` are ignored.
 
-A build that fails is reported and the watch carries on, since the mistake is
-usually in the file that was just saved.
+Build errors are reported, and the watch continues waiting for changes.
 
 ## The thread pool
 
-`--concurrency` says how many images a build has open at once, and defaults to
-one per available CPU. How many of those make progress at a time is a separate
-number, and it belongs to Node.
+`--concurrency` limits the number of images being processed at once. It
+defaults to the number of available CPUs. The libuv thread pool also limits
+how much rendering work can run in parallel.
 
-Everything a render spends real time on happens off the main thread. The
-rasteriser, the `zlib` calls behind PNG recompression and the `sharp` calls
-behind quantising all hand their work to the libuv thread pool. That pool holds
-four threads unless `UV_THREADPOOL_SIZE` says otherwise, so on a machine with
-more than four cores the default concurrency asks for more than the pool can
-serve. The extra images sit in the queue, and the build warns:
+Rasterisation, PNG recompression (`zlib`) and quantisation (`sharp`) use the
+libuv thread pool. Its default size is four threads. Extra work waits in a
+queue. Colophon warns when the requested concurrency exceeds the pool size:
 
 ```text
 colophon: Rendering 18 images at once, but the libuv thread pool has 4
@@ -279,10 +267,9 @@ so only 4 renders make progress at a time. Set UV_THREADPOOL_SIZE=18 in the
 environment before the process starts to lift the ceiling.
 ```
 
-Node sizes the pool the first time anything uses it, reading the environment as
-it does. By then a build is already running, and setting the variable from
-inside the process arrives too late. It has to be in the environment the build
-starts in:
+Set `UV_THREADPOOL_SIZE` in the environment before starting Colophon. Node
+reads it when the pool is first used, which can happen before your config
+module loads:
 
 ```bash
 UV_THREADPOOL_SIZE=16 colophon content
@@ -299,6 +286,6 @@ Measured on an eighteen-core machine over 200 pages at 1200x630, PNG with
 | 24                   | 13.7 s     |
 | 32                   | 13.8 s     |
 
-The curve flattens once the pool is about the size of the machine. That is the
-number `--concurrency` already defaults to. Above it the threads compete for
-the same cores, and the remaining gains are noise.
+In this benchmark, increasing the pool beyond the core count gave little
+further improvement. Start with a pool size close to the available CPU count
+and measure your own build.

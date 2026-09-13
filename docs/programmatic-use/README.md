@@ -1,12 +1,16 @@
+---
+description: Generate social images from props or a content tree with the Colophon JavaScript API.
+---
+
 # Programmatic use
 
-The CLI is a thin wrapper over two entry points. Use them directly when a
-project needs to drive generation itself.
+Use `renderMetaImages` to render props into image bytes. Use `generate` to
+render and write images for a set of content pages.
 
 ## Render from props
 
-The core takes props and config and returns rendered bytes. It touches no files
-and knows nothing about content trees:
+`renderMetaImages` takes image props and config. It returns the rendered
+images for your code to write or send:
 
 ```ts
 import { renderMetaImages } from "@kensio/colophon";
@@ -32,18 +36,18 @@ for (const image of images) {
 }
 ```
 
-One image is returned per configured output size. Each carries its `name`,
-`dimensions`, the source `svg` and the encoded `bytes`, in whatever
-[`format`](../configuration/formats/) the config asked for. `extensionFor` is
-what a build names its own files with, if you would rather not hardcode `.png`.
+The result contains one image per configured size. Each has a `name`,
+`dimensions`, source `svg` and encoded `bytes`. The bytes use the configured
+[format](../configuration/formats/). Use `extensionFor` to choose matching
+filename extensions.
 
-This is the right entry point for rendering an image from data that is not a
-markdown file at all, such as a database row or an API response.
+Use this function with data from any source, including database rows and API
+responses.
 
 ## Walk content and generate
 
-`generate` ties walking, rendering and writing together. This is what the CLI
-calls:
+`generate` reads content files, renders images and writes the output. The CLI
+uses this function:
 
 ```ts
 import { generate } from "@kensio/colophon";
@@ -60,39 +64,37 @@ await generate({
 });
 ```
 
-`onResult` is called once per image, including the ones that were skipped
-because their [stamp](../rebuilds/) still matched. A result for an
-[extra image](../configuration/extra-images/) has `contentPath` set to
-`undefined`, since there is no post behind it.
+`onResult` runs once per image, including images skipped because their
+[rebuild stamps](../rebuilds/) match. Results for
+[extra images](../configuration/extra-images/) have `contentPath: undefined`.
 
-Under `dryRun` the results say what a real build would have done: `skipped` is
-`true` for an image whose stamp still matches, and `false` for one that would be
-rendered. Nothing is written, not even the manifest, and every check a build
-makes still runs. It is what the CLI's [`--dry-run`](../cli/) is.
+With `dryRun: true`, `skipped` is `true` for an up-to-date image and `false`
+for one that would be rendered. The content and build plan are validated, but
+no images or manifest are written. This is the API equivalent of
+[`--dry-run`](../cli/#dry-runs).
 
-### Options that are not config
+<a id="options-that-are-not-config"></a>
 
-Two `generate` options deliberately live outside `ColophonConfig`:
+### Build options
 
-- **`concurrency`** is a property of the machine doing the build rather than of
-  the images. Putting it in config would drag it into the rebuild stamp, so
-  changing it would re-render the tree. What a build reaches is capped by the
-  libuv thread pool, which holds four threads unless `UV_THREADPOOL_SIZE` was
-  set in the environment the process started in. `generate` warns once where
-  the concurrency is above it. [The command line](../cli/#the-thread-pool) has
-  the measurements.
-- **`outputPath`** is a callback that decides where each image is written. It
-  takes precedence over [`placement`](../configuration/placement/), and when it
-  is used there is no URL, because the placement no longer describes where the
-  file went.
+Pass execution and output callbacks directly to `generate`:
 
-`generate`'s `walk` option is the programmatic equivalent of
-[`config.content`](../configuration/frontmatter/) and wins where both are given.
+- `concurrency` limits the number of images processed at once and is excluded
+  from rebuild stamps. Node's libuv thread pool also limits parallel work.
+  Set `UV_THREADPOOL_SIZE` before starting Node to change its default of four
+  threads. See [the thread pool](../cli/#the-thread-pool).
+- `outputPath` chooses where each image is written. It takes precedence over
+  [placement](../configuration/placement/), and results have no public URL
+  when this callback is used.
 
-## Generate from content a project already has
+The `walk` option overrides the corresponding
+[`config.content`](../configuration/frontmatter/) settings.
 
-`contentFiles` hands `generate` the content to render, in place of a directory
-to walk:
+<a id="generate-from-content-a-project-already-has"></a>
+
+## Supplying content directly
+
+Pass `contentFiles` when your application already has the pages to render:
 
 ```ts
 import { generate } from "@kensio/colophon";
@@ -109,43 +111,36 @@ await generate({
 });
 ```
 
-This is the entry point for a site that keeps its pages somewhere other than a
-tree of markdown files. Rows in a database, an API's responses and the sharded
-JSON a large site packs its entries into all reach a build this way. Everything
-after the content is the same. The images are stamped, skipped, placed and
-written down in the manifest exactly as walked content is.
+Use this with database records, API responses or other data sources.
+Generation still applies rebuild stamps, placement and manifest output.
 
-Each entry is a `ContentFile`, the shape `walkContent` returns:
+Each entry is a `ContentFile` with these fields:
 
-- `contentPath` is the page's path under the content root. It names the page in
-  warnings and in duplicate-slug messages, and the directories it carries are
-  where [`beside-content`](../configuration/placement/) puts the image. It is
-  never opened, and can name a page with no file behind it.
-- `slug` is the base filename for the page's images, and the key it appears
-  under in the [manifest](../configuration/manifest/).
-- `props` is what to draw, in the shape a post's frontmatter declares.
-- `absolutePath` is the file the page was read from, and can be left out.
-  `defaultOutputPath` is the one thing that reads it, and it refuses a page
-  that has none.
+- `contentPath` is the page's relative path under the content root. It appears
+  in warnings and determines the directory for
+  [`beside-content`](../configuration/placement/) placement. The path is not
+  opened and can describe a page without a file.
+- `slug` determines the image's base filename and
+  [manifest](../configuration/manifest/) key.
+- `props` contains the image properties.
+- `absolutePath` is optional. The `defaultOutputPath` helper requires it.
 
-`generate` checks the entries before it renders anything. A page missing its
-`contentPath`, `slug` or `props` stops the build, and so does a path or a slug
-that would write an image outside the tree. The same checks run over a content tree while
-its frontmatter is read.
+Colophon validates entries before rendering. Missing `contentPath`, `slug`
+or `props` fields cause an error, as do paths or slugs that would escape the
+content root.
 
-`contentDir` is optional once `contentFiles` is given. The one build that still
-needs it is a build placing images beside their content, which is the default
-placement and has to be told the root to write under. A `public-dir` or
-`custom` placement, or `generate`'s `outputPath`, says where the images go
-without a content directory at all.
+With `contentFiles`, you can omit `contentDir` when using `public-dir`,
+`custom` placement or an `outputPath` callback. The default `beside-content`
+placement still requires `contentDir` as its output root.
 
-`walk` options describe reading frontmatter out of a file. Passing them
-alongside `contentFiles` stops the build.
+Passing `walk` options with `contentFiles` causes an error. These options
+apply only when reading frontmatter from files.
 
-## Walking on its own
+<a id="walking-on-its-own"></a>
 
-`walkContent` finds content files and reads their frontmatter, without rendering
-anything:
+## Reading content without rendering
+
+`walkContent` finds files and reads their frontmatter:
 
 ```ts
 import { walkContent } from "@kensio/colophon/content";
@@ -153,14 +148,12 @@ import { walkContent } from "@kensio/colophon/content";
 const files = await walkContent({ dir: "content" });
 ```
 
-Import it from the `@kensio/colophon/content` subpath when frontmatter discovery
-is all you want. The root entry point pulls in the rasteriser and the syntax
-highlighter, and this subpath does not.
+Import from `@kensio/colophon/content` to read content without loading the
+rasteriser or syntax highlighter.
 
-`readContentFile` is the same work for one file, which is what
-[`colophon preview`](../cli/) uses. It takes the file, the content root its path
-and slug are relative to, and the same options, and returns `undefined` where
-the file asks for no image:
+Use `readContentFile` for a single file. It accepts the file path, content
+root and content options. It returns `undefined` when the file requests no
+image. [`colophon preview`](../cli/) uses this function:
 
 ```ts
 import { readContentFile } from "@kensio/colophon/content";
@@ -170,13 +163,12 @@ const file = await readContentFile("content/posts/hello.md", "content");
 
 ## Other exports
 
-The pieces the above are built from are exported too, for anything that needs to
-work at a lower level: `buildSvg` and `renderSvgToImage` for the two halves of
-rendering, `resolveConfig` and `resolveConfigForSize` for config, the
-[layout toolkit](../layout/) and `createMeasurer` for template authors, and
-`createStamper`, `readImageStamp` and `stampImage` for the rebuild stamps.
+Lower-level exports include `buildSvg` and `renderSvgToImage` for rendering,
+`resolveConfig` and `resolveConfigForSize` for configuration, and
+`createMeasurer` for measuring text. Stamping helpers include `createStamper`,
+`readImageStamp` and `stampImage`.
 
-[`metaTags`](../configuration/meta-tags/) has its own `@kensio/colophon/meta`
-subpath, which loads neither the rasteriser nor the highlighter. So does
-[the layout toolkit](../layout/), as `@kensio/colophon/layout`, which loads
-nothing from Node at all.
+Import [`metaTags`](../configuration/meta-tags/) from `@kensio/colophon/meta`
+and the [layout toolkit](../layout/) from `@kensio/colophon/layout`. These
+subpaths avoid loading the renderer. The layout toolkit is also usable outside
+Node.

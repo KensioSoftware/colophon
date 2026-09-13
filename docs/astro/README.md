@@ -1,7 +1,11 @@
+---
+description: Generate social images during an Astro build and add the image tags to each page.
+---
+
 # Astro
 
-There are two halves to this: an integration that renders the images during the
-build, and a component that emits the tags for the route being rendered.
+The Astro integration generates images before pages are built. A separate
+component adds the image meta tags to each page. Configure both as shown below.
 
 ## The integration
 
@@ -26,30 +30,22 @@ export default defineConfig({
 });
 ```
 
-It takes the same options as [`generate`](../programmatic-use/), so `config` is
-an ordinary [Colophon config](../configuration/). Give it a
-[`manifest`](../configuration/manifest/) path, since that is what the component
-reads, and a [`placement`](../configuration/placement/) with a `urlBase`, since
-a tag needs an address rather than a path on disk.
+The integration accepts the same options as [`generate`](../programmatic-use/),
+including a [Colophon config](../configuration/). Set a
+[`manifest`](../configuration/manifest/) path for the component to read. Set
+[`placement.urlBase`](../configuration/placement/) to give images public URLs.
 
-Nothing is imported from `astro`, so the integration does not pin you to a
-version of it.
+The integration has no runtime dependency on the `astro` package.
 
 ### When it runs
 
-On `astro:config:setup`, which is the one hook that fires for `astro dev` as
-well as `astro build`, and which runs before anything is rendered. Both matter:
-the manifest has to exist before a page that reads it is built, and a dev server
-should show the images the build will produce rather than the last build's.
+The integration runs during `astro:config:setup` for both `astro dev` and
+`astro build`. Images and the manifest are ready before Astro renders pages.
 
-Running on every dev start is cheaper than it sounds, because the
-[rebuild stamps](../rebuilds/) mean a second run reads the content tree,
-compares digests and renders no images. It does rewrite the manifest, which is
-a small JSON file describing what is already there.
+On later runs, [rebuild stamps](../rebuilds/) let Colophon skip unchanged
+images. The manifest is rewritten to describe the current images.
 
-A build that cannot render fails the Astro build rather than warning, because
-the alternative is a site shipping pages whose tags point at images that were
-never written.
+An image generation error stops the Astro build.
 
 ## The component
 
@@ -57,7 +53,8 @@ never written.
 colophon eject astro
 ```
 
-writes `src/components/ColophonMeta.astro`, which you use in your layout:
+This writes `src/components/ColophonMeta.astro`. Add it to your layout's
+`<head>`:
 
 ```astro
 ---
@@ -70,12 +67,10 @@ import ColophonMeta from "../components/ColophonMeta.astro";
 </html>
 ```
 
-It is written into your site rather than imported from the package, because a
-`<head>` is something a site owns, so adding a tag such as `og:title` or
-changing the fallback should be an edit to the site rather than a change to this
-package. `colophon eject astro --force` replaces it.
+You can edit this component to add tags such as `og:title` or change the
+fallback behaviour. `colophon eject astro --force` overwrites the component.
 
-The component is thin, because the part worth testing is in the package:
+The component uses `metaTagsForPath` to look up the current route:
 
 ```astro
 const tags = metaTagsForPath(manifest as Manifest, Astro.url.pathname, {
@@ -83,28 +78,22 @@ const tags = metaTagsForPath(manifest as Manifest, Astro.url.pathname, {
 });
 ```
 
-The cast is there because a JSON import types `version` as `number` rather than
-as the literal `1` the `Manifest` type asks for.
+The `Manifest` cast is needed because TypeScript infers a JSON import's
+`version` field as `number`. The manifest type requires the literal `1`.
 
 ## Finding the page
 
-`metaTagsForPath` maps the route to a manifest key, which is the one fiddly part
-of any integration. The manifest is keyed by slug, and which slug depends on the
-[`slugStrategy`](../configuration/sizes/#slug-strategies) the build used, so both
-are tried: the whole path first, then its last segment. A page at `/blog/hello`
-finds a `blog/hello` key under `route` and a `hello` key under `basename`,
-without being told which the build wrote.
+`metaTagsForPath` tries the full route as a manifest key, then the route's last
+segment. For `/blog/hello`, it tries `blog/hello` and then `hello`. This supports
+both [slug strategies](../configuration/sizes/#slug-strategies) automatically.
 
-A route no key matches gets no tags, exactly as an unknown slug does. Not every
-page has a share image, and a layout cannot know which in advance.
+If neither key matches, the component emits no image tags for that page.
 
-It is exported from `@kensio/colophon/meta` and is not Astro-specific: any
-framework that knows the path it is rendering can use it.
+Any framework can use `metaTagsForPath` from `@kensio/colophon/meta` if it has
+the current page's path.
 
 ## Content collections
 
-`contentDir` is a directory of files, so point it at the collection's directory
-under `src/content/`. Colophon walks the tree itself and reads the frontmatter
-with [its own options](../configuration/frontmatter/), rather than going through
-Astro's collection API, which keeps the integration a wrapper around `generate`
-and nothing more.
+Point `contentDir` at the collection's files under `src/content/`. Colophon
+reads files directly using its [frontmatter settings](../configuration/frontmatter/).
+It does not use Astro's content collection API.

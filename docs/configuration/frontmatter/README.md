@@ -1,8 +1,12 @@
+---
+description: Map Markdown frontmatter to Colophon image props and page slugs.
+---
+
 # Frontmatter
 
-By default Colophon reads a `meta_img_props` object from a post's frontmatter,
-takes the template name from a `template` field within it, and reads the post
-slug from a top-level `slug`.
+Colophon reads image properties from a Markdown file's YAML frontmatter. By
+default, the properties are under `meta_img_props`, the template name is in
+`meta_img_props.template`, and the page slug is in the top-level `slug` field.
 
 ```yaml
 ---
@@ -16,14 +20,12 @@ meta_img_props:
 ---
 ```
 
-Fields other than the template name are passed through to the template, so what
-a props block may contain depends on which template reads it. See
-[Templates](../../templates/).
+Colophon passes the remaining properties to the selected template. See
+[Templates](../../templates/) for the properties each template accepts.
 
 ## The title
 
-A props block that sets no `title` gets the post's own top-level one, so an
-image titled after its post needs nothing said twice:
+If the image props omit `title`, Colophon uses the post's top-level title:
 
 ```yaml
 ---
@@ -33,19 +35,17 @@ meta_img_props:
 ---
 ```
 
-That image is titled `Setting up continuous integration`. A `title` inside the
-props block is used ahead of it, and so is one from a [`props`
-mapper](#using-the-frontmatter-you-already-have).
+This image uses `Setting up continuous integration` as its title. A title in
+`meta_img_props` or returned by a [props mapper](#using-the-frontmatter-you-already-have)
+takes priority over the post's title.
 
-The fallback fills in a title for a post that is having an image drawn. It does
-not ask for one: a file with no props block and no mapper is skipped as before,
-whatever its title says. Templates that need no title, such as
-[`code`](../../code-template/), still render without one where the post has
-none either.
+A title alone does not request an image. Without a props block or mapper, the
+file is skipped. Templates such as [`code`](../../code-template/) can render
+without a title when both the post and image props omit it.
 
 ## Matching an existing convention
 
-Every part of that is configurable under `content`:
+Use `content` settings to change field names and file extensions:
 
 | Option            | Default               | What it names                                   |
 | ----------------- | --------------------- | ----------------------------------------------- |
@@ -59,15 +59,13 @@ Every part of that is configurable under `content`:
 
 `slugStrategy` is covered in [Output sizes and filenames](../sizes/).
 
-`content` lives in the config module rather than being a CLI flag because
-`props` is a function. `generate`'s `walk` option is the programmatic equivalent
-and takes precedence where both are given.
+Set `content` in the config module. When using the API, the equivalent
+`generate` option is `walk`. If both are supplied, `walk` takes precedence.
 
 ## Using the frontmatter you already have
 
-Posts usually carry the fields an image needs already, under names of their
-own. `props` maps them, so a site can render images from the frontmatter it has
-rather than adding a props block to every file:
+Use `content.props` to convert existing frontmatter fields into image props.
+This avoids adding `meta_img_props` to each post:
 
 ```ts
 export default defineConfig({
@@ -81,14 +79,13 @@ export default defineConfig({
 });
 ```
 
-A site set up this way gets its images without any post being edited. The title
-needs no mapping, since a post's own is used where nothing else sets one.
+The mapper supplies image props for each post. The post's title is used
+automatically when neither the mapper nor an explicit props block sets one.
 
 ### Returning `undefined` skips a post
 
-That is the filter for drafts, section indexes and anything else in the tree
-that is not a page worth sharing. Without it, mapping frontmatter means an image
-for every markdown file there is.
+Return `undefined` from the mapper to skip a post, such as a draft or section
+index.
 
 ### An explicit props block still wins, field by field
 
@@ -105,16 +102,13 @@ meta_img_props:
 
 The title still comes from the mapper, and only the subtitle is overridden.
 
-A post declaring a block is never skipped, even where the mapper would have
-skipped it. Asking for an image outright is the stronger signal.
+A post with an explicit props block is rendered even if the mapper returns
+`undefined` for it.
 
 ## Slugs from frontmatter
 
-A `slug` in frontmatter wins over whatever the slug strategy would have derived
-from the path, which is usually what you want for an SEO-friendly filename.
+A frontmatter `slug` overrides the slug derived from the file path.
 
-It has to stay inside the content tree. A derived slug cannot be absolute or
-contain `.` or `..` segments by construction, as it comes from a relative path.
-A hand-written frontmatter slug is validated and rejected if it is absolute or
-contains `.` or `..` segments. Slugs are resolved from the content root, so it
-takes fewer `..` segments to leave the tree than you might expect.
+Slugs must be relative paths without `.` or `..` segments. Colophon rejects
+frontmatter slugs that break these rules. Slugs containing directories are
+resolved from the content root.

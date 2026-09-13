@@ -1,10 +1,11 @@
+---
+description: Use the Colophon JSON manifest to look up generated image URLs and dimensions by page.
+---
+
 # Manifest
 
-A build that only writes images leaves the site to work out for itself what was
-generated, where it lives and how big it is, which usually means globbing for
-`*-og.png` to find the landscape variant, or hardcoding 1200 and 630 into the
-meta tags. All of that is known while the images are being generated, so
-pointing `manifest` at a file writes it down:
+A manifest is a JSON file listing each page's generated images and dimensions.
+Set `manifest` to the path your site will read:
 
 ```ts
 export default defineConfig({
@@ -37,9 +38,9 @@ export default defineConfig({
 }
 ```
 
-Every generator in scope reads JSON as native data. Hugo picks it up from
-`data/`, Astro imports it, Eleventy and Jekyll read `_data/`, and Zola has
-`load_data`. That makes the meta tags a lookup rather than a convention:
+Hugo reads JSON from `data/`, Astro can import it, and Eleventy and Jekyll
+read `_data/`. Zola provides `load_data`. Your site can look up each image's
+URL and dimensions in the manifest:
 
 ```ts
 const page = manifest.pages["blog/my-post"];
@@ -48,33 +49,27 @@ const image = page.images[page.widest];
 // <meta property="og:image:width" content={image.width}>
 ```
 
-[`metaTags`](../meta-tags/) will do that part for you.
+Use [`metaTags`](../meta-tags/) to generate image meta tags from these entries.
 
 ## What is in it
 
-- **Pages are keyed by slug**, which is what the site addresses a page by, and
-  under [`slugStrategy: "route"`](../sizes/#slug-strategies) is the route
-  itself. Two pages cannot share a key, and a build that would need them to
-  fails saying so, because a lookup returning the wrong post's image is worse
-  than no manifest at all.
-- **`widest`** names the most landscape image by aspect ratio, ties going to the
-  size configured first. It is what a `summary_large_image` card wants, and the
-  check every site currently writes for itself. Note that og (1200x630) and
-  square (1200x1200) are equally wide, so comparing widths would pick either.
-- **`url`** is absent where the placement knows none. See
-  [Placement](../placement/). The dimensions are always there.
-- **`alt`** comes from the props' title, and is absent for a page without one.
-- **[Extra images](../extra-images/) are not pages**, so they are not listed. A
-  project that named the output path of one already knows where it is.
+- Pages are keyed by slug. With
+  [`slugStrategy: "route"`](../sizes/#slug-strategies), the key is the page's
+  route. Duplicate keys cause a build error.
+- `widest` identifies the size with the highest width-to-height ratio. A tie
+  uses the size configured first. This selects the landscape variant even
+  when it has the same pixel width as a square variant.
+- `url` comes from [placement](../placement/) and is omitted if no URL is
+  available. Dimensions are always included.
+- `alt` comes from the image props' title and is omitted if there is no title.
+- [Extra images](../extra-images/) are excluded because they have no page slug.
 
 ## What it describes
 
-The manifest describes what exists, not what a given run did. A rebuild that
-skips every image still writes the whole thing, so a build over an unchanged
-tree still produces a complete record of the site.
+Every build writes a complete manifest, including images skipped because
+their rebuild stamps match. It describes the full set of current images.
 
-It is built from the planned work rather than the results, which is also why a
-duplicate slug fails before the tree is rendered rather than after.
+The manifest is prepared from the build plan. Duplicate slugs are detected
+before images are rendered.
 
-Pages and sizes are sorted and the JSON is indented, so a manifest committed to
-a repository changes only when the build does.
+Pages and sizes are sorted, and the JSON is indented for readable diffs.
